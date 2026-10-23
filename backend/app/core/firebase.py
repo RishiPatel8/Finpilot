@@ -4,16 +4,19 @@ import logging
 from typing import Dict, Any, Optional
 import firebase_admin
 from firebase_admin import auth as fb_auth, credentials
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 from app.core.config import settings
 
 logger = logging.getLogger("finpilot.firebase")
 
 _firebase_app: Optional[firebase_admin.App] = None
+_has_service_account: bool = False
 
 
 def get_firebase_app() -> Optional[firebase_admin.App]:
     """Initializes or retrieves the Firebase Admin App."""
-    global _firebase_app
+    global _firebase_app, _has_service_account
     if _firebase_app is not None:
         return _firebase_app
 
@@ -22,14 +25,17 @@ def get_firebase_app() -> Optional[firebase_admin.App]:
             if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
                 cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
                 _firebase_app = firebase_admin.initialize_app(cred)
+                _has_service_account = True
                 logger.info("Firebase Admin initialized via credentials file.")
             elif settings.FIREBASE_CREDENTIALS_JSON:
                 cred_dict = json.loads(settings.FIREBASE_CREDENTIALS_JSON)
                 cred = credentials.Certificate(cred_dict)
                 _firebase_app = firebase_admin.initialize_app(cred)
+                _has_service_account = True
                 logger.info("Firebase Admin initialized via JSON credentials string.")
             elif settings.FIREBASE_PROJECT_ID:
                 _firebase_app = firebase_admin.initialize_app(options={"projectId": settings.FIREBASE_PROJECT_ID})
+                _has_service_account = False
                 logger.info(f"Firebase Admin initialized with Project ID: {settings.FIREBASE_PROJECT_ID}")
         except Exception as e:
             logger.warning(f"Firebase Admin initialization deferred/failed: {e}")
@@ -44,7 +50,8 @@ def verify_firebase_id_token(id_token: str) -> Dict[str, Any]:
     """
     Verifies Firebase ID token server-side.
     Validates token signature, issuer, audience, expiry, and revocation.
-    Includes mock/test token handling for local test suite and offline environments.
+    Supports Service Account verification, Google Public Key token verification with Project ID,
+    and mock/test token handling for local test suite and offline environments.
     """
     if not id_token:
         raise ValueError("Firebase ID token cannot be empty.")
@@ -67,13 +74,30 @@ def verify_firebase_id_token(id_token: str) -> Dict[str, Any]:
             "firebase": {"sign_in_provider": "google.com"}
         }
 
-    app = get_firebase_app()
-    if not app:
-        raise ValueError("Firebase Admin is not configured. Set FIREBASE_PROJECT_ID or credentials.")
+    # Ensure Firebase App / Project ID is configured
+    get_firebase_app()
 
-    try:
-        decoded_token = fb_auth.verify_id_token(id_token, check_revoked=True, app=app)
-        return decoded_token
-    except Exception as e:
-        logger.error(f"Failed to verify Firebase ID token: {e}")
-        raise ValueError(f"Invalid or expired Firebase ID token: {str(e)}")
+    if _has_service_account:
+        try:
+            decoded_token = fb_auth.verify_id_token(id_token, check_revoked=True, app=_firebase_app)
+            return decoded_token
+        except Exception as e:
+            logger.error(f"Failed to verify Firebase ID token with Admin SDK: {e}")
+            raise ValueError(f"Invalid or expired Firebase ID token: {str(e)}")
+
+    if settings.FIREBASE_PROJECT_ID:
+        try:
+            req = google_requests.Request()
+            decoded_token = google_id_token.verify_firebase_token(
+                id_token, req, audience=settings.FIREBASE_PROJECT_ID
+            )
+            # Ensure UID is populated
+            if "uid" not in decoded_token and "sub" in decoded_token:
+                decoded_token["uid"] = decoded_token["sub"]
+            return decoded_token
+        except Exception as e:
+            logger.error(f"Failed to verify Firebase ID token via Google certificates: {e}")
+            raise ValueError(f"Invalid or expired Firebase ID token: {str(e)}")
+
+    raise ValueError("Firebase Admin is not configured. Set FIREBASE_PROJECT_ID or credentials.")
+
