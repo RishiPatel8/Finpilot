@@ -5,9 +5,12 @@ export interface User {
   email: string;
   full_name: string;
   role: UserRole;
+  auth_provider?: string;
+  firebase_uid?: string;
   is_active: boolean;
   created_at: string;
 }
+
 
 export interface FinancialHealthSummary {
   net_worth: number;
@@ -125,3 +128,37 @@ export interface ChatMessage {
     summary: string;
   }>;
 }
+
+export interface FinancialProfile {
+  id?: string;
+  user_id?: string;
+  age?: number;
+  dependents: number;
+  monthly_income: number;
+  monthly_expenses: number;
+  risk_tolerance: 'conservative' | 'moderate' | 'aggressive' | string;
+  emergency_fund_target_months: number;
+  tax_regime_preference: 'auto' | 'new' | 'old' | string;
+}
+
+export interface Liability {
+  id: string;
+  user_id: string;
+  name: string;
+  principal: number;
+  interest_rate: number;
+  monthly_emi: number;
+  tenure_months: number;
+  remaining_months: number;
+  created_at?: string;
+}
+
+export interface DebtRepaymentPlan {
+  total_debt_principal: number;
+  total_monthly_emi: number;
+  extra_payment_applied: number;
+  avalanche_priority: string[];
+  snowball_priority: string[];
+  strategy_recommendation: string;
+}
+

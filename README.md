@@ -1,146 +1,142 @@
 # FinPilot AI — Personal Finance Intelligence Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python: 3.14](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/)
+[![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-blue.svg)]()
+[![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React: 18](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org/)
-[![Tests: 44/44](https://img.shields.io/badge/Tests-44%20passed-brightgreen.svg)]()
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178C6.svg)](https://www.typescriptlang.org/)
+[![Tests: 47/47](https://img.shields.io/badge/Tests-47%20passed%20(100%25)-brightgreen.svg)]()
+[![DPDP Act 2023](https://img.shields.io/badge/Compliance-DPDP%20Act%202023-emerald.svg)]()
 
-FinPilot AI is an explainable personal finance intelligence platform for Indian users—including salaried professionals, freelancers, students, and small business owners. It combines deterministic financial engines (Indian Tax Old vs. New Regime, Cash Flow & Budgeting, Goal Planning, Decision Simulation, and Liquid Mutual Funds vs. Bonds vs. FDs) with a conversational AI assistant that provides calculation-grounded answers with citations to the Income Tax Act and SEBI/RBI regulations.
+FinPilot AI is an open-source, production-grade personal finance intelligence platform designed specifically for Indian users—including salaried professionals, freelancers, students, and small business owners. It combines deterministic financial engines (Indian Tax Old vs. New Regime, Cash Flow & Budgeting, Debt Payoff, Goal Planning, Decision Simulation, and Liquid Mutual Funds vs. Bonds vs. FDs) with a grounded AI assistant that operates strictly without model arithmetic hallucinations, citing official statutory sources (Income Tax Act 1961, SEBI, and RBI).
 
 ---
 
 ## Key Features
 
-1. **Firebase Authentication & Secure Identity**:
-   - Google Sign-In via Firebase Web SDK alongside traditional email/password authentication.
-   - Server-side verification via official Firebase Admin SDK (token signature, issuer, audience, and expiry).
-   - Strict explicit account linking: prevents automatic account takeover when a Google Sign-In matches an existing password account; returns `409 Conflict` requiring explicit password confirmation before linking.
-   - User ownership checks on every private endpoint; client user IDs are never trusted.
+1. **Deterministic Indian Tax Engine (AY 2025-26 & AY 2024-25)**:
+   - Slabs, Section 115BAC New Regime vs Old Regime, Section 87A rebate (₹0 tax up to ₹7.75L salary), standard deduction (₹75,000 / ₹50,000), 80C, 80D, HRA, home loan interest.
+   - Surcharge marginal relief calculations for high earners (> ₹50L) and Section 288B nearest ₹10 rounding off.
+   - 100% test-verified mathematical accuracy.
 
 2. **Financial Decision Simulator Engine**:
    - Reusable deterministic scenario simulator for major purchases (e.g. ₹8L-15L car purchase in 18 months), savings increases, and lifestyle cutbacks.
    - Compares 3 execution pathways: Balanced Down Payment + Auto Loan (preserving 3 months emergency runway), All-Cash Extended Horizon, and Budget Lifestyle Compression.
-   - Saves scenarios securely to user account with full parameter reproducibility.
+   - Saves scenarios securely to user account with strict user isolation.
 
-3. **Connected AI CFO**:
-   - Context-aware financial assistant with direct access to authorized user profile data (net income, living expenses, liquid savings).
-   - Tool calling to deterministic financial scenario engines, avoiding model arithmetic hallucination.
-   - Explains trade-offs across liquidity, debt interest, and goal delays.
-   - Cites official regulatory sources (SEBI Liquid Fund norms, RBI Auto Loan EMI guidelines, DICGC bank deposit insurance).
+3. **Connected AI CFO Assistant**:
+   - Context-aware financial assistant with access to authorized user financial profiles.
+   - Provider-agnostic adapter supporting local Ollama (`llama3`, `mistral`), Google Gemini (`gemini-1.5-flash`), and offline deterministic execution.
+   - Built-in prompt injection defense, authorized context injection, and regulatory citations.
 
-4. **Deterministic Indian Tax Planner**:
-   - Assessment Year 2025-26 (FY 2024-25 Budget 2024 revisions) & AY 2024-25 comparisons.
-   - Slabs, Section 115BAC New Regime vs Old Regime, Section 87A rebate, standard deduction (₹75,000 / ₹50,000), 80C, 80D, HRA, NPS 80CCD(1B), home loan interest.
-   - 100% test-verified mathematical accuracy with Section 288B rounding off.
+4. **Debt Management & Accelerated Payoff**:
+   - Interactive liability tracking: principal, annual interest rate %, tenure, and EMIs.
+   - Deterministic **Debt Avalanche** (mathematically optimal, highest interest first) vs **Debt Snowball** (psychological momentum, lowest balance first) prioritization.
+   - Extra monthly prepayment simulator.
 
-5. **Budgeting & Cash Flow Engine**:
+5. **Budgeting, 50-30-20 & CSV Statement Deduplication**:
    - Monthly cash flow analysis, savings rate, emergency reserve runway (3-12 months).
-   - CSV bank statement import with column mapping, duplicate detection, and preview.
-   - Debt repayment optimization (Avalanche vs Snowball).
+   - CSV bank statement import (HDFC, ICICI, SBI, Axis, Kotak) with column mapping, duplicate detection, and preview.
 
-6. **Investment Comparison & Goal Planning**:
-   - Liquid Mutual Funds vs Bonds vs Fixed Deposits suitability comparison (liquidity, credit risk, tax treatment under Section 50AA, interest rate sensitivity).
-   - Goal progress calculators: Emergency Fund, Car/Home Purchase, Higher Education, Retirement.
+6. **Investment Comparison & Goal SIP Planning**:
+   - Liquid Mutual Funds vs Bonds vs Fixed Deposits suitability comparison (liquidity, credit risk, tax treatment under Section 50AA).
+   - Inflation-adjusted Goal SIP planning with zero-return edge case resilience.
 
-7. **Unified Responsive Dashboard**:
-   - Real data persistence + one-click demo data mode.
-   - Interactive charts (Recharts), financial meters, and dark-mode UI.
+7. **First-Time User Onboarding & Profile Setup**:
+   - Guided 3-step interactive onboarding wizard: role, age, dependents, income, living expenses, emergency targets, and risk tolerance.
+   - Direct persistence into user financial profile.
+
+8. **Data Privacy, Portability & Account Deletion (DPDP Act 2023)**:
+   - Structured JSON data export (`/auth/export-data`) covering profile, transactions, debts, goals, and scenarios.
+   - Permanent account deletion (`DELETE /auth/me`) with cascaded database purge.
+
+9. **Production Database & Alembic Migrations**:
+   - PostgreSQL support with SQLAlchemy ORM and Alembic migration tracking.
+   - Zero destructive auto-schema changes; isolated SQLite support for local dev and testing.
+
+10. **Premium Fintech Light Design System**:
+    - `#F6F8FC` canvas, crisp `#FFFFFF` cards, `#6478E8` indigo brand accent, soft pastel badges (lavender, mint, blue, peach).
+    - Fully responsive on Desktop (1440px) and Mobile (390px).
 
 ---
 
 ## Quickstart
 
 ### Prerequisites
-- Node.js v18+ (tested with v24)
-- Python 3.12+ (tested with v3.14)
-- Docker & Docker Compose (optional for containerized run)
+- Node.js v18+ (tested with v20+)
+- Python 3.11+ (tested with v3.14)
+- Git
 
-### Running with Docker Compose
-```bash
-docker compose up --build
-```
-- Frontend: `http://localhost:5173`
-- Backend API Docs: `http://localhost:8000/docs`
+### Running Locally
 
-### Running Locally (Native Windows / Linux)
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-org/finpilot.git
+   cd finpilot
+   ```
 
-#### 1. Backend
-```powershell
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+2. **Backend Setup**:
+   ```bash
+   cd backend
+   python -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # Linux/macOS:
+   source .venv/bin/activate
 
-#### 2. Frontend
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+   pip install -r requirements.txt
+   cp ../.env.example .env
+   python -m alembic upgrade head
+   python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+3. **Frontend Setup**:
+   ```bash
+   cd ../frontend
+   npm install
+   npm run dev
+   ```
+   Open `http://localhost:5173` in your browser.
 
 ---
 
-## Running the Automated Test Suite
+## Running Tests
 
-Run all 44 unit, integration, and security tests:
-```powershell
-$env:PYTHONPATH="backend"; python -m pytest backend/tests -v
+### Backend Unit & Integration Tests (47/47 passing)
+```bash
+python -m pytest backend/tests/ -v
 ```
 
-Run frontend production build verification:
-```powershell
+### Frontend Typecheck & Production Build
+```bash
 cd frontend
 npm run build
 ```
 
 ---
 
-## Firebase Console Setup (Optional for Live Production)
+## Docker Compose Setup
 
-1. In [Firebase Console](https://console.firebase.google.com/), enable **Google** and **Email/Password** under Authentication.
-2. Add `localhost` and `127.0.0.1` to Authorized Domains.
-3. Place web app configuration in `frontend/.env`:
-   ```env
-   VITE_FIREBASE_API_KEY=your-api-key
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-   ```
-4. Place private key at `backend/firebase-service-account.json` or set `FIREBASE_CREDENTIALS_PATH`.
-*(Note: FinPilot AI includes offline mock fallback mode for zero-config local development and automated CI testing).*
+Run PostgreSQL, FastAPI backend, and Nginx frontend in isolated containers:
+```bash
+docker compose up -d
+```
+- Frontend: `http://localhost:5173`
+- Backend API & Swagger: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
 
 ---
 
-## Project Structure
+## Open-Source Community Guidelines
 
-```
-finpilot/
-├── backend/
-│   ├── app/
-│   │   ├── ai/            # AI CFO adapter, RAG knowledge retriever, tools
-│   │   ├── api/v1/        # REST endpoints (auth, scenarios, assistant, tax, etc.)
-│   │   ├── core/          # Security, PyJWT, Firebase Admin SDK integration
-│   │   ├── db/            # Database session & models
-│   │   ├── finance/       # Deterministic tax, budget, investment, scenario engines
-│   │   ├── models/        # SQLAlchemy 2.0 ORM models
-│   │   └── schemas/       # Pydantic v2 validation models
-│   └── tests/             # 38 pytest test cases
-├── frontend/
-│   ├── src/
-│   │   ├── components/    # Reusable UI, Sidebar, Navbar, AuthModal
-│   │   ├── features/      # Scenarios, Assistant, Tax, Investments, Budget, Goals
-│   │   └── services/      # Axios API client, Firebase Web SDK
-├── docs/                  # ARCHITECTURE, DECISIONS, PROJECT_STATUS, KNOWN_ISSUES
-├── docker-compose.yml     # Multi-container orchestration
-└── .env.example           # Safe environment variables template
-```
+- [Contributing Guidelines](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Project Status & Test Log](docs/PROJECT_STATUS.md)
 
-## Security & Privacy
-- Zero plaintext password storage (Bcrypt).
-- Firebase ID token server-side cryptographic verification via official Firebase Admin SDK.
-- Explicit account linking preventing silent account takeovers.
-- Strict user ownership validation on all private financial resources.
-- LLM prompts are sanitized; no sensitive credentials or financial records leaked to external providers.
+---
+
+## Recommended License
+
+FinPilot AI is open-source software. We recommend licensing under the **Apache License 2.0** (or **MIT License**), which allows broad community adoption and commercial use while protecting contributors.

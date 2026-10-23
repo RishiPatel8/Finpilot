@@ -94,6 +94,19 @@ class LiabilityResponse(LiabilityBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DebtRepaymentPlanRequest(BaseModel):
+    extra_monthly_payment: Decimal = Field(default=Decimal("0.00"))
+
+
+class DebtRepaymentPlanResponse(BaseModel):
+    total_debt_principal: Decimal
+    total_monthly_emi: Decimal
+    extra_payment_applied: Decimal
+    avalanche_priority: List[str]
+    snowball_priority: List[str]
+    strategy_recommendation: str
+
+
 class AssetHoldingBase(BaseModel):
     name: str
     category: str

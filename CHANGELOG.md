@@ -5,6 +5,35 @@ All notable changes to **FinPilot AI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-10-23
+
+### Open-Source Production Website Release
+- **Debt Management & Accelerated Payoff**:
+  - Implemented `/api/v1/liabilities` endpoint with CRUD operations and user isolation.
+  - Implemented `POST /api/v1/liabilities/repayment-plan` calculating deterministic **Debt Avalanche** vs **Debt Snowball** payoff priorities with extra prepayment simulations.
+  - Built interactive `DebtManagementView.tsx` with KPI summary cards, debt tracking table, and strategy comparisons.
+- **First-Time User Onboarding Flow**:
+  - Created `OnboardingModal.tsx` 3-step interactive setup wizard (Personal, Income/Expenses, Targets/Risk) guiding newly registered users into an active financial profile.
+- **Settings & Data Privacy (DPDP Act 2023 / GDPR)**:
+  - Built `SettingsView.tsx` with Financial Profile baseline editor and Account credentials overview.
+  - Implemented `GET /api/v1/auth/export-data` for structured JSON data portability.
+  - Implemented `DELETE /api/v1/auth/me` for permanent account deletion and database cascade purge.
+- **Ollama Local AI Provider Adapter**:
+  - Added `OllamaAIProvider` in `backend/app/ai/adapter.py` supporting local models (`llama3`, `mistral`) via HTTP API with automatic fallback to deterministic `MockAIProvider`.
+- **Database Migrations with Alembic**:
+  - Initialized Alembic configuration (`alembic.ini`, `alembic/env.py`) with automatic schema version tracking.
+  - Created initial migration `163b72f67602_initial_schema.py` creating all tables, indexes, and constraints.
+- **Security Headers Middleware**:
+  - Added `add_security_headers` middleware in `main.py` enforcing `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, and `Strict-Transport-Security`.
+- **Open-Source Repository Infrastructure**:
+  - Added `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md`.
+  - Added GitHub Actions CI workflow `.github/workflows/ci.yml`.
+  - Added GitHub issue templates for bug reports and feature requests, and pull request template.
+  - Multi-stage production `frontend/Dockerfile` with Nginx SPA configuration.
+- **Comprehensive Testing Suite**:
+  - Expanded backend test suite from 44 to **47 passed tests (100% pass rate in 13.48s)**.
+  - Verified 0 console errors and clean visual rendering across Desktop (1440x900) and Mobile (390x844).
+
 ## [1.1.1] - 2026-10-23
 
 ### Security & Financial Correctness Audit Fixes

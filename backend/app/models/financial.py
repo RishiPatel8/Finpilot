@@ -128,3 +128,5 @@ class ScenarioRecord(Base):
     input_data = Column(JSON, nullable=False)
     result_data = Column(JSON, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    user = relationship("User", back_populates="scenario_records")

@@ -2,20 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar, TabType } from './components/Sidebar';
 import { AuthModal } from './components/AuthModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { DashboardView } from './features/dashboard/DashboardView';
 import { TaxPlannerView } from './features/tax/TaxPlannerView';
 import { BudgetView } from './features/budget/BudgetView';
+import { DebtManagementView } from './features/debts/DebtManagementView';
 import { InvestmentsView } from './features/investments/InvestmentsView';
 import { GoalsView } from './features/goals/GoalsView';
 import { ScenarioSimulatorView } from './features/scenarios/ScenarioSimulatorView';
 import { AssistantView } from './features/assistant/AssistantView';
-import { apiRequest, getAuthToken, clearAuthToken, setAuthToken } from './services/api';
+import { SettingsView } from './features/settings/SettingsView';
+import { apiRequest, getAuthToken, clearAuthToken } from './services/api';
 import { User, FinancialHealthSummary, Transaction, FinancialGoal } from './types';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [user, setUser] = useState<User | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isDemoActive, setIsDemoActive] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -89,23 +93,75 @@ export const App: React.FC = () => {
 
   const handleSeedDemo = async () => {
     if (!user) {
-      try {
-        const email = `demo_${Date.now()}@finpilot.ai`;
-        const res = await apiRequest<{ access_token: string; user: User }>('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify({
-            email,
-            password: 'DemoPassword123!',
-            full_name: 'Aditya Verma (Demo Profile)',
-            role: 'salaried',
-          }),
-        });
-
-        setAuthToken(res.access_token);
-        setUser(res.user);
-      } catch (e) {
-        console.error('Demo registration fallback:', e);
-      }
+      // Isolated guest demo preview without creating real accounts in database
+      setIsDemoActive(true);
+      setSummary({
+        net_worth: 1845000,
+        total_assets: 2095000,
+        total_liabilities: 250000,
+        monthly_income: 145000,
+        monthly_expenses: 68000,
+        monthly_surplus: 77000,
+        savings_rate: 53.1,
+        emergency_fund_current: 318500,
+        emergency_fund_target: 408000,
+        emergency_fund_months: 4.7,
+      });
+      setRecentTxns([
+        {
+          id: 'demo-1',
+          date: new Date().toISOString().slice(0, 10),
+          amount: 145000,
+          type: 'income',
+          category: 'Income',
+          description: 'Monthly Tech Salary Credit',
+          source: 'manual',
+          is_recurring: true,
+        },
+        {
+          id: 'demo-2',
+          date: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10),
+          amount: 32000,
+          type: 'expense',
+          category: 'Housing',
+          description: 'HDFC Home Loan EMI',
+          source: 'manual',
+          is_recurring: true,
+        },
+        {
+          id: 'demo-3',
+          date: new Date(Date.now() - 86400000 * 4).toISOString().slice(0, 10),
+          amount: 8500,
+          type: 'expense',
+          category: 'Food & Dining',
+          description: 'Supermarket & Groceries',
+          source: 'manual',
+          is_recurring: false,
+        },
+      ]);
+      setGoals([
+        {
+          id: 'demo-g1',
+          name: 'Emergency Reserve',
+          category: 'emergency_fund',
+          target_amount: 408000,
+          current_amount: 318500,
+          target_date: '2026-12-31',
+          progress_pct: 78.1,
+          monthly_required: 12500,
+        },
+        {
+          id: 'demo-g2',
+          name: 'EV Car Purchase',
+          category: 'custom',
+          target_amount: 800000,
+          current_amount: 350000,
+          target_date: '2027-06-30',
+          progress_pct: 43.8,
+          monthly_required: 22000,
+        },
+      ]);
+      return;
     }
 
     try {
@@ -121,6 +177,7 @@ export const App: React.FC = () => {
     clearAuthToken();
     setUser(null);
     setIsDemoActive(false);
+    setActiveTab('overview');
     fetchData();
   };
 
@@ -136,6 +193,7 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMobileMenuOpen={isMobileMenuOpen}
+        onSelectTab={(tab) => setActiveTab(tab)}
       />
 
       {/* Main Container */}
@@ -170,10 +228,18 @@ export const App: React.FC = () => {
                 monthlyExpenses={summary?.monthly_expenses || 68000}
               />
             )}
+            {activeTab === 'debts' && <DebtManagementView />}
             {activeTab === 'tax' && <TaxPlannerView />}
             {activeTab === 'investments' && <InvestmentsView />}
             {activeTab === 'goals' && (
               <GoalsView goals={goals} onRefresh={fetchData} />
+            )}
+            {activeTab === 'settings' && (
+              <SettingsView
+                user={user}
+                onProfileUpdated={fetchData}
+                onLogout={handleLogout}
+              />
             )}
           </div>
         </main>
@@ -186,6 +252,18 @@ export const App: React.FC = () => {
         onSuccess={(u) => {
           setUser(u);
           setIsAuthOpen(false);
+          setIsOnboardingOpen(true);
+          fetchData();
+        }}
+      />
+
+      {/* Onboarding Setup Modal for New Users */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        user={user}
+        onClose={() => setIsOnboardingOpen(false)}
+        onComplete={() => {
+          setIsOnboardingOpen(false);
           fetchData();
         }}
       />

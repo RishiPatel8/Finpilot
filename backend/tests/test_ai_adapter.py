@@ -44,3 +44,13 @@ def test_mock_ai_provider_goal_intent():
 def test_get_ai_provider_default():
     provider = get_ai_provider()
     assert isinstance(provider, MockAIProvider)
+
+
+def test_ollama_provider_graceful_fallback(monkeypatch):
+    from app.ai.adapter import OllamaAIProvider
+    # When Ollama endpoint is offline/unreachable, gracefully falls back to deterministic MockAIProvider
+    provider = OllamaAIProvider(base_url="http://localhost:99999", model_name="llama3")
+    res = provider.generate_response("Compare tax for 15 LPA salary in new regime vs old regime")
+    assert "Tax Analysis" in res["content"]
+    assert len(res["citations"]) > 0
+

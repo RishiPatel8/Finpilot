@@ -64,3 +64,16 @@ docker_data/
 *~
 .DS_Store
 Thumbs.db
+
+# Secrets & Service Accounts
+serviceAccountKey.json
+firebase-credentials.json
+*.pem
+*.key
+*.cert
+*.p12
+
+# Raw CSV Data
+*.csv
+!test_*.csv
+

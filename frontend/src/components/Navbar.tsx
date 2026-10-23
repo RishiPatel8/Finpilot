@@ -1,5 +1,4 @@
-import React from 'react';
-import { User as UserIcon, LogOut, Database, Sparkles, Menu, X, ShieldCheck } from 'lucide-react';
+import { User as UserIcon, LogOut, Database, Sparkles, Menu, X, ShieldCheck, Settings } from 'lucide-react';
 import { User } from '../types';
 import { Badge, Button } from './ui';
 
@@ -12,6 +11,7 @@ interface NavbarProps {
   activeTab: string;
   onToggleMobileMenu?: () => void;
   isMobileMenuOpen?: boolean;
+  onSelectTab?: (tab: any) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onToggleMobileMenu,
   isMobileMenuOpen = false,
+  onSelectTab,
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#E6EAF0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between transition-colors">
@@ -80,7 +81,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {user ? (
           <div className="flex items-center gap-2.5 pl-2 border-l border-[#E6EAF0]">
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => onSelectTab && onSelectTab('settings')}
+              className="flex items-center gap-2 hover:opacity-85 transition-opacity text-left"
+              title="View Account Settings & Financial Profile"
+            >
               <div className="w-8 h-8 rounded-full bg-[#EEF0FF] border border-[#6478E8]/30 flex items-center justify-center text-[#6478E8] font-bold text-xs">
                 {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
               </div>
@@ -92,7 +97,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {user.role}
                 </p>
               </div>
-            </div>
+            </button>
+            <button
+              onClick={() => onSelectTab && onSelectTab('settings')}
+              className={`p-1.5 rounded-xl transition-colors ${
+                activeTab === 'settings'
+                  ? 'text-[#6478E8] bg-[#EEF0FF]'
+                  : 'text-[#697386] hover:text-[#172033] hover:bg-[#F6F8FC]'
+              }`}
+              title="Account Settings & Privacy"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
             <button
               onClick={onLogout}
               className="p-1.5 text-[#697386] hover:text-[#D9485F] hover:bg-[#FDF2F4] rounded-xl transition-colors"
@@ -101,6 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <LogOut className="w-4 h-4" />
             </button>
           </div>
+
         ) : (
           <Button
             variant="primary"

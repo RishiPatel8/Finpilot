@@ -325,8 +325,54 @@ class GeminiAIProvider(BaseAIProvider):
             return self.fallback.generate_response(query, chat_history, user_context)
 
 
+class OllamaAIProvider(BaseAIProvider):
+    """
+    Adapter for local Ollama instances (e.g. llama3, mistral, deepseek-r1) via HTTP API
+    with automatic fallback to deterministic MockAIProvider if Ollama is unreachable.
+    """
+    def __init__(self, base_url: str = "http://localhost:11434", model_name: str = "llama3"):
+        self.base_url = base_url.rstrip("/")
+        self.model_name = model_name
+        self.fallback = MockAIProvider()
+
+    def generate_response(
+        self,
+        query: str,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        user_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        try:
+            import httpx
+            context_str = f"User Financial Context: {user_context}" if user_context else ""
+            prompt = (
+                f"You are FinPilot AI, a Senior Indian Personal Finance CFO.\n{context_str}\n"
+                f"User Question: {query}\n"
+                "Ground all numbers in official Indian Income Tax Act 1961 rules and SEBI/RBI regulations. "
+                "Never invent returns or arithmetic."
+            )
+            with httpx.Client(timeout=10.0) as client:
+                res = client.post(
+                    f"{self.base_url}/api/generate",
+                    json={"model": self.model_name, "prompt": prompt, "stream": False}
+                )
+                if res.status_code == 200:
+                    data = res.json()
+                    return {
+                        "content": data.get("response", ""),
+                        "citations": ["Finance Act 2024", "Income Tax Act 1961"],
+                        "tool_invocations": []
+                    }
+        except Exception as e:
+            logger.warning(f"Ollama API call failed ({e}), falling back to offline deterministic MockAIProvider.")
+
+        return self.fallback.generate_response(query, chat_history, user_context)
+
+
 def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
     if provider == "gemini" and settings.LLM_API_KEY:
         return GeminiAIProvider(api_key=settings.LLM_API_KEY, model_name=settings.LLM_MODEL)
+    elif provider == "ollama":
+        return OllamaAIProvider(base_url=settings.OLLAMA_BASE_URL, model_name=settings.LLM_MODEL)
     return MockAIProvider()
+

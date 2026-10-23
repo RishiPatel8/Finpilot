@@ -193,3 +193,121 @@ def link_firebase_account(
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+
+@router.get("/export-data")
+def export_user_data(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Exports all personal and financial data owned by the authenticated user
+    in structured JSON format for user data portability and privacy compliance.
+    """
+    profile_data = None
+    if current_user.profile:
+        profile_data = {
+            "age": current_user.profile.age,
+            "dependents": current_user.profile.dependents,
+            "monthly_income": float(current_user.profile.monthly_income),
+            "monthly_expenses": float(current_user.profile.monthly_expenses),
+            "risk_tolerance": current_user.profile.risk_tolerance,
+            "emergency_fund_target_months": current_user.profile.emergency_fund_target_months,
+            "tax_regime_preference": current_user.profile.tax_regime_preference,
+        }
+
+    transactions_data = [
+        {
+            "id": t.id,
+            "date": t.date.isoformat(),
+            "amount": float(t.amount),
+            "type": t.type,
+            "category": t.category,
+            "description": t.description,
+            "source": t.source,
+            "is_recurring": t.is_recurring,
+        }
+        for t in current_user.transactions
+    ]
+
+    liabilities_data = [
+        {
+            "id": l.id,
+            "name": l.name,
+            "principal": float(l.principal),
+            "interest_rate": float(l.interest_rate),
+            "monthly_emi": float(l.monthly_emi),
+            "tenure_months": l.tenure_months,
+            "remaining_months": l.remaining_months,
+        }
+        for l in current_user.liabilities
+    ]
+
+    assets_data = [
+        {
+            "id": a.id,
+            "name": a.name,
+            "category": a.category,
+            "invested_value": float(a.invested_value),
+            "current_value": float(a.current_value),
+            "expected_return_rate": float(a.expected_return_rate),
+            "liquidity_days": a.liquidity_days,
+        }
+        for a in current_user.assets
+    ]
+
+    goals_data = [
+        {
+            "id": g.id,
+            "name": g.name,
+            "category": g.category,
+            "target_amount": float(g.target_amount),
+            "current_amount": float(g.current_amount),
+            "target_date": g.target_date.isoformat(),
+            "priority": g.priority,
+        }
+        for g in current_user.goals
+    ]
+
+    scenarios_data = [
+        {
+            "id": s.id,
+            "title": s.title,
+            "scenario_type": s.scenario_type,
+            "input_data": s.input_data,
+            "result_data": s.result_data,
+            "created_at": s.created_at.isoformat(),
+        }
+        for s in (current_user.scenario_records or [])
+    ]
+
+    return {
+        "export_timestamp": current_user.created_at.isoformat(),
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "full_name": current_user.full_name,
+            "role": current_user.role,
+            "auth_provider": current_user.auth_provider,
+            "created_at": current_user.created_at.isoformat(),
+        },
+        "financial_profile": profile_data,
+        "transactions": transactions_data,
+        "liabilities": liabilities_data,
+        "assets": assets_data,
+        "goals": goals_data,
+        "saved_scenarios": scenarios_data,
+    }
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permanently deletes user account and all cascaded personal and financial records.
+    """
+    db.delete(current_user)
+    db.commit()
+

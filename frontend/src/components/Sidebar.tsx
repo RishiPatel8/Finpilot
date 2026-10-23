@@ -8,10 +8,12 @@ import {
   BotMessageSquare,
   ShieldCheck,
   SlidersHorizontal,
+  CreditCard,
+  Settings,
 } from 'lucide-react';
 import { Badge } from './ui';
 
-export type TabType = 'overview' | 'tax' | 'budget' | 'investments' | 'goals' | 'scenarios' | 'assistant';
+export type TabType = 'overview' | 'tax' | 'budget' | 'debts' | 'investments' | 'goals' | 'scenarios' | 'assistant' | 'settings';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -31,9 +33,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'scenarios' as TabType, label: 'Decision Simulator', icon: SlidersHorizontal, badge: 'Flagship' },
     { id: 'assistant' as TabType, label: 'AI CFO Assistant', icon: BotMessageSquare, badge: 'RAG' },
     { id: 'budget' as TabType, label: 'Budget & CSV', icon: Wallet, badge: null },
+    { id: 'debts' as TabType, label: 'Debt Payoff', icon: CreditCard, badge: 'Avalanche' },
     { id: 'tax' as TabType, label: 'Tax Planning', icon: ReceiptIndianRupee, badge: 'AY 25-26' },
     { id: 'investments' as TabType, label: 'Investments', icon: TrendingUp, badge: 'Liquid vs Bonds' },
     { id: 'goals' as TabType, label: 'Financial Goals', icon: Target, badge: null },
+    { id: 'settings' as TabType, label: 'Settings & Privacy', icon: Settings, badge: null },
   ];
 
   const handleNavClick = (tab: TabType) => {
