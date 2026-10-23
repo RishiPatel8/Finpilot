@@ -56,3 +56,16 @@ def test_firebase_explicit_account_linking_protection(client):
 def test_firebase_invalid_token_rejected(client):
     res = client.post("/api/v1/auth/firebase-login", json={"id_token": ""})
     assert res.status_code == 401
+
+
+def test_firebase_mock_token_rejected_in_production(client, monkeypatch):
+    """Verify mock tokens are strictly blocked when ENVIRONMENT is production."""
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    
+    res = client.post("/api/v1/auth/firebase-login", json={
+        "id_token": "mock-firebase:prod_attacker:victim@example.com"
+    })
+    assert res.status_code == 401
+    assert "Mock authentication tokens are strictly prohibited in production mode" in res.json()["detail"]
+

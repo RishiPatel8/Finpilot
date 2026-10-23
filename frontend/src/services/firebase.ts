@@ -36,8 +36,12 @@ export const googleProvider = new GoogleAuthProvider();
 
 export const signInWithGoogle = async (): Promise<string> => {
   if (!auth) {
-    // Development fallback when Firebase credentials are not yet configured in .env
-    // Returns a safe test mock token supported by backend
+    if (import.meta.env.PROD) {
+      throw new Error(
+        "Firebase Authentication is not configured for production. Please configure VITE_FIREBASE_* environment variables in your deployment environment."
+      );
+    }
+    // Development fallback when Firebase credentials are not yet configured in local .env
     const mockEmail = `google_user_${Math.floor(Math.random() * 900 + 100)}@gmail.com`;
     return `mock-firebase:g_${Date.now()}:${mockEmail}:Google Explorer`;
   }

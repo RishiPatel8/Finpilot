@@ -11,9 +11,11 @@
      - In **Project Settings > Service accounts**, generate a new private key and place it at `backend/firebase-service-account.json` or set `FIREBASE_CREDENTIALS_PATH`.
    - *Offline / Zero-Config Dev Mode*: Both frontend and backend feature a built-in mock fallback for offline automated testing and local preview without external credentials.
 
-2. **Host Docker Daemon Status**:
-   - The host system has Docker CLI installed, but the Docker Desktop daemon service is currently stopped on Windows.
-   - *Mitigation*: Both `docker-compose.yml` and native local development configurations (Python 3.14 + SQLite + Vite dev server) are provided so the application runs and tests reliably in both containerized and direct host environments.
+2. **Host Docker Desktop WSL2 Filesystem Status**:
+   - Docker Desktop is running on the host (Server Version 29.7.2). During `docker compose build`, the underlying WSL2 containerd snapshotter encountered `commit failed: write /var/lib/desktop-containerd/daemon/io.containerd.snapshotter.v1.overlayfs/metadata.db: read-only file system`.
+   - *Cause*: The WSL2 Linux engine virtual disk was mounted in read-only mode by the host OS.
+   - *Remediation*: Running `wsl --shutdown` in an administrative shell and restarting Docker Desktop resets the mount to read-write.
+   - *Continuous Reliability*: The native Python 3.14 + SQLite backend and Vite frontend run all 44 unit/integration tests and production builds with zero Docker dependencies.
 
 3. **External LLM Provider Credentials**:
    - Optional: set `GEMINI_API_KEY` in `backend/.env` to use Google Gemini 2.5 Flash.

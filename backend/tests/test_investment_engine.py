@@ -45,3 +45,20 @@ def test_goal_projection_inflation_adjustment():
     assert res.inflation_adjusted_target > res.nominal_target_amount
     assert res.required_monthly_sip > Decimal("0.00")
     assert len(res.breakdown_by_year) == 2
+
+
+def test_goal_projection_zero_return_edge_case():
+    """Verify that expected return of 0% does not trigger division by zero."""
+    req = GoalProjectionRequest(
+        goal_name="Cash Goal",
+        target_amount=Decimal("120000.00"),
+        current_amount=Decimal("0.00"),
+        time_horizon_months=12,
+        expected_annual_return_pct=Decimal("0.0"),
+        expected_annual_inflation_pct=Decimal("0.0"),
+        adjust_for_inflation=False
+    )
+    res = InvestmentEngine.project_goal(req)
+    assert res.required_monthly_sip == Decimal("10000.00")
+    assert res.projected_wealth_gain == Decimal("0.00")
+

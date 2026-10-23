@@ -330,22 +330,31 @@ class IndianTaxEngine:
         if taxable_income <= Decimal("10000000"):
             rate = Decimal("10.0")
             threshold = Decimal("5000000")
+            prev_surcharge_rate = Decimal("0.0")
         elif taxable_income <= Decimal("20000000"):
             rate = Decimal("15.0")
             threshold = Decimal("10000000")
+            prev_surcharge_rate = Decimal("10.0")
         elif taxable_income <= Decimal("50000000"):
             rate = min(Decimal("25.0"), max_rate)
             threshold = Decimal("20000000")
+            prev_surcharge_rate = Decimal("15.0")
         else:
             rate = min(Decimal("37.0"), max_rate)
             threshold = Decimal("50000000")
+            prev_surcharge_rate = min(Decimal("25.0"), max_rate)
 
         nominal_surcharge = (tax_amount * rate) / Decimal("100.0")
         
-        # Marginal relief on surcharge:
-        # Total payable (tax + surcharge) cannot exceed (Tax on threshold + excess income over threshold)
+        # Statutory Marginal Relief on Surcharge:
+        # Total amount payable as tax + surcharge cannot exceed:
+        # (Tax at threshold + Surcharge at threshold) + (Taxable income - threshold)
         excess_income = taxable_income - threshold
-        if nominal_surcharge > excess_income:
-            nominal_surcharge = max(Decimal("0.00"), excess_income)
+        tax_at_threshold = tax_amount - (excess_income * Decimal("0.30"))
+        surcharge_at_threshold = (tax_at_threshold * prev_surcharge_rate) / Decimal("100.0")
+        max_payable = tax_at_threshold + surcharge_at_threshold + excess_income
+
+        if (tax_amount + nominal_surcharge) > max_payable:
+            nominal_surcharge = max(Decimal("0.00"), max_payable - tax_amount)
 
         return nominal_surcharge

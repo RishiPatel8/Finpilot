@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: str = ""
     FIREBASE_CREDENTIALS_JSON: str = ""
     FIREBASE_CREDENTIALS_PATH: str = ""
+    ALLOW_MOCK_FIREBASE: bool = True  # Strictly ignored and rejected if ENVIRONMENT == 'production'
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -177,6 +177,8 @@ class InvestmentEngine:
         # Formula: SIP = Target * i / [((1 + i)^n - 1) * (1 + i)]
         if remaining_target == Decimal("0.00") or n == 0:
             monthly_sip = Decimal("0.00")
+        elif monthly_rate == Decimal("0.00"):
+            monthly_sip = (remaining_target / Decimal(str(n))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         else:
             compound_factor = ((Decimal("1.0") + monthly_rate) ** n) - Decimal("1.0")
             monthly_sip = (remaining_target * monthly_rate / (compound_factor * (Decimal("1.0") + monthly_rate))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

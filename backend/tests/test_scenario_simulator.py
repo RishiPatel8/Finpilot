@@ -73,3 +73,52 @@ def test_scenarios_api_endpoint(client):
     data = res.json()
     assert "summary_verdict" in data
     assert len(data["alternative_options"]) > 0
+
+
+def test_scenario_persistence_and_user_isolation(client):
+    """Verify saved scenarios persist and cannot be accessed or deleted by another user."""
+    # 1. Register User A
+    user_a = client.post("/api/v1/auth/register", json={
+        "email": "user_alpha_test@example.com",
+        "full_name": "User Alpha",
+        "password": "Password123!",
+        "role": "salaried"
+    }).json()
+    token_a = user_a["access_token"]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    # 2. User A saves a scenario
+    save_res = client.post("/api/v1/scenarios/save", json={
+        "title": "Alpha Car Goal",
+        "scenario_type": "major_purchase",
+        "input_data": {"target": 800000},
+        "result_data": {"feasible": True}
+    }, headers=headers_a)
+    assert save_res.status_code == 201
+    scenario_id = save_res.json()["id"]
+
+    # Verify User A can list it
+    list_a = client.get("/api/v1/scenarios", headers=headers_a)
+    assert list_a.status_code == 200
+    assert len(list_a.json()) == 1
+    assert list_a.json()[0]["id"] == scenario_id
+
+    # 3. Register User B
+    user_b = client.post("/api/v1/auth/register", json={
+        "email": "user_beta_test@example.com",
+        "full_name": "User Beta",
+        "password": "Password123!",
+        "role": "salaried"
+    }).json()
+    token_b = user_b["access_token"]
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    # 4. User B checks saved scenarios -> MUST BE EMPTY (isolation verified!)
+    list_b = client.get("/api/v1/scenarios", headers=headers_b)
+    assert list_b.status_code == 200
+    assert len(list_b.json()) == 0
+
+    # 5. User B tries to delete User A's scenario -> MUST BE 404 NOT FOUND
+    del_res = client.delete(f"/api/v1/scenarios/{scenario_id}", headers=headers_b)
+    assert del_res.status_code == 404
+

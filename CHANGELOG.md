@@ -5,6 +5,29 @@ All notable changes to **FinPilot AI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-10-23
+
+### Security & Financial Correctness Audit Fixes
+- **Production Mock Token Shield**:
+  - Gated mock Firebase tokens in `backend/app/core/firebase.py` so they are strictly prohibited when `ENVIRONMENT == "production"` or when `ALLOW_MOCK_FIREBASE` is disabled.
+  - Added production guard in `frontend/src/services/firebase.ts` throwing explicit configuration exceptions rather than generating mock tokens.
+  - Added regression test `test_firebase_mock_token_rejected_in_production`.
+- **Surcharge Marginal Relief Precision**:
+  - Corrected marginal relief formula in `backend/app/finance/tax/engine.py` for high-earning taxpayers exceeding surcharge thresholds (₹50L, ₹1Cr, ₹2Cr, ₹5Cr).
+  - Enforced statutory constraint: `Total tax + surcharge <= (Tax at threshold + Surcharge at threshold) + Excess income`.
+  - Added test fixture `test_surcharge_marginal_relief_high_income`.
+- **Goal SIP Zero-Return Protection**:
+  - Fixed `ZeroDivisionError` edge case in `backend/app/finance/investments/engine.py` when expected return is 0%, falling back to straight linear division.
+  - Added test fixture `test_goal_projection_zero_return_edge_case`.
+- **AI CFO Adversarial Prompt Defense & Context Disclosure**:
+  - Implemented prompt injection / jailbreak protection neutralizing attempts to leak system instructions.
+  - Added transparent baseline disclosure distinguishing estimated benchmarks from authenticated user profile records.
+  - Added tests `test_connected_ai_cfo_prompt_injection_defense` and `test_connected_ai_cfo_missing_info_estimation_disclosure`.
+- **Scenario Persistence & User Data Isolation**:
+  - Verified scenario save and list endpoints with user ownership isolation.
+  - Added test fixture `test_scenario_persistence_and_user_isolation`.
+  - Overall test suite expanded to **44/44 passing tests (100% pass rate in 4.53s)**.
+
 ## [1.1.0] - 2026-10-23
 
 ### Added

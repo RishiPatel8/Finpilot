@@ -5,7 +5,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React: 18](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org/)
-[![Tests: 38/38](https://img.shields.io/badge/Tests-38%20passed-brightgreen.svg)]()
+[![Tests: 44/44](https://img.shields.io/badge/Tests-44%20passed-brightgreen.svg)]()
 
 FinPilot AI is an explainable personal finance intelligence platform for Indian users—including salaried professionals, freelancers, students, and small business owners. It combines deterministic financial engines (Indian Tax Old vs. New Regime, Cash Flow & Budgeting, Goal Planning, Decision Simulation, and Liquid Mutual Funds vs. Bonds vs. FDs) with a conversational AI assistant that provides calculation-grounded answers with citations to the Income Tax Act and SEBI/RBI regulations.
 
@@ -86,7 +86,7 @@ npm run dev
 
 ## Running the Automated Test Suite
 
-Run all 38 unit, integration, and security tests:
+Run all 44 unit, integration, and security tests:
 ```powershell
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -v
 ```

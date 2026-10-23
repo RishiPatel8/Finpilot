@@ -108,3 +108,19 @@ def test_section_288b_rounding():
     assert round_to_nearest_ten(Decimal("1054.4")) == Decimal("1050")
     assert round_to_nearest_ten(Decimal("1055.0")) == Decimal("1060")
     assert round_to_nearest_ten(Decimal("1058.9")) == Decimal("1060")
+
+
+def test_surcharge_marginal_relief_high_income():
+    """Verify statutory marginal relief on surcharge when income just exceeds ₹50 Lakhs."""
+    inp = TaxCalculationInput(
+        assessment_year="2025-26",
+        taxpayer_type="freelancer",
+        other_income=Decimal("5100000.00")
+    )
+    res = IndianTaxEngine.calculate_new_regime(inp)
+    assert res.taxable_income == Decimal("5100000.00")
+    assert res.tax_on_income == Decimal("1220000.00")
+    # Surcharge capped by marginal relief at 70,000 instead of nominal 1,22,000
+    assert res.surcharge == Decimal("70000.00")
+    assert (res.tax_after_rebate + res.surcharge) == Decimal("1290000.00")
+

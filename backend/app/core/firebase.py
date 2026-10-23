@@ -51,6 +51,9 @@ def verify_firebase_id_token(id_token: str) -> Dict[str, Any]:
 
     # Test / Mock Token Handling for CI and Offline Development
     if id_token.startswith("mock-firebase:"):
+        if settings.ENVIRONMENT.lower() == "production" or not settings.ALLOW_MOCK_FIREBASE:
+            logger.error("Security violation: Mock Firebase tokens are rejected in production or when ALLOW_MOCK_FIREBASE is False.")
+            raise ValueError("Mock authentication tokens are strictly prohibited in production mode.")
         # Format: mock-firebase:UID:EMAIL:NAME
         parts = id_token.split(":")
         uid = parts[1] if len(parts) > 1 else "mock_uid_123"

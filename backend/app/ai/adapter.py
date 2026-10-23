@@ -39,13 +39,23 @@ class MockAIProvider(BaseAIProvider):
         tool_results = []
         citations = []
         ctx = user_context or {}
+        if any(p in q for p in ["ignore all previous", "ignore previous instructions", "system prompt", "reveal your instructions", "bypass rules", "forget your rules"]):
+            return {
+                "content": (
+                    "I am FinPilot AI's Connected Financial Planning Assistant. "
+                    "I operate strictly within authorized personal finance planning guidelines, Indian Income Tax Act rules, and SEBI/RBI statutory regulations. "
+                    "How can I help you analyze your budget, optimize your taxes, compare investment instruments, or simulate a financial purchase today?"
+                ),
+                "citations": ["FinPilot AI Security & Grounding Policy"],
+                "tool_invocations": []
+            }
 
-        # 1. RAG Knowledge Retrieval
+        # 2. RAG Knowledge Retrieval
         retrieved_docs = KnowledgeRetriever.search(query, top_k=2)
         for doc in retrieved_docs:
             citations.append(f"{doc['title']} ({doc['citation']})")
 
-        # 2. Extract multi-variable scenario parameters (merging user input with authenticated context)
+        # 3. Extract multi-variable scenario parameters (merging user input with authenticated context)
         extracted_income = self._extract_amount_after_keywords(q, ["earn", "salary", "income"])
         extracted_expenses = self._extract_amount_after_keywords(q, ["spend", "expense", "expenses", "cost"])
         extracted_savings = self._extract_amount_after_keywords(q, ["savings", "saved", "have", "reserve"])
@@ -53,9 +63,11 @@ class MockAIProvider(BaseAIProvider):
         extracted_target = self._extract_amount_after_keywords(q, ["buy", "purchase", "car", "house", "target", "cost of"])
 
         # Fallback to authenticated user context where authorized
+        income_source = "user prompt" if extracted_income else ("profile context" if ctx.get("monthly_income") else "default estimate")
         income = extracted_income or ctx.get("monthly_income") or 60000.0
         expenses = extracted_expenses or ctx.get("monthly_expenses") or 35000.0
         savings = extracted_savings or ctx.get("current_savings") or 200000.0
+        is_estimated_context = income_source == "default estimate"
 
         # Scenario: Major Purchase / "What are my options" (e.g. Car purchase in 18 months)
         if any(w in q for w in ["car", "buy a", "options", "purchase", "afford"]) and ("month" in q or "year" in q or extracted_months):
@@ -81,11 +93,15 @@ class MockAIProvider(BaseAIProvider):
 
             content = (
                 f"### AI CFO Strategic Financial Assessment\n\n"
-                f"**Baseline Financial Diagnostics (Authenticated Context)**:\n"
+                f"**Baseline Financial Diagnostics ({'Estimated Benchmark' if is_estimated_context else 'Authenticated Profile Context'})**:\n"
                 f"- **Monthly Net Income**: ₹{income:,.0f}\n"
                 f"- **Monthly Living Expenses**: ₹{expenses:,.0f}\n"
                 f"- **Current Net Monthly Surplus**: **₹{res['baseline_surplus']:,.0f} / month**\n"
                 f"- **Existing Liquid Savings**: **₹{savings:,.0f}** ({res['baseline_runway_months']:.1f} months essential runway)\n\n"
+            )
+            if is_estimated_context:
+                content += "*(Note: Baseline figures were estimated using standard benchmarks because no profile data was found. Set up your Profile or include your income/expenses in your prompt for personalized accuracy.)*\n\n"
+            content += (
                 f"**Direct Feasibility Assessment**:\n"
                 f"{res['summary_verdict']}\n\n"
                 f"**Your 3 Strategic Options**:\n"
