@@ -10,10 +10,11 @@ import {
   SlidersHorizontal,
   CreditCard,
   Settings,
+  Landmark,
 } from 'lucide-react';
 import { Badge } from './ui';
 
-export type TabType = 'overview' | 'tax' | 'budget' | 'debts' | 'investments' | 'goals' | 'scenarios' | 'assistant' | 'settings';
+export type TabType = 'overview' | 'bank' | 'tax' | 'budget' | 'debts' | 'investments' | 'goals' | 'scenarios' | 'assistant' | 'settings';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'overview' as TabType, label: 'Financial Overview', icon: LayoutDashboard, badge: null },
+    { id: 'bank' as TabType, label: 'Bank Accounts', icon: Landmark, badge: 'AA Sync' },
     { id: 'scenarios' as TabType, label: 'Decision Simulator', icon: SlidersHorizontal, badge: 'Flagship' },
     { id: 'assistant' as TabType, label: 'AI CFO Assistant', icon: BotMessageSquare, badge: 'RAG' },
     { id: 'budget' as TabType, label: 'Budget & CSV', icon: Wallet, badge: null },

@@ -6,7 +6,13 @@ from app.models.financial import (
     AssetHolding,
     FinancialGoal,
     TaxRecord,
-    ChatMessage
+    ChatMessage,
+    ScenarioRecord,
+)
+from app.models.bank import (
+    BankConsent,
+    BankAccount,
+    BankSyncLog,
 )
 
 __all__ = [
@@ -17,5 +23,9 @@ __all__ = [
     "AssetHolding",
     "FinancialGoal",
     "TaxRecord",
-    "ChatMessage"
+    "ChatMessage",
+    "ScenarioRecord",
+    "BankConsent",
+    "BankAccount",
+    "BankSyncLog",
 ]

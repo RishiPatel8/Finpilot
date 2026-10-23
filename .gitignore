@@ -77,3 +77,6 @@ firebase-credentials.json
 *.csv
 !test_*.csv
 
+# Scratch directory
+scratch/
+

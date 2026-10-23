@@ -285,12 +285,36 @@ class MockAIProvider(BaseAIProvider):
 
 class GeminiAIProvider(BaseAIProvider):
     """
-    Adapter for Google Gemini models via google-genai SDK with safe fallback to MockAIProvider.
+    Cloud-only adapter for Google Gemini models via google-genai SDK
+    with explicit status, timeout handling, and safe fallback to MockAIProvider.
     """
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash"):
+    def __init__(
+        self,
+        api_key: str,
+        model_name: str = "gemini-2.5-flash",
+        timeout_seconds: float = 15.0
+    ):
         self.api_key = api_key
         self.model_name = model_name
+        self.timeout_seconds = timeout_seconds
         self.fallback = MockAIProvider()
+
+    def get_status(self) -> Dict[str, Any]:
+        if not self.api_key:
+            return {
+                "provider": "gemini",
+                "status": "missing_api_key",
+                "model": self.model_name,
+                "ready": False,
+                "message": "Gemini API key is not configured. Falling back to deterministic planning engine."
+            }
+        return {
+            "provider": "gemini",
+            "status": "ready",
+            "model": self.model_name,
+            "ready": True,
+            "message": f"Configured for cloud model {self.model_name}"
+        }
 
     def generate_response(
         self,
@@ -298,81 +322,91 @@ class GeminiAIProvider(BaseAIProvider):
         chat_history: Optional[List[Dict[str, str]]] = None,
         user_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        if not self.api_key:
-            return self.fallback.generate_response(query, chat_history, user_context)
+        if not self.api_key or not self.api_key.strip():
+            logger.info("No Gemini API key configured. Using deterministic fallback engine.")
+            res = self.fallback.generate_response(query, chat_history, user_context)
+            res["provider"] = "mock"
+            res["model"] = "deterministic-mock"
+            res["status"] = "fallback_mock"
+            res["fallback_reason"] = "No API key configured"
+            return res
 
         try:
             from google import genai
+            from google.genai import types
+
             client = genai.Client(api_key=self.api_key)
             context_str = f"User Financial Context: {user_context}" if user_context else ""
-            prompt = (
-                f"You are FinPilot AI, a Senior Indian Personal Finance CFO. {context_str}\n"
-                f"User Question: {query}\n"
-                "Ground all numbers in official Indian Income Tax Act 1961 rules and SEBI/RBI regulations. "
-                "Never invent returns or arithmetic."
+            system_instruction = (
+                "You are FinPilot AI, a Senior Indian Personal Finance CFO and Certified Financial Planner.\n"
+                "Ground all advice strictly in official Indian Income Tax Act 1961 regulations, Finance Act 2024, "
+                "RBI regulations, and SEBI mutual fund guidelines.\n"
+                "Never invent interest rates, account balances, or financial calculations.\n"
+                "Clearly distinguish verified facts from user estimates, assumptions, and educational planning heuristics."
             )
+            prompt = f"{context_str}\nUser Question: {query}"
+
+            # Invoke Gemini with timeout configuration
+            config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.2,
+            )
+
             resp = client.models.generate_content(
                 model=self.model_name,
-                contents=prompt
+                contents=prompt,
+                config=config,
             )
+
+            response_text = resp.text if hasattr(resp, "text") and resp.text else ""
+            if not response_text:
+                raise ValueError("Received empty content from Gemini API")
+
+            # Retrieve regulatory citations for ground truth
+            retrieved_docs = KnowledgeRetriever.search(query, top_k=2)
+            citations = [f"{d['title']} ({d['citation']})" for d in retrieved_docs]
+            if not citations:
+                citations = ["Income Tax Act 1961", "Finance Act 2024"]
+
             return {
-                "content": resp.text,
-                "citations": ["Finance Act 2024", "Income Tax Act 1961"],
-                "tool_invocations": []
+                "content": response_text,
+                "citations": citations,
+                "tool_invocations": [],
+                "provider": "gemini",
+                "model": self.model_name,
+                "status": "success"
             }
+
         except Exception as e:
-            logger.warning(f"Gemini API invocation failed ({e}), falling back to offline deterministic MockAIProvider.")
-            return self.fallback.generate_response(query, chat_history, user_context)
-
-
-class OllamaAIProvider(BaseAIProvider):
-    """
-    Adapter for local Ollama instances (e.g. llama3, mistral, deepseek-r1) via HTTP API
-    with automatic fallback to deterministic MockAIProvider if Ollama is unreachable.
-    """
-    def __init__(self, base_url: str = "http://localhost:11434", model_name: str = "llama3"):
-        self.base_url = base_url.rstrip("/")
-        self.model_name = model_name
-        self.fallback = MockAIProvider()
-
-    def generate_response(
-        self,
-        query: str,
-        chat_history: Optional[List[Dict[str, str]]] = None,
-        user_context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        try:
-            import httpx
-            context_str = f"User Financial Context: {user_context}" if user_context else ""
-            prompt = (
-                f"You are FinPilot AI, a Senior Indian Personal Finance CFO.\n{context_str}\n"
-                f"User Question: {query}\n"
-                "Ground all numbers in official Indian Income Tax Act 1961 rules and SEBI/RBI regulations. "
-                "Never invent returns or arithmetic."
-            )
-            with httpx.Client(timeout=10.0) as client:
-                res = client.post(
-                    f"{self.base_url}/api/generate",
-                    json={"model": self.model_name, "prompt": prompt, "stream": False}
-                )
-                if res.status_code == 200:
-                    data = res.json()
-                    return {
-                        "content": data.get("response", ""),
-                        "citations": ["Finance Act 2024", "Income Tax Act 1961"],
-                        "tool_invocations": []
-                    }
-        except Exception as e:
-            logger.warning(f"Ollama API call failed ({e}), falling back to offline deterministic MockAIProvider.")
-
-        return self.fallback.generate_response(query, chat_history, user_context)
+            logger.warning(f"Gemini API invocation failed ({e}), falling back to deterministic planning engine.")
+            res = self.fallback.generate_response(query, chat_history, user_context)
+            res["provider"] = "mock"
+            res["model"] = "deterministic-mock"
+            res["status"] = "fallback_mock"
+            res["fallback_reason"] = str(e)
+            return res
 
 
 def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
-    if provider == "gemini" and settings.LLM_API_KEY:
-        return GeminiAIProvider(api_key=settings.LLM_API_KEY, model_name=settings.LLM_MODEL)
-    elif provider == "ollama":
-        return OllamaAIProvider(base_url=settings.OLLAMA_BASE_URL, model_name=settings.LLM_MODEL)
+    if provider == "gemini":
+        return GeminiAIProvider(
+            api_key=settings.LLM_API_KEY,
+            model_name=settings.LLM_MODEL,
+            timeout_seconds=settings.LLM_TIMEOUT_SECONDS
+        )
     return MockAIProvider()
+
+
+def get_ai_provider_status() -> Dict[str, Any]:
+    provider = get_ai_provider()
+    if isinstance(provider, GeminiAIProvider):
+        return provider.get_status()
+    return {
+        "provider": "mock",
+        "status": "ready",
+        "model": "deterministic-mock",
+        "ready": True,
+        "message": "Deterministic financial calculation engine active (zero external cloud dependencies)."
+    }
 

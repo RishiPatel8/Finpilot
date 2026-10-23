@@ -33,11 +33,11 @@ class Settings(BaseSettings):
             return v
         return []
 
-    # AI Configuration
-    LLM_PROVIDER: str = "mock"  # mock, gemini, ollama, openai
+    # AI Configuration (Cloud-only Gemini & Deterministic Mock)
+    LLM_PROVIDER: str = "mock"  # mock, gemini
     LLM_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-1.5-flash"
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    LLM_MODEL: str = "gemini-2.5-flash"
+    LLM_TIMEOUT_SECONDS: float = 15.0
 
     # Firebase Authentication
     FIREBASE_PROJECT_ID: str = ""

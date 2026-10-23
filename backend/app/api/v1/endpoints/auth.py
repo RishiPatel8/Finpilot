@@ -281,6 +281,33 @@ def export_user_data(
         for s in (current_user.scenario_records or [])
     ]
 
+    bank_accounts_data = [
+        {
+            "id": b.id,
+            "institution_name": b.institution_name,
+            "account_number_masked": b.account_number_masked,
+            "account_type": b.account_type,
+            "ifsc_code": b.ifsc_code,
+            "current_balance": float(b.current_balance),
+            "balance_type": b.balance_type,
+            "sync_status": b.sync_status,
+            "last_synced_at": b.last_synced_at.isoformat() if b.last_synced_at else None
+        }
+        for b in (current_user.bank_accounts or [])
+    ]
+
+    bank_consents_data = [
+        {
+            "id": c.id,
+            "consent_handle": c.consent_handle,
+            "provider": c.provider,
+            "status": c.status,
+            "valid_to": c.valid_to.isoformat() if c.valid_to else None,
+            "fetch_frequency": c.fetch_frequency
+        }
+        for c in (current_user.bank_consents or [])
+    ]
+
     return {
         "export_timestamp": current_user.created_at.isoformat(),
         "user": {
@@ -297,6 +324,8 @@ def export_user_data(
         "assets": assets_data,
         "goals": goals_data,
         "saved_scenarios": scenarios_data,
+        "bank_accounts": bank_accounts_data,
+        "bank_consents": bank_consents_data,
     }
 
 

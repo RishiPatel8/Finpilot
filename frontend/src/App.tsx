@@ -11,6 +11,7 @@ import { InvestmentsView } from './features/investments/InvestmentsView';
 import { GoalsView } from './features/goals/GoalsView';
 import { ScenarioSimulatorView } from './features/scenarios/ScenarioSimulatorView';
 import { AssistantView } from './features/assistant/AssistantView';
+import { BankAccountsView } from './features/bank/BankAccountsView';
 import { SettingsView } from './features/settings/SettingsView';
 import { apiRequest, getAuthToken, clearAuthToken } from './services/api';
 import { User, FinancialHealthSummary, Transaction, FinancialGoal } from './types';
@@ -217,6 +218,9 @@ export const App: React.FC = () => {
                 isDemoActive={isDemoActive}
                 onNavigateToTab={(tab) => setActiveTab(tab)}
               />
+            )}
+            {activeTab === 'bank' && (
+              <BankAccountsView onNavigateToCsv={() => setActiveTab('budget')} />
             )}
             {activeTab === 'scenarios' && <ScenarioSimulatorView />}
             {activeTab === 'assistant' && <AssistantView />}

@@ -1,5 +1,6 @@
 import pytest
-from app.ai.adapter import MockAIProvider, get_ai_provider
+from unittest.mock import MagicMock
+from app.ai.adapter import MockAIProvider, GeminiAIProvider, get_ai_provider, get_ai_provider_status
 from app.rag.knowledge import KnowledgeRetriever
 from app.ai.tools import AVAILABLE_TOOLS
 
@@ -46,11 +47,57 @@ def test_get_ai_provider_default():
     assert isinstance(provider, MockAIProvider)
 
 
-def test_ollama_provider_graceful_fallback(monkeypatch):
-    from app.ai.adapter import OllamaAIProvider
-    # When Ollama endpoint is offline/unreachable, gracefully falls back to deterministic MockAIProvider
-    provider = OllamaAIProvider(base_url="http://localhost:99999", model_name="llama3")
+def test_gemini_provider_missing_api_key_safe_fallback():
+    provider = GeminiAIProvider(api_key="", model_name="gemini-2.5-flash")
+    status = provider.get_status()
+    assert status["ready"] is False
+    assert status["status"] == "missing_api_key"
+
     res = provider.generate_response("Compare tax for 15 LPA salary in new regime vs old regime")
     assert "Tax Analysis" in res["content"]
+    assert res["status"] == "fallback_mock"
+    assert res["provider"] == "mock"
+
+
+def test_gemini_provider_api_error_safe_fallback(monkeypatch):
+    provider = GeminiAIProvider(api_key="fake-key-for-test", model_name="gemini-2.5-flash")
+    
+    # Simulate a network/API failure in google.genai.Client
+    def mock_client_init(*args, **kwargs):
+        raise ConnectionError("Simulated Gemini API connection timeout")
+    
+    import google.genai
+    monkeypatch.setattr(google.genai, "Client", mock_client_init)
+
+    res = provider.generate_response("What is the standard deduction in AY 2025-26?")
+    assert "Tax Analysis" in res["content"] or "standard deduction" in res["content"].lower()
+    assert res["status"] == "fallback_mock"
+    assert "Simulated Gemini API connection timeout" in res["fallback_reason"]
+
+
+def test_gemini_provider_mocked_success(monkeypatch):
+    provider = GeminiAIProvider(api_key="valid-test-key", model_name="gemini-2.5-flash")
+    
+    # Mock client and generate_content response
+    mock_resp = MagicMock()
+    mock_resp.text = "Under Section 115BAC, the standard deduction for AY 2025-26 is ₹75,000 for salaried employees."
+    
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = mock_resp
+    
+    import google.genai
+    monkeypatch.setattr(google.genai, "Client", lambda **kwargs: mock_client)
+
+    res = provider.generate_response("What is the standard deduction in AY 2025-26?")
+    assert "₹75,000" in res["content"]
+    assert res["provider"] == "gemini"
+    assert res["status"] == "success"
+    assert res["model"] == "gemini-2.5-flash"
     assert len(res["citations"]) > 0
 
+
+def test_ai_provider_status_inspection():
+    status = get_ai_provider_status()
+    assert "status" in status
+    assert "ready" in status
+    assert "provider" in status

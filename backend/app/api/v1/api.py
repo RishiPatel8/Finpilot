@@ -11,7 +11,8 @@ from app.api.v1.endpoints import (
     assistant,
     demo,
     scenarios,
-    liabilities
+    liabilities,
+    bank
 )
 
 api_router = APIRouter()
@@ -27,4 +28,5 @@ api_router.include_router(goals.router, prefix="/goals", tags=["Financial Goals"
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Financial Decision Simulator"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(assistant.router, prefix="/assistant", tags=["AI Assistant & RAG"])
+api_router.include_router(bank.router, prefix="/bank", tags=["Bank Connectivity & Account Aggregator"])
 api_router.include_router(demo.router, prefix="/demo", tags=["Demo Data"])

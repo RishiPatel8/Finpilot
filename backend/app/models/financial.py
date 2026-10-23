@@ -33,11 +33,15 @@ class Transaction(Base):
     type = Column(String(20), nullable=False)  # income, expense
     category = Column(String(100), nullable=False, index=True)  # Housing, Food, Transport, Investment, Tax, etc.
     description = Column(String(255), nullable=False)
-    source = Column(String(100), default="manual", nullable=False)  # manual, csv_import, bank_statement
+    source = Column(String(100), default="manual", nullable=False)  # manual, csv_import, bank_sync, bank_statement
+    bank_account_id = Column(String(36), ForeignKey("bank_accounts.id", ondelete="SET NULL"), nullable=True, index=True)
+    provider_txn_ref = Column(String(128), unique=True, nullable=True, index=True)
+    is_internal_transfer = Column(Boolean, default=False, nullable=False)
     is_recurring = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user = relationship("User", back_populates="transactions")
+    bank_account = relationship("BankAccount", back_populates="transactions")
 
 
 class Liability(Base):

@@ -19,6 +19,9 @@ class ChatResponse(BaseModel):
     content: str
     citations: List[str]
     tool_invocations: List[Dict[str, Any]]
+    provider: Optional[str] = "mock"
+    model: Optional[str] = "deterministic-mock"
+    status: Optional[str] = "success"
 
 
 class ChatMessageHistoryItem(BaseModel):
@@ -27,6 +30,12 @@ class ChatMessageHistoryItem(BaseModel):
     content: str
     citations: Optional[List[str]] = None
     created_at: str
+
+
+@router.get("/provider-status")
+def get_provider_status():
+    from app.ai.adapter import get_ai_provider_status
+    return get_ai_provider_status()
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -50,10 +59,31 @@ def chat_with_assistant(
             user_context["monthly_income"] = float(current_user.profile.monthly_income)
             user_context["monthly_expenses"] = float(current_user.profile.monthly_expenses)
         
-        # Calculate liquid savings
+        # Calculate liquid savings from manual assets
         if current_user.assets:
             liquid_sum = sum(float(a.current_value) for a in current_user.assets if a.category in ["liquid_mf", "cash", "fd"])
             user_context["current_savings"] = liquid_sum
+
+        # Calculate verified savings from linked bank accounts
+        if current_user.bank_accounts:
+            user_context["bank_accounts"] = [
+                {
+                    "institution": a.institution_name,
+                    "account_masked": a.account_number_masked,
+                    "balance": float(a.current_balance),
+                    "status": a.sync_status
+                }
+                for a in current_user.bank_accounts
+            ]
+            verified_bank_total = sum(float(a.current_balance) for a in current_user.bank_accounts if a.sync_status == "synced")
+            user_context["verified_bank_balance"] = verified_bank_total
+            if not user_context.get("current_savings") and verified_bank_total > 0:
+                user_context["current_savings"] = verified_bank_total
+
+        # Include debts and EMIs if registered
+        if current_user.liabilities:
+            user_context["total_debt"] = sum(float(l.principal) for l in current_user.liabilities)
+            user_context["monthly_emi"] = sum(float(l.monthly_emi) for l in current_user.liabilities)
 
     resp_dict = provider.generate_response(query=req.message, chat_history=history, user_context=user_context)
 
@@ -81,7 +111,10 @@ def chat_with_assistant(
     return ChatResponse(
         content=resp_dict["content"],
         citations=resp_dict["citations"],
-        tool_invocations=resp_dict["tool_invocations"]
+        tool_invocations=resp_dict["tool_invocations"],
+        provider=resp_dict.get("provider", "mock"),
+        model=resp_dict.get("model", "deterministic-mock"),
+        status=resp_dict.get("status", "success")
     )
 
 

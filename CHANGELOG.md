@@ -5,6 +5,34 @@ All notable changes to **FinPilot AI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-23
+
+### Bank Connectivity, Cloud LLM & RAG Upgrade
+- **Indian Account Aggregator (AA) Bank Connectivity**:
+  - Implemented provider-independent `BaseBankAdapter` supporting Setu, Finvu, and deterministic Sandbox AA.
+  - Added database models `BankAccount`, `BankConsent`, and `BankSyncLog` with user-level isolation and cascading deletes.
+  - Created Alembic migration `b84f3189e472_add_bank_connectivity_tables.py` tested for reversible upgrades and rollbacks.
+  - Built frontend `BankAccountsView.tsx` with consent initiation modal, connection status badges, live balance timestamps, and manual sync triggers.
+  - Implemented idempotent transaction deduplication using compound index on `provider_txn_ref` and internal transfer detection (`is_internal_transfer = True`).
+- **Cloud-Only Gemini LLM Architecture**:
+  - Upgraded AI adapter to cloud-only Google Gemini (`gemini-2.5-flash`) via the `google-genai` SDK with explicit provider status introspection (`get_ai_provider_status()`).
+  - Purged Ollama imports, configuration, and dependencies from the supported application path.
+  - Maintained offline, deterministic `MockAIProvider` for test execution and offline development with zero external cloud dependencies.
+- **Statutory Retrieval-Augmented Generation (RAG) System**:
+  - Created modular vector store `RAGKnowledgeStore` with hybrid semantic vector search and statutory keyword section boosting.
+  - Added official Indian regulatory corpus covering Finance Act 2024, Section 115BAC, Chapter VI-A, Section 44ADA, Section 112A, SEBI liquid funds, DICGC deposit insurance, and RBI Account Aggregator master directions.
+  - Implemented cloud embedding provider with `text-embedding-004` (768 dimensions) and offline deterministic normalized unit vector generator.
+  - Added prompt injection defense sanitizing input texts.
+  - Strictly separated private user transaction data from public statutory vector indexes.
+- **Enhanced AI CFO Integration**:
+  - Injected verified bank balances and debt summaries into authenticated user context.
+  - Integrated deterministic calculation tools (`compare_debt_payoff`, `calculate_tax`, `simulate_scenario`).
+  - Added dynamic AI Provider status badge and RAG statutory citation pill tags in chat UI.
+- **Comprehensive Automated Testing & Verification**:
+  - Expanded test suite to **60 passed tests (100% pass rate in 8.54s)**.
+  - Added dedicated test suites: `test_bank_connectivity.py` (3 tests) and `test_rag_system.py` (7 tests).
+  - Verified clean browser rendering and zero console errors via Playwright.
+
 ## [2.0.0] - 2026-10-23
 
 ### Open-Source Production Website Release

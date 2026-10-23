@@ -28,3 +28,5 @@ class User(Base):
     tax_records = relationship("TaxRecord", back_populates="user", cascade="all, delete-orphan")
     chat_messages = relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
     scenario_records = relationship("ScenarioRecord", back_populates="user", cascade="all, delete-orphan")
+    bank_accounts = relationship("BankAccount", back_populates="user", cascade="all, delete-orphan")
+    bank_consents = relationship("BankConsent", back_populates="user", cascade="all, delete-orphan")

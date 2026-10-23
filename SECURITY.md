@@ -6,9 +6,9 @@ FinPilot AI takes the security and privacy of user financial data seriously.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 2.1.x   | :white_check_mark: |
 | 2.0.x   | :white_check_mark: |
-| 1.2.x   | :white_check_mark: |
-| < 1.2   | :x:                |
+| < 2.0   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -26,8 +26,10 @@ We will acknowledge receipt within 48 hours and work with you to validate and de
 
 ## Security Architecture Principles
 
+- **Zero Bank Credential Storage**: FinPilot connects via the RBI Account Aggregator framework. Netbanking passwords, PINs, or bank OTPs are never collected or stored.
+- **RAG Data Isolation**: Private financial statements, account numbers, and transaction histories are strictly segregated and NEVER indexed into public vector stores.
 - **Zero Client-Side Calculation Trust**: All tax, goal, and debt projections are computed on the server.
 - **Strict User Isolation**: Every database query is scoped by `user_id`.
 - **Statutory Compliance**: Data portability and account deletion adhere to the Digital Personal Data Protection (DPDP) Act 2023.
 - **No Mock Tokens in Production**: Mock authentication tokens are strictly rejected when `ENVIRONMENT=production`.
-- **Security Headers**: All API responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, and `Content-Security-Policy`.
+- **Security Headers**: All API responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, and `Strict-Transport-Security`.

@@ -166,10 +166,28 @@ class FinancialToolsRegistry:
         }
 
 
+    @classmethod
+    def compare_debt_payoff(cls, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculates and compares Debt Avalanche vs Debt Snowball repayment strategies."""
+        debts = params.get("debts", [])
+        extra = Decimal(str(params.get("extra_monthly_prepayment", 0)))
+        res = BudgetEngine.calculate_debt_payoff(debts, extra_monthly_payment=extra)
+        return {
+            "total_debt_principal": float(res["total_debt_principal"]),
+            "total_monthly_emi": float(res["total_monthly_emi"]),
+            "extra_payment_applied": float(res["extra_payment_applied"]),
+            "avalanche_order": res["avalanche_priority"],
+            "snowball_order": res["snowball_priority"],
+            "recommendation": res["strategy_recommendation"]
+        }
+
+
 AVAILABLE_TOOLS = {
     "calculate_tax": FinancialToolsRegistry.calculate_tax,
     "compare_investments": FinancialToolsRegistry.compare_investments,
     "calculate_goal_plan": FinancialToolsRegistry.calculate_goal_plan,
     "analyze_budget": FinancialToolsRegistry.analyze_budget,
     "simulate_scenario": FinancialToolsRegistry.simulate_scenario,
+    "compare_debt_payoff": FinancialToolsRegistry.compare_debt_payoff,
 }
+

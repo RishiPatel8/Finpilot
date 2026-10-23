@@ -34,7 +34,14 @@ export const AssistantView: React.FC = () => {
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [providerStatus, setProviderStatus] = useState<{ provider: string; model: string; ready: boolean } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    apiRequest<{ provider: string; model: string; ready: boolean }>('/assistant/provider-status')
+      .then((data) => setProviderStatus(data))
+      .catch(() => setProviderStatus(null));
+  }, []);
 
   const samplePrompts = [
     "I earn ₹60,000 per month, spend ₹35,000 and have ₹2 lakh in savings. I want to buy a car in 18 months. What are my options?",
@@ -108,9 +115,14 @@ export const AssistantView: React.FC = () => {
         description="Grounded conversational intelligence with statutory Income Tax & SEBI RAG citations. Zero hallucinated formulas."
         icon={<BotMessageSquare className="w-4 h-4 text-[#6478E8]" />}
         badge={
-          <Badge variant="mint" size="sm">
-            Statutory Citations Verified
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={providerStatus?.provider === 'gemini' ? 'lavender' : 'mint'} size="sm">
+              {providerStatus?.provider === 'gemini' ? 'Gemini 2.5 Flash (Cloud)' : 'Deterministic CFO Engine'}
+            </Badge>
+            <Badge variant="blue" size="sm">
+              RAG Verified
+            </Badge>
+          </div>
         }
       />
 

@@ -162,3 +162,37 @@ export interface DebtRepaymentPlan {
   strategy_recommendation: string;
 }
 
+export interface BankAccount {
+  id: string;
+  institution_name: string;
+  account_number_masked: string;
+  account_type: string;
+  ifsc_code: string;
+  currency: string;
+  current_balance: number;
+  balance_type: string;
+  balance_timestamp: string;
+  sync_status: 'synced' | 'pending' | 'failed' | 'stale';
+  last_synced_at?: string;
+}
+
+export interface BankConsent {
+  id: string;
+  consent_handle: string;
+  consent_id?: string;
+  provider: string;
+  status: 'PENDING' | 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'REJECTED';
+  valid_to: string;
+  fip_ids?: string[];
+}
+
+export interface BankSyncResult {
+  account_id: string;
+  institution_name: string;
+  synced_count: number;
+  current_balance: number;
+  balance_timestamp: string;
+  sync_status: string;
+  message: string;
+}
+
