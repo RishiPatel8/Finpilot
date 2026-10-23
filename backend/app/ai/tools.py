@@ -7,6 +7,9 @@ from app.schemas.investment import InvestmentCompareRequest, GoalProjectionReque
 from app.finance.budget.engine import BudgetEngine
 from app.finance.scenarios.engine import ScenarioEngine
 from app.schemas.scenario import ScenarioInput
+from app.finance.fire.engine import FireEngine
+from app.finance.fire.health import FinancialHealthEngine
+from app.schemas.fire import FireCalculationInput
 
 
 class FinancialToolsRegistry:
@@ -181,6 +184,98 @@ class FinancialToolsRegistry:
             "recommendation": res["strategy_recommendation"]
         }
 
+    @classmethod
+    def calculate_fire_plan(cls, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculates FIRE target, projected retirement age, required SIP, and shortfall."""
+        inp = FireCalculationInput(
+            current_age=int(params.get("current_age", 28)),
+            retirement_age=int(params.get("retirement_age", 50)),
+            monthly_expenses=Decimal(str(params.get("monthly_expenses", 50000))),
+            monthly_income=Decimal(str(params.get("monthly_income", 100000))) if "monthly_income" in params else None,
+            current_investable_assets=Decimal(str(params.get("current_investable_assets", 1000000))) if "current_investable_assets" in params else None,
+            monthly_investment=Decimal(str(params.get("monthly_investment", 30000))) if "monthly_investment" in params else None,
+            expected_annual_inflation_pct=Decimal(str(params.get("expected_annual_inflation_pct", 6.0))),
+            expected_nominal_return_pct=Decimal(str(params.get("expected_nominal_return_pct", 11.0))),
+            withdrawal_rate_pct=Decimal(str(params.get("withdrawal_rate_pct", 3.5)))
+        )
+        res = FireEngine.calculate_fire(inp)
+        return {
+            "current_age": res.current_age,
+            "planned_retirement_age": res.planned_retirement_age,
+            "years_to_retirement": res.years_to_retirement,
+            "fire_target_today": float(res.fire_target_today),
+            "fire_target_future": float(res.fire_target_future),
+            "fire_progress_pct": res.fire_progress_pct,
+            "projected_fire_age": res.projected_fire_age,
+            "projected_portfolio_at_retirement": float(res.projected_portfolio_at_retirement),
+            "portfolio_surplus_or_shortfall": float(res.portfolio_surplus_or_shortfall),
+            "required_monthly_investment": float(res.required_monthly_investment),
+            "current_monthly_investment": float(res.current_monthly_investment),
+            "monthly_investment_gap": float(res.monthly_investment_gap),
+            "disclaimers": res.disclaimers
+        }
+
+    @classmethod
+    def compare_fire_strategies(cls, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Compares Lean FIRE, Regular FIRE, Fat FIRE, and Coast FIRE targets and feasibility."""
+        inp = FireCalculationInput(
+            current_age=int(params.get("current_age", 28)),
+            retirement_age=int(params.get("retirement_age", 50)),
+            monthly_expenses=Decimal(str(params.get("monthly_expenses", 50000))),
+            current_investable_assets=Decimal(str(params.get("current_investable_assets", 1000000))),
+            monthly_investment=Decimal(str(params.get("monthly_investment", 30000)))
+        )
+        res = FireEngine.calculate_fire(inp)
+        return {
+            "strategies": [
+                {
+                    "type": s.strategy_type,
+                    "name": s.name,
+                    "monthly_expense": float(s.monthly_expense_in_retirement),
+                    "target_today": float(s.target_corpus_today),
+                    "target_future": float(s.target_corpus_at_retirement),
+                    "projected_age": s.projected_fire_age,
+                    "is_achievable": s.is_achievable_by_target_age,
+                    "required_sip": float(s.required_monthly_investment),
+                    "shortfall_or_surplus": float(s.shortfall_or_surplus_at_retirement),
+                    "notes": s.assumptions_and_limitations
+                } for s in res.strategies
+            ]
+        }
+
+    @classmethod
+    def assess_financial_health(cls, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluates 8-pillar financial health and returns prioritized 12-month action checklist."""
+        res = FinancialHealthEngine.assess_health(
+            age=int(params.get("age", 30)),
+            monthly_income=Decimal(str(params.get("monthly_income", 100000))),
+            monthly_expenses=Decimal(str(params.get("monthly_expenses", 50000))),
+            liquid_assets=Decimal(str(params.get("liquid_assets", 300000))),
+            investable_assets=Decimal(str(params.get("investable_assets", 1500000))),
+            total_debt_principal=Decimal(str(params.get("total_debt_principal", 0))),
+            total_monthly_emi=Decimal(str(params.get("total_monthly_emi", 0))),
+            goals_on_track_pct=float(params.get("goals_on_track_pct", 80.0)),
+            fire_progress_pct=float(params.get("fire_progress_pct", 35.0)),
+            fire_shortfall=Decimal(str(params.get("fire_shortfall", 0)))
+        )
+        return {
+            "overall_score": res.overall_score,
+            "status": res.status,
+            "summary": res.summary,
+            "pillars": [
+                {
+                    "pillar": p.name,
+                    "score": p.score,
+                    "status": p.status,
+                    "metric": p.metric_value,
+                    "benchmark": p.target_benchmark,
+                    "priority": p.action_priority,
+                    "recommendation": p.recommendation
+                } for p in res.pillars
+            ],
+            "action_checklist": res.actionable_checklist_12_months
+        }
+
 
 AVAILABLE_TOOLS = {
     "calculate_tax": FinancialToolsRegistry.calculate_tax,
@@ -189,5 +284,8 @@ AVAILABLE_TOOLS = {
     "analyze_budget": FinancialToolsRegistry.analyze_budget,
     "simulate_scenario": FinancialToolsRegistry.simulate_scenario,
     "compare_debt_payoff": FinancialToolsRegistry.compare_debt_payoff,
+    "calculate_fire_plan": FinancialToolsRegistry.calculate_fire_plan,
+    "compare_fire_strategies": FinancialToolsRegistry.compare_fire_strategies,
+    "assess_financial_health": FinancialToolsRegistry.assess_financial_health,
 }
 

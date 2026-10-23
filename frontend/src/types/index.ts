@@ -196,3 +196,82 @@ export interface BankSyncResult {
   message: string;
 }
 
+export interface FireStrategySummary {
+  strategy_type: 'lean' | 'regular' | 'fat' | 'coast' | 'custom';
+  name: string;
+  description: string;
+  monthly_expense_in_retirement: number;
+  target_corpus_today: number;
+  target_corpus_at_retirement: number;
+  projected_fire_age?: number | null;
+  years_to_fire?: number | null;
+  required_monthly_investment: number;
+  is_achievable_by_target_age: boolean;
+  shortfall_or_surplus_at_retirement: number;
+  assumptions_and_limitations: string;
+}
+
+export interface FireProjectionPoint {
+  age: number;
+  year: number;
+  portfolio_conservative: number;
+  portfolio_base: number;
+  portfolio_optimistic: number;
+  annual_contribution: number;
+  annual_withdrawal: number;
+  fire_target_curve: number;
+  is_retired: boolean;
+}
+
+export interface FireCalculationResponse {
+  current_age: number;
+  planned_retirement_age: number;
+  years_to_retirement: number;
+  current_investable_assets: number;
+  current_monthly_expenses: number;
+  annual_expenses_today: number;
+  savings_rate_pct: number;
+  safe_withdrawal_rate_pct: number;
+  real_return_pct: number;
+  fire_target_today: number;
+  fire_target_future: number;
+  fire_progress_pct: number;
+  projected_fire_age?: number | null;
+  projected_portfolio_at_retirement: number;
+  portfolio_surplus_or_shortfall: number;
+  required_monthly_investment: number;
+  current_monthly_investment: number;
+  monthly_investment_gap: number;
+  strategies: FireStrategySummary[];
+  yearly_projections: FireProjectionPoint[];
+  disclaimers: string[];
+}
+
+export interface FinancialHealthPillar {
+  pillar_id: string;
+  name: string;
+  score: number;
+  weight: number;
+  status: 'excellent' | 'good' | 'fair' | 'critical' | 'provisional';
+  metric_value: string;
+  target_benchmark: string;
+  description: string;
+  action_priority: 'immediate' | 'medium_term' | 'long_term';
+  recommendation: string;
+}
+
+export interface FinancialHealthAssessment {
+  overall_score: number;
+  status: string;
+  is_provisional: boolean;
+  summary: string;
+  pillars: FinancialHealthPillar[];
+  actionable_checklist_12_months: Array<{
+    timeframe: string;
+    action: string;
+    detail: string;
+    pillar: string;
+  }>;
+  disclaimer: string;
+}
+

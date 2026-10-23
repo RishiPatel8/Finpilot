@@ -1,21 +1,35 @@
 # FinPilot AI — Personal Finance Intelligence Platform
 
-[![Version: 2.1.0](https://img.shields.io/badge/Version-2.1.0-blue.svg)]()
+[![Version: 2.2.0](https://img.shields.io/badge/Version-2.2.0-blue.svg)]()
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React: 18](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178C6.svg)](https://www.typescriptlang.org/)
-[![Tests: 60/60](https://img.shields.io/badge/Tests-60%20passed%20(100%25)-brightgreen.svg)]()
+[![Tests: 68/68](https://img.shields.io/badge/Tests-68%20passed%20(100%25)-brightgreen.svg)]()
+[![FIRE Forecasting](https://img.shields.io/badge/FIRE%20Forecaster-Lean%20|%20Regular%20|%20Fat%20|%20Coast-orange.svg)]()
 [![RBI Account Aggregator](https://img.shields.io/badge/Connectivity-RBI%20NBFC--AA-indigo.svg)]()
 [![DPDP Act 2023](https://img.shields.io/badge/Compliance-DPDP%20Act%202023-emerald.svg)]()
 
-FinPilot AI is an open-source, production-grade personal finance intelligence platform designed specifically for Indian users—including salaried professionals, freelancers, students, and small business owners. It combines **secure bank connectivity via the RBI Account Aggregator framework**, deterministic financial calculation engines (Indian Tax Old vs. New Regime, Cash Flow & Budgeting, Debt Payoff, Goal Planning, Decision Simulation, and Liquid Mutual Funds vs. Bonds vs. FDs), and a **grounded AI assistant powered by Cloud Gemini and statutory RAG knowledge retrieval** (Income Tax Act 1961, Finance Act 2024, SEBI, and RBI).
+FinPilot AI is an open-source, production-grade personal finance intelligence platform designed specifically for Indian users—including salaried professionals, freelancers, students, and small business owners. It combines **deterministic FIRE forecasting and comprehensive 8-pillar financial health tracking**, **secure bank connectivity via the RBI Account Aggregator framework**, deterministic financial calculation engines (Indian Tax Old vs. New Regime, Cash Flow & Budgeting, Debt Payoff, Goal Planning, Decision Simulation, and Liquid Mutual Funds vs. Bonds vs. FDs), and a **grounded AI assistant powered by Cloud Gemini and statutory RAG knowledge retrieval** (Income Tax Act 1961, Finance Act 2024, SEBI, and RBI).
 
 ---
 
 ## Key Features
 
-1. **Indian Bank Connectivity via Account Aggregator (AA)**:
+1. **Deterministic FIRE Forecaster & Financial Independence Planning**:
+   - Exact compound mathematics and Fisher equation real returns: $r_{\text{real}} = \frac{1 + r_{\text{nominal}}}{1 + i} - 1$.
+   - Today's FIRE corpus target and inflation-adjusted future targets.
+   - 4 Core FIRE strategies: **Lean FIRE** (needs only), **Regular FIRE** (current lifestyle), **Fat FIRE** (luxury cushion), and **Coast FIRE** (compounding to retirement with zero additional contributions).
+   - Multi-scenario accumulation and decumulation tracking under Conservative, Base, and Optimistic return profiles.
+   - Excludes illiquid primary residence to prevent double-counting.
+   - See [FIRE Methodology](file:///docs/FIRE_METHODOLOGY.md) and [FIRE Implementation Plan](file:///docs/FIRE_PLANNING_IMPLEMENTATION_PLAN.md).
+
+2. **Transparent 8-Pillar Financial Health Assessment**:
+   - Mathematically evaluated 0-100 scoring across 8 pillars: Emergency Fund, Cash Flow Surplus, Savings Rate, Debt-to-Income, Age Portfolio Multiple, Goal Funding, FIRE Progress, and Retirement Readiness.
+   - Zero black-box AI scores: explicit formulas and statutory benchmarks.
+   - 12-month prioritized actionable checklist (Immediate, Medium-term, and Long-term).
+
+3. **Indian Bank Connectivity via Account Aggregator (AA)**:
    - Integrates via RBI-regulated Account Aggregator architecture (Setu, Finvu, and deterministic Sandbox AA).
    - Zero bank credentials stored: connects via explicit, time-bound electronic user consent.
    - Automated transaction sync with compound index deduplication (`provider_txn_ref`).

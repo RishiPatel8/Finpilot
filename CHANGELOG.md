@@ -5,6 +5,52 @@ All notable changes to **FinPilot AI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-10-23
+
+### FIRE Forecasting & Comprehensive Financial Planning Upgrade
+- **Deterministic FIRE Calculation Engine**:
+  - Implemented `FireEngine` (`backend/app/finance/fire/engine.py`) calculating:
+    - Real returns via the exact Fisher equation: $r_{\text{real}} = \frac{1 + r_{\text{nominal}}}{1 + i} - 1$.
+    - Today's FIRE target corpus ($\frac{\text{Annual Expenses}}{\text{SWR}}$) and inflation-adjusted future target at retirement age.
+    - Compound portfolio future value with monthly investment annuity formulas.
+    - Required monthly SIP to bridge retirement portfolio shortfall.
+    - Projected FIRE age and years to financial independence.
+  - Implemented 4 core FIRE strategies: **Lean FIRE** (70% expenses), **Regular FIRE** (100% lifestyle), **Fat FIRE** (135% expenses), and **Coast FIRE** (compounding to target with zero additional savings).
+  - Multi-scenario year-by-year projections: Conservative (-2.5% return, +1.0% inflation), Base (11% return, 6% inflation), and Optimistic (+2.0% return, -0.5% inflation) tracking accumulation and post-retirement withdrawal/depletion.
+  - Tested zero returns, negative returns, zero contributions, and edge cases.
+- **Rule-Based 8-Pillar Financial Health Assessment**:
+  - Implemented `FinancialHealthEngine` (`backend/app/finance/fire/health.py`) evaluating 8 weighted pillars:
+    1. Emergency Fund Cushion (15% weight)
+    2. Monthly Cash Flow Surplus (15% weight)
+    3. Savings Rate Discipline (15% weight)
+    4. Debt-to-Income / EMI Burden (15% weight)
+    5. Age-Based Portfolio Multiple (10% weight)
+    6. Goal Funding Tracking (10% weight)
+    7. FIRE Corpus Progress (10% weight)
+    8. Retirement Readiness Gap (5% weight)
+  - Produces an overall 0-100 score, status verdict, and a 12-month prioritized actionable checklist (Months 1-3 Immediate, Months 4-6 Medium, Months 7-12 Wealth Compounding).
+- **Dedicated FIRE Planning Frontend View**:
+  - Created `FirePlanningView.tsx` with light fintech aesthetics (`#F6F8FC`, `#FFFFFF`, `#6478E8`).
+  - Added KPI summary cards for today's target, future target, projected FIRE age, progress bar, and required SIP.
+  - Added interactive sliders and controls for age, retirement age, expenses, investable assets, monthly SIP, inflation, returns, and SWR.
+  - Added Recharts interactive multi-scenario accumulation and decumulation chart with retirement reference line.
+  - Added instant what-if preset toggles ("+₹10k/mo SIP", "Retire at 45", "7.5% Inflation Stress Test").
+  - Added 8-pillar health assessment view with color-coded status badges and 12-month action cards.
+- **AI CFO FIRE Assistant Integration**:
+  - Registered 3 new deterministic tools in `FinancialToolsRegistry` (`backend/app/ai/tools.py`):
+    - `calculate_fire_plan`
+    - `compare_fire_strategies`
+    - `assess_financial_health`
+- **Statutory Retirement Knowledge in RAG**:
+  - Expanded `OFFICIAL_FINANCIAL_CORPUS` with Indian retirement knowledge:
+    - Safe withdrawal rate dynamics in India (3.0%-3.5% SWR vs 4% US Trinity Study).
+    - Section 10(12A) NPS 60% tax-free lump sum and Section 80CCD(1B) ₹50,000 deduction.
+    - Section 80TTB ₹50,000 deposit interest deduction for senior citizens.
+- **Comprehensive Verification & Testing**:
+  - Expanded backend test suite from 60 to **68 passing tests (100% pass rate in 6.63s)** with dedicated `test_fire_engine.py` (8 tests).
+  - Clean frontend production build (`vite build` in 5.19s).
+  - Playwright browser QA automated verification passing with **0 console errors**.
+
 ## [2.1.0] - 2026-10-23
 
 ### Bank Connectivity, Cloud LLM & RAG Upgrade

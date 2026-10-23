@@ -12,6 +12,7 @@ import { GoalsView } from './features/goals/GoalsView';
 import { ScenarioSimulatorView } from './features/scenarios/ScenarioSimulatorView';
 import { AssistantView } from './features/assistant/AssistantView';
 import { BankAccountsView } from './features/bank/BankAccountsView';
+import { FirePlanningView } from './features/fire/FirePlanningView';
 import { SettingsView } from './features/settings/SettingsView';
 import { apiRequest, getAuthToken, clearAuthToken } from './services/api';
 import { User, FinancialHealthSummary, Transaction, FinancialGoal } from './types';
@@ -219,6 +220,7 @@ export const App: React.FC = () => {
                 onNavigateToTab={(tab) => setActiveTab(tab)}
               />
             )}
+            {activeTab === 'fire' && <FirePlanningView />}
             {activeTab === 'bank' && (
               <BankAccountsView onNavigateToCsv={() => setActiveTab('budget')} />
             )}

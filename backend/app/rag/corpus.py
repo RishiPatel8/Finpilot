@@ -141,5 +141,64 @@ OFFICIAL_FINANCIAL_CORPUS: List[Dict[str, Any]] = [
             "4. Right to Revoke: Customers can view active consents, change permissions, or revoke consent at any time through the AA interface."
         ),
         "tags": ["banking", "account aggregator", "RBI", "consent", "ReBIT", "data privacy", "FIU", "FIP"]
+    },
+    {
+        "id": "doc-fire-swr-indian-context",
+        "title": "Safe Withdrawal Rates (SWR) and Inflation Dynamics for Indian Retirement Planning",
+        "publisher": "Financial Planning Standards Board India & RBI Macroeconomic Studies",
+        "citation": "FPSB India Practice Standards & RBI Inflation Perspectives (2023-2024)",
+        "url": "https://india.fpsb.org",
+        "jurisdiction": "IN",
+        "topic": "retirement",
+        "effective_date": "2024-01-01",
+        "superseded_by": None,
+        "content": (
+            "The classic 4% Safe Withdrawal Rate (Bengen 1994 / Trinity Study) was established using historical US data "
+            "with ~2.5%-3.0% long-term inflation and 30-year retirement horizons. "
+            "For Indian retirees and early financial independence (FIRE) seekers, empirical studies mandate a more conservative SWR of 3.0% to 3.5% due to: "
+            "1. Elevated Inflation: Long-term Indian CPI inflation typically trends between 5.0% and 7.0%, significantly higher than developed markets. "
+            "2. Extended Horizon: Early retirement at age 40 to 50 requires a 35 to 50-year longevity horizon, where a 4% withdrawal rate carries a >25% risk of early portfolio depletion. "
+            "3. Asset Allocation: Sustainable Indian retirement portfolios require a disciplined equity allocation of 50% to 65% in low-cost index/flexi-cap mutual funds to outpace inflation, "
+            "paired with 35% to 50% in sovereign bonds (RBI Retail Direct G-Secs / Floating Rate Savings Bonds) and high-quality liquid reserves."
+        ),
+        "tags": ["retirement", "FIRE", "safe withdrawal rate", "SWR", "inflation", "asset allocation", "trinity study", "India"]
+    },
+    {
+        "id": "doc-retire-nps-tax-treatment",
+        "title": "National Pension System (NPS) - Withdrawal Slabs and Tax Treatment",
+        "publisher": "Pension Fund Regulatory and Development Authority (PFRDA) & Income Tax Department",
+        "citation": "PFRDA (Exits and Withdrawals) Regulations & Section 10(12A) Income-tax Act, 1961",
+        "url": "https://www.pfrda.org.in",
+        "jurisdiction": "IN",
+        "topic": "retirement",
+        "effective_date": "2024-04-01",
+        "superseded_by": None,
+        "content": (
+            "Under PFRDA exit regulations and Section 10(12A) of the Income-tax Act, 1961: "
+            "1. Superannuation / Normal Exit: At or after age 60, up to 60% of the accumulated NPS Tier-1 corpus can be withdrawn as a completely tax-free lump sum. "
+            "2. Mandatory Annuity: A minimum of 40% of the corpus must be utilized to purchase an immediate annuity from an approved life insurance provider. The annuity purchase is exempt from GST and initial tax, but regular monthly pension payouts are taxable as salary/other sources under the recipient's income slab. "
+            "3. Exclusive Deduction: Under Section 80CCD(1B), individuals can claim an additional deduction up to ₹50,000 for Tier-1 contributions, over and above the ₹1.5 Lakh limit of Section 80C. "
+            "4. Premature Exit: For voluntary exit before age 60, at least 80% must be annuitized and only 20% can be withdrawn as a lump sum (tax-free under Section 10(12A))."
+        ),
+        "tags": ["retirement", "NPS", "PFRDA", "Section 10(12A)", "80CCD(1B)", "annuity", "pension", "tax exemption"]
+    },
+    {
+        "id": "doc-retire-senior-citizen-80ttb",
+        "title": "Section 80TTB & 194A - Interest Deductions and TDS Relief for Senior Citizens",
+        "publisher": "Income Tax Department, Government of India",
+        "citation": "Sections 80TTB and 194A of Income-tax Act, 1961",
+        "url": "https://incometaxindia.gov.in",
+        "jurisdiction": "IN",
+        "topic": "tax",
+        "effective_date": "2024-04-01",
+        "superseded_by": None,
+        "content": (
+            "Section 80TTB provides special tax relief for resident senior citizens (individuals aged 60 years or above): "
+            "1. Deduction: Senior citizens can claim a deduction up to ₹50,000 per financial year in respect of interest income earned from "
+            "bank fixed deposits (FDs), recurring deposits (RDs), savings accounts, and post office deposit schemes. "
+            "2. Comparison with 80TTA: For non-seniors, Section 80TTA only allows up to ₹10,000 deduction on savings account interest and excludes term deposits. Section 80TTB covers both savings and term deposits up to ₹50,000. "
+            "3. TDS Exemption: Under Section 194A, banks and post offices shall not deduct TDS unless the aggregate interest paid or credited during the financial year exceeds ₹50,000."
+        ),
+        "tags": ["tax", "retirement", "senior citizen", "80TTB", "FD interest", "TDS", "194A", "savings interest"]
     }
 ]
