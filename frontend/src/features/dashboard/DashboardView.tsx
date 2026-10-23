@@ -14,6 +14,7 @@ import {
 import {
   AreaChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -191,7 +192,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Main Charts & Goals Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cash Flow Trends Chart */}
-        <Card className="lg:col-span-2 space-y-4">
+        <Card className="lg:col-span-2 min-w-0 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-base font-bold text-[#172033]">
@@ -214,8 +215,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="h-64 sm:h-72 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 sm:h-72 w-full min-w-0 pt-2">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
@@ -269,10 +270,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   fillOpacity={1}
                   fill="url(#expenseFill)"
                 />
+                <Line
+                  type="monotone"
+                  dataKey="surplus"
+                  stroke="#6478E8"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: '#6478E8' }}
+                  activeDot={{ r: 5 }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
+
 
         {/* Goals Progress Card */}
         <Card className="flex flex-col justify-between space-y-4">

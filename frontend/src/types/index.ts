@@ -36,34 +36,45 @@ export interface Transaction {
 export interface TaxRegimeBreakdown {
   regime: 'new' | 'old';
   assessment_year: string;
-  gross_income: number;
-  total_deductions: number;
-  taxable_income: number;
-  tax_before_rebate: number;
-  rebate_87a: number;
-  surcharge: number;
-  cess: number;
-  total_tax_liability: number;
-  effective_rate: number;
-  marginal_relief: number;
-  slab_breakdown?: Array<{
-    slab: string;
-    rate: string;
-    amount: number;
+  gross_income?: number;
+  gross_total_income?: string | number;
+  standard_deduction?: string | number;
+  allowed_deductions?: Record<string, string | number>;
+  total_deductions: string | number;
+  taxable_income: string | number;
+  tax_before_rebate?: string | number;
+  tax_on_income?: string | number;
+  rebate_87a: string | number;
+  surcharge: string | number;
+  cess?: string | number;
+  health_and_education_cess?: string | number;
+  total_tax_liability: string | number;
+  effective_rate?: number;
+  effective_tax_rate_pct?: number;
+  marginal_relief?: string | number;
+  slab_details?: Array<{
+    slab_range: string;
+    taxable_in_slab: string | number;
+    rate_pct: string | number;
+    tax_amount: string | number;
   }>;
-  deduction_breakdown?: Record<string, number>;
+  official_citations?: string[];
   notes?: string[];
 }
 
 export interface TaxComparisonResult {
   assessment_year: string;
-  recommended_regime: 'new' | 'old';
-  savings_amount: number;
+  taxpayer_type?: string;
+  recommended_regime: 'new' | 'old' | string;
+  tax_savings?: string | number;
+  savings_amount?: number;
+  explanation?: string;
+  summary_explanation?: string;
   new_regime: TaxRegimeBreakdown;
   old_regime: TaxRegimeBreakdown;
-  summary_explanation?: string;
-  citations: string[];
+  citations?: string[];
 }
+
 
 export interface InvestmentOptionComparison {
   category: string;

@@ -244,21 +244,28 @@ export const InvestmentsView: React.FC = () => {
                     </div>
 
                     {/* Operational Attributes */}
-                    <div className="p-3 rounded-xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-1.5 text-[11px]">
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Credit Risk:</span>
-                        <span className="font-semibold text-[#172033] capitalize">
-                          {opt.credit_risk_level}
+                    <div className="p-3.5 rounded-xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-2.5 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-[#697386] uppercase tracking-wider block">
+                          Credit & Capital Risk
                         </span>
+                        <p className="text-[11px] font-semibold text-[#172033] mt-0.5 leading-relaxed">
+                          {opt.credit_risk_level}
+                        </p>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Liquidity:</span>
-                        <span className="font-semibold text-[#172033]">{opt.liquidity_mechanism}</span>
+                      <div>
+                        <span className="text-[10px] font-bold text-[#697386] uppercase tracking-wider block">
+                          Liquidity & Settlement
+                        </span>
+                        <p className="text-[11px] text-[#172033] mt-0.5 leading-relaxed">
+                          {opt.liquidity_mechanism}
+                        </p>
                       </div>
-                      <div className="text-[10px] text-[#697386] pt-1 border-t border-[#E6EAF0]">
-                        Tax: {opt.tax_treatment_summary}
+                      <div className="pt-1.5 border-t border-[#E6EAF0] text-[11px] text-[#697386]">
+                        <span className="font-semibold text-[#172033]">Tax Treatment:</span> {opt.tax_treatment_summary}
                       </div>
                     </div>
+
 
                     {/* Pros and Cons */}
                     <div className="space-y-1 text-xs">

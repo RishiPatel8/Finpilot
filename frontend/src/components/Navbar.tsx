@@ -43,13 +43,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-[#172033]">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-[#172033] whitespace-nowrap">
                 FinPilot AI
               </span>
               <Badge variant="lavender" size="sm" className="hidden xs:inline-flex">
                 India
               </Badge>
             </div>
+
             <p className="text-[11px] text-[#697386] hidden sm:block font-normal">
               Explainable Personal Finance Intelligence
             </p>

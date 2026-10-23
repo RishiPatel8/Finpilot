@@ -271,13 +271,17 @@ export const TaxPlannerView: React.FC = () => {
                       Recommended: {result.recommended_regime} Regime
                     </Badge>
                     <span className="text-xs font-bold text-[#16865C]">
-                      Save {formatINR(result.savings_amount)} annually
+                      Save {formatINR(Number(result.tax_savings ?? result.savings_amount ?? 0))} annually
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-[#172033] font-medium leading-relaxed">
-                    Under AY {result.assessment_year}, selecting the{' '}
-                    <strong>{result.recommended_regime} Regime</strong> minimizes your total statutory tax liability
-                    to <strong>{formatINR(result.recommended_regime.toLowerCase() === 'new' ? result.new_regime.total_tax_liability : result.old_regime.total_tax_liability)}</strong>.
+                    {result.explanation || (
+                      <>
+                        Under AY {result.assessment_year}, selecting the{' '}
+                        <strong>{result.recommended_regime.toUpperCase()} Regime</strong> minimizes your total statutory tax liability
+                        to <strong>{formatINR(Number(result.recommended_regime.toLowerCase() === 'new' ? result.new_regime.total_tax_liability : result.old_regime.total_tax_liability))}</strong>.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -307,38 +311,48 @@ export const TaxPlannerView: React.FC = () => {
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-[#697386]">Gross Total Income:</span>
-                      <span className="font-semibold tabular-nums">{formatINR(result.new_regime.gross_income)}</span>
+                      <span className="font-semibold tabular-nums">
+                        {formatINR(Number(result.new_regime.gross_total_income ?? result.new_regime.gross_income ?? 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#697386]">Total Deductions:</span>
+                      <span className="text-[#697386]">Standard / Deductions:</span>
                       <span className="text-[#16865C] font-semibold tabular-nums">
-                        - {formatINR(result.new_regime.total_deductions)}
+                        - {formatINR(Number(result.new_regime.standard_deduction ?? result.new_regime.total_deductions ?? 0))}
                       </span>
                     </div>
                     <div className="flex justify-between font-bold pt-1 border-t border-[#F1F4F9]">
                       <span className="text-[#172033]">Taxable Income:</span>
-                      <span className="text-[#172033] tabular-nums">{formatINR(result.new_regime.taxable_income)}</span>
+                      <span className="text-[#172033] tabular-nums">
+                        {formatINR(Number(result.new_regime.taxable_income))}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#697386]">Tax Before Rebate:</span>
-                      <span className="tabular-nums">{formatINR(result.new_regime.tax_before_rebate)}</span>
+                      <span className="text-[#697386]">Tax on Income:</span>
+                      <span className="tabular-nums">
+                        {formatINR(Number(result.new_regime.tax_on_income ?? result.new_regime.tax_before_rebate ?? 0))}
+                      </span>
                     </div>
-                    {result.new_regime.rebate_87a > 0 && (
+                    {Number(result.new_regime.rebate_87a) > 0 && (
                       <div className="flex justify-between text-[#16865C]">
                         <span>Section 87A Rebate:</span>
-                        <span className="tabular-nums">- {formatINR(result.new_regime.rebate_87a)}</span>
+                        <span className="tabular-nums">- {formatINR(Number(result.new_regime.rebate_87a))}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-[#697386]">
                       <span>Health & Edu Cess (4%):</span>
-                      <span className="tabular-nums">{formatINR(result.new_regime.cess)}</span>
+                      <span className="tabular-nums">
+                        {formatINR(Number(result.new_regime.health_and_education_cess ?? result.new_regime.cess ?? 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm font-extrabold pt-2 border-t border-[#E6EAF0] text-[#172033]">
                       <span>Net Tax Payable:</span>
-                      <span className="tabular-nums text-[#6478E8]">{formatINR(result.new_regime.total_tax_liability)}</span>
+                      <span className="tabular-nums text-[#6478E8]">
+                        {formatINR(Number(result.new_regime.total_tax_liability))}
+                      </span>
                     </div>
-                    <div className="text-[11px] text-[#697386] text-right">
-                      Effective rate: <strong>{result.new_regime.effective_rate}%</strong>
+                    <div className="text-[11px] text-[#697386] text-right font-medium">
+                      Effective rate: <strong>{result.new_regime.effective_tax_rate_pct ?? result.new_regime.effective_rate ?? 0}%</strong>
                     </div>
                   </div>
                 </Card>
@@ -366,38 +380,48 @@ export const TaxPlannerView: React.FC = () => {
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-[#697386]">Gross Total Income:</span>
-                      <span className="font-semibold tabular-nums">{formatINR(result.old_regime.gross_income)}</span>
+                      <span className="font-semibold tabular-nums">
+                        {formatINR(Number(result.old_regime.gross_total_income ?? result.old_regime.gross_income ?? 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#697386]">Total Deductions:</span>
+                      <span className="text-[#697386]">Total Deductions (80C/D/HRA):</span>
                       <span className="text-[#16865C] font-semibold tabular-nums">
-                        - {formatINR(result.old_regime.total_deductions)}
+                        - {formatINR(Number(result.old_regime.total_deductions))}
                       </span>
                     </div>
                     <div className="flex justify-between font-bold pt-1 border-t border-[#F1F4F9]">
                       <span className="text-[#172033]">Taxable Income:</span>
-                      <span className="text-[#172033] tabular-nums">{formatINR(result.old_regime.taxable_income)}</span>
+                      <span className="text-[#172033] tabular-nums">
+                        {formatINR(Number(result.old_regime.taxable_income))}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#697386]">Tax Before Rebate:</span>
-                      <span className="tabular-nums">{formatINR(result.old_regime.tax_before_rebate)}</span>
+                      <span className="text-[#697386]">Tax on Income:</span>
+                      <span className="tabular-nums">
+                        {formatINR(Number(result.old_regime.tax_on_income ?? result.old_regime.tax_before_rebate ?? 0))}
+                      </span>
                     </div>
-                    {result.old_regime.rebate_87a > 0 && (
+                    {Number(result.old_regime.rebate_87a) > 0 && (
                       <div className="flex justify-between text-[#16865C]">
                         <span>Section 87A Rebate:</span>
-                        <span className="tabular-nums">- {formatINR(result.old_regime.rebate_87a)}</span>
+                        <span className="tabular-nums">- {formatINR(Number(result.old_regime.rebate_87a))}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-[#697386]">
                       <span>Health & Edu Cess (4%):</span>
-                      <span className="tabular-nums">{formatINR(result.old_regime.cess)}</span>
+                      <span className="tabular-nums">
+                        {formatINR(Number(result.old_regime.health_and_education_cess ?? result.old_regime.cess ?? 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm font-extrabold pt-2 border-t border-[#E6EAF0] text-[#172033]">
                       <span>Net Tax Payable:</span>
-                      <span className="tabular-nums text-[#172033]">{formatINR(result.old_regime.total_tax_liability)}</span>
+                      <span className="tabular-nums text-[#172033]">
+                        {formatINR(Number(result.old_regime.total_tax_liability))}
+                      </span>
                     </div>
-                    <div className="text-[11px] text-[#697386] text-right">
-                      Effective rate: <strong>{result.old_regime.effective_rate}%</strong>
+                    <div className="text-[11px] text-[#697386] text-right font-medium">
+                      Effective rate: <strong>{result.old_regime.effective_tax_rate_pct ?? result.old_regime.effective_rate ?? 0}%</strong>
                     </div>
                   </div>
                 </Card>
@@ -409,19 +433,20 @@ export const TaxPlannerView: React.FC = () => {
                   <BookOpen className="w-4 h-4 text-[#6478E8]" />
                   <span>Statutory Notes & Formula Citations</span>
                 </p>
-                {result.summary_explanation && (
-                  <p className="text-[11px] leading-relaxed text-[#172033]">
-                    {result.summary_explanation}
+                {result.explanation && (
+                  <p className="text-[11px] leading-relaxed text-[#172033] font-medium">
+                    {result.explanation}
                   </p>
                 )}
-                {result.citations && result.citations.length > 0 && (
+                {((result.new_regime?.official_citations) || (result.citations)) && (
                   <ul className="list-disc list-inside space-y-1 text-[11px] leading-relaxed">
-                    {result.citations.map((cite: string, idx: number) => (
+                    {(result.new_regime?.official_citations || result.citations || []).map((cite: string, idx: number) => (
                       <li key={idx}>{cite}</li>
                     ))}
                   </ul>
                 )}
               </div>
+
 
             </div>
           ) : (

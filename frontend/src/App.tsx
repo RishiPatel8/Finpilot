@@ -90,7 +90,7 @@ export const App: React.FC = () => {
   const handleSeedDemo = async () => {
     if (!user) {
       try {
-        const email = `demo_${Date.now()}@finpilot.local`;
+        const email = `demo_${Date.now()}@finpilot.ai`;
         const res = await apiRequest<{ access_token: string; user: User }>('/auth/register', {
           method: 'POST',
           body: JSON.stringify({
@@ -100,6 +100,7 @@ export const App: React.FC = () => {
             role: 'salaried',
           }),
         });
+
         setAuthToken(res.access_token);
         setUser(res.user);
       } catch (e) {
