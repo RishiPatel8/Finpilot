@@ -1,15 +1,15 @@
 import React from 'react';
 import {
   TrendingUp,
-  TrendingDown,
-  ShieldAlert,
-  ShieldCheck,
   Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-  PiggyBank,
+  ShieldCheck,
+  ShieldAlert,
   Target,
-  Sparkles
+  ArrowUpRight,
+  Sparkles,
+  Calendar,
+  Layers,
+  ArrowRight,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -18,9 +18,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from 'recharts';
 import { FinancialHealthSummary, Transaction, FinancialGoal } from '../../types';
+import { Card, Badge, MetricCard, Button, PageHeader } from '../../components/ui';
 
 interface DashboardViewProps {
   summary: FinancialHealthSummary | null;
@@ -37,14 +38,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   isDemoActive,
   onNavigateToTab,
 }) => {
-  // Chart trend data points (either derived or baseline monthly flow)
+  // Cash flow trend data points
   const chartData = [
     { month: 'Nov', income: 140000, expenses: 62000, surplus: 78000 },
     { month: 'Dec', income: 142000, expenses: 74000, surplus: 68000 },
     { month: 'Jan', income: 145000, expenses: 66000, surplus: 79000 },
     { month: 'Feb', income: 145000, expenses: 64000, surplus: 81000 },
     { month: 'Mar', income: 155000, expenses: 71000, surplus: 84000 },
-    { month: 'Apr', income: summary?.monthly_income || 145000, expenses: summary?.monthly_expenses || 68000, surplus: summary?.monthly_surplus || 77000 },
+    {
+      month: 'Apr',
+      income: summary?.monthly_income || 145000,
+      expenses: summary?.monthly_expenses || 68000,
+      surplus: summary?.monthly_surplus || 77000,
+    },
   ];
 
   const formatINR = (val: number) => {
@@ -60,240 +66,299 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner indicating Live vs Demo Data */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-slate-100">Financial Command Center</h1>
-            {isDemoActive ? (
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
-                Synthetic Demo Data Active
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                Live Data
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time deterministic aggregation of your assets, liabilities, and monthly cash flow.
-          </p>
-        </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Financial Overview"
+        description="Real-time deterministic aggregation of your net worth, cash flow runway, and milestone trajectories."
+        icon={<TrendingUp className="w-4 h-4 text-[#6478E8]" />}
+        badge={
+          isDemoActive ? (
+            <Badge variant="peach" size="sm">
+              Demo Profile Active
+            </Badge>
+          ) : (
+            <Badge variant="mint" size="sm">
+              Live Profile
+            </Badge>
+          )
+        }
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onNavigateToTab('tax')}
+              icon={<ArrowUpRight className="w-3.5 h-3.5 text-[#6478E8]" />}
+              iconPosition="right"
+            >
+              Plan FY25 Tax
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onNavigateToTab('scenarios')}
+              icon={<Sparkles className="w-3.5 h-3.5" />}
+            >
+              Simulate Decision
+            </Button>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onNavigateToTab('tax')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors"
-          >
-            <span>Plan FY25 Tax</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
-          </button>
-          <button
-            onClick={() => onNavigateToTab('assistant')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20 transition-all"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Ask AI Assistant</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 Core Metrics Cards */}
+      {/* 4 Core Financial Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Net Worth */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 backdrop-blur-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-400">Estimated Net Worth</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <TrendingUp className="w-4 h-4" />
+        {/* Estimated Net Worth */}
+        <MetricCard
+          label="Estimated Net Worth"
+          value={formatINR(summary?.net_worth || 0)}
+          icon={<TrendingUp className="w-4 h-4" />}
+          iconTone="lavender"
+          subtext={
+            <div className="flex items-center justify-between w-full text-[11px]">
+              <span className="text-[#16865C] font-semibold">
+                {formatINR(summary?.total_assets || 0)} Assets
+              </span>
+              <span className="text-[#E6EAF0]">•</span>
+              <span className="text-[#D9485F] font-semibold">
+                {formatINR(summary?.total_liabilities || 0)} Debt
+              </span>
             </div>
-          </div>
-          <p className="text-2xl font-black text-slate-100 tracking-tight">
-            {formatINR(summary?.net_worth || 0)}
-          </p>
-          <div className="flex items-center gap-2 mt-3 text-[11px] text-slate-400">
-            <span className="text-emerald-400 font-semibold">{formatINR(summary?.total_assets || 0)}</span> assets
-            <span>•</span>
-            <span className="text-rose-400 font-semibold">{formatINR(summary?.total_liabilities || 0)}</span> liabilities
-          </div>
-        </div>
+          }
+        />
 
-        {/* Monthly Surplus & Savings Rate */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 backdrop-blur-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-400">Monthly Cash Surplus</span>
-            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-400">
-              <Wallet className="w-4 h-4" />
+        {/* Monthly Cash Surplus & Savings Rate */}
+        <MetricCard
+          label="Monthly Cash Surplus"
+          value={formatINR(summary?.monthly_surplus || 0)}
+          icon={<Wallet className="w-4 h-4" />}
+          iconTone="mint"
+          subtext={
+            <div className="flex items-center justify-between w-full text-[11px]">
+              <span className="text-[#16865C] font-bold">
+                {summary?.savings_rate || 0}% Savings Rate
+              </span>
+              <span className="text-[#697386]">
+                Income {formatINR(summary?.monthly_income || 0)}
+              </span>
             </div>
-          </div>
-          <p className="text-2xl font-black text-slate-100 tracking-tight">
-            {formatINR(summary?.monthly_surplus || 0)}
-          </p>
-          <div className="flex items-center gap-2 mt-3 text-[11px] text-slate-400">
-            <span className="text-teal-400 font-bold">{summary?.savings_rate || 0}%</span> savings rate
-            <span>•</span>
-            <span>Income {formatINR(summary?.monthly_income || 0)}</span>
-          </div>
-        </div>
+          }
+        />
 
-        {/* Emergency Fund Runway */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 backdrop-blur-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-400">Emergency Reserve Runway</span>
-            <div className={`p-2 rounded-xl ${isEmergencyGood ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
-              {isEmergencyGood ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+        {/* Emergency Reserve Runway */}
+        <MetricCard
+          label="Emergency Reserve Runway"
+          value={`${emergencyMonths} Months`}
+          icon={isEmergencyGood ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+          iconTone={isEmergencyGood ? 'mint' : 'peach'}
+          progress={{
+            current: emergencyMonths,
+            target: 6,
+            color: isEmergencyGood ? 'bg-[#16865C]' : 'bg-[#B7791F]',
+          }}
+          subtext={
+            <div className="flex items-center justify-between w-full text-[11px]">
+              <span className={isEmergencyGood ? 'text-[#16865C] font-semibold' : 'text-[#B7791F] font-semibold'}>
+                {isEmergencyGood ? 'Target Met (6 mo)' : 'Target: 6 months'}
+              </span>
+              <span className="text-[#697386]">
+                {formatINR(summary?.emergency_fund_current || 0)}
+              </span>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-black text-slate-100 tracking-tight">
-              {emergencyMonths} <span className="text-sm font-semibold text-slate-400">months</span>
-            </p>
-            <span className="text-[11px] text-slate-400">/ 6 target</span>
-          </div>
-          {/* Progress bar */}
-          <div className="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${isEmergencyGood ? 'bg-emerald-500' : 'bg-amber-500'}`}
-              style={{ width: `${Math.min(100, (emergencyMonths / 6) * 100)}%` }}
-            />
-          </div>
-        </div>
+          }
+        />
 
-        {/* Active Goals Count */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 backdrop-blur-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-400">Active Goals</span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
-              <Target className="w-4 h-4" />
+        {/* Active Milestones */}
+        <MetricCard
+          label="Active Milestones"
+          value={`${goals.length} Goals`}
+          icon={<Target className="w-4 h-4" />}
+          iconTone="blue"
+          subtext={
+            <div className="flex items-center justify-between w-full text-[11px] truncate">
+              <span className="text-[#697386] truncate">
+                {goals[0] ? `Next: ${goals[0].name}` : 'No active targets'}
+              </span>
+              {goals[0] && (
+                <span className="text-[#6478E8] font-bold shrink-0 ml-1">
+                  {goals[0].progress_pct || 0}%
+                </span>
+              )}
             </div>
-          </div>
-          <p className="text-2xl font-black text-slate-100 tracking-tight">
-            {goals.length} <span className="text-sm font-semibold text-slate-400">Milestones</span>
-          </p>
-          <p className="text-[11px] text-slate-400 mt-3 truncate">
-            {goals[0] ? `Next: ${goals[0].name} (${goals[0].progress_pct || 0}%)` : 'No active targets set'}
-          </p>
-        </div>
+          }
+        />
       </div>
 
-      {/* Main Charts & Activity Section */}
+      {/* Main Charts & Goals Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 6-Month Cash Flow Trend Chart */}
-        <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Cash Flow Trends Chart */}
+        <Card className="lg:col-span-2 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="text-sm font-bold text-slate-100">Monthly Cash Flow & Surplus Trends</h2>
-              <p className="text-xs text-slate-400">Income vs expenses with net disposable surplus.</p>
+              <h2 className="text-base font-bold text-[#172033]">
+                Monthly Cash Flow & Surplus Trends
+              </h2>
+              <p className="text-xs text-[#697386]">
+                Income vs living expenses with net retained surplus across recent months.
+              </p>
             </div>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Income
+            <div className="flex items-center gap-4 text-xs font-semibold">
+              <span className="flex items-center gap-1.5 text-[#172033]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#16865C] inline-block" /> Income
               </span>
-              <span className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" /> Expenses
+              <span className="flex items-center gap-1.5 text-[#172033]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#D9485F] inline-block" /> Expenses
+              </span>
+              <span className="flex items-center gap-1.5 text-[#172033]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#6478E8] inline-block" /> Surplus
               </span>
             </div>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-64 sm:h-72 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                  <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16865C" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#16865C" stopOpacity={0.0} />
                   </linearGradient>
-                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                  <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D9485F" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#D9485F" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E6EAF0" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  stroke="#697386"
+                  tick={{ fontSize: 12, fill: '#697386' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#E6EAF0' }}
+                />
                 <YAxis
-                  stroke="#64748b"
-                  tick={{ fontSize: 12 }}
+                  stroke="#697386"
+                  tick={{ fontSize: 11, fill: '#697386' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#E6EAF0' }}
                   tickFormatter={(val) => `₹${val / 1000}k`}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E6EAF0',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(23, 32, 51, 0.08)',
+                    fontSize: '12px',
+                    color: '#172033',
+                  }}
                   formatter={(val: any) => [formatINR(Number(val)), '']}
                 />
-                <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
-                <Area type="monotone" dataKey="expenses" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
+                <Area
+                  type="monotone"
+                  dataKey="income"
+                  stroke="#16865C"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#incomeFill)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="#D9485F"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#expenseFill)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
         {/* Goals Progress Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4 flex flex-col justify-between">
+        <Card className="flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-slate-100">Financial Goals</h2>
+              <div>
+                <h2 className="text-base font-bold text-[#172033]">Target Milestones</h2>
+                <p className="text-xs text-[#697386]">Priority goal horizons</p>
+              </div>
               <button
                 onClick={() => onNavigateToTab('goals')}
-                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                className="text-xs text-[#6478E8] hover:underline font-semibold"
               >
                 View All
               </button>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {goals.length > 0 ? (
                 goals.slice(0, 3).map((goal) => (
-                  <div key={goal.id} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                  <div
+                    key={goal.id}
+                    className="p-3.5 rounded-xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-2 hover:bg-slate-50 transition-colors"
+                  >
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-200">{goal.name}</span>
-                      <span className="text-emerald-400 font-bold">{goal.progress_pct}%</span>
+                      <span className="text-[#172033]">{goal.name}</span>
+                      <span className="text-[#16865C] font-bold tabular-nums">
+                        {goal.progress_pct}%
+                      </span>
                     </div>
-                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#E6EAF0] h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                        className="bg-[#16865C] h-full rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(100, goal.progress_pct || 0)}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[11px] text-slate-400">
+                    <div className="flex justify-between text-[11px] text-[#697386] tabular-nums">
                       <span>{formatINR(goal.current_amount)}</span>
                       <span>Target: {formatINR(goal.target_amount)}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-slate-500 text-xs">
-                  No financial goals added yet. Click &apos;Goal Planner&apos; to create one.
+                <div className="text-center py-8 text-[#697386] text-xs">
+                  No financial goals created yet. Click below to add your first milestone.
                 </div>
               )}
             </div>
           </div>
 
-          <button
+          <Button
+            variant="soft"
+            size="sm"
             onClick={() => onNavigateToTab('goals')}
-            className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors"
+            className="w-full mt-4"
           >
             + Add New Financial Goal
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
 
       {/* Recent Activity Table */}
-      <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between">
+      <Card className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-bold text-slate-100">Recent Financial Transactions</h2>
-            <p className="text-xs text-slate-400">Verified cash flow movements across your accounts.</p>
+            <h2 className="text-base font-bold text-[#172033]">
+              Recent Financial Transactions
+            </h2>
+            <p className="text-xs text-[#697386]">
+              Verified cash flow movements across your linked Indian bank accounts.
+            </p>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => onNavigateToTab('budget')}
-            className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+            icon={<ArrowRight className="w-3.5 h-3.5 text-[#6478E8]" />}
+            iconPosition="right"
           >
-            Import CSV & View All
-          </button>
+            Manage Transactions & CSV
+          </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/50 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+        <div className="overflow-x-auto -mx-5 sm:mx-0">
+          <table className="w-full text-left text-xs text-[#172033]">
+            <thead className="bg-[#F6F8FC] text-[#697386] uppercase text-[10px] tracking-wider border-y border-[#E6EAF0]">
               <tr>
                 <th className="py-2.5 px-4 font-semibold">Date</th>
                 <th className="py-2.5 px-4 font-semibold">Description</th>
@@ -301,25 +366,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <th className="py-2.5 px-4 font-semibold text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-[#E6EAF0] font-medium">
               {recentTxns.length > 0 ? (
                 recentTxns.slice(0, 5).map((txn) => (
-                  <tr key={txn.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-4 text-slate-400">{txn.date}</td>
-                    <td className="py-3 px-4 text-slate-200 font-semibold">{txn.description}</td>
+                  <tr key={txn.id} className="hover:bg-[#F6F8FC] transition-colors">
+                    <td className="py-3 px-4 text-[#697386] tabular-nums font-mono">{txn.date}</td>
+                    <td className="py-3 px-4 text-[#172033] font-semibold">{txn.description}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
+                      <Badge variant="neutral" size="sm">
                         {txn.category}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className={`py-3 px-4 text-right font-bold ${txn.type === 'income' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                    <td
+                      className={`py-3 px-4 text-right font-bold tabular-nums ${
+                        txn.type === 'income' ? 'text-[#16865C]' : 'text-[#172033]'
+                      }`}
+                    >
                       {txn.type === 'income' ? '+' : '-'} {formatINR(txn.amount)}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-500">
+                  <td colSpan={4} className="py-8 text-center text-[#697386]">
                     No transactions recorded yet. Click &apos;Load Demo Profile&apos; above or import bank statement CSV.
                   </td>
                 </tr>
@@ -327,7 +396,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

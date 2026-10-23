@@ -7,12 +7,13 @@ import {
   Trash2,
   Search,
   Filter,
-  DollarSign,
   Layers,
-  ArrowDownUp
+  ArrowDownUp,
+  Download,
 } from 'lucide-react';
 import { apiRequest } from '../../services/api';
 import { Transaction } from '../../types';
+import { Card, Badge, Button, PageHeader } from '../../components/ui';
 
 interface BudgetViewProps {
   transactions: Transaction[];
@@ -54,12 +55,12 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
     try {
       const res = await apiRequest<any>('/transactions/import-csv/preview', {
         method: 'POST',
-        headers: {}, // let browser set multipart boundary
+        headers: {}, // let browser set boundary
         body: formData,
       });
       setPreviewData(res);
     } catch (err: any) {
-      setError(err.message || 'Failed to parse CSV file. Ensure valid columns.');
+      setError(err.message || 'Failed to parse CSV file. Ensure valid headers (Date, Description, Amount, Type).');
     } finally {
       setIsUploading(false);
     }
@@ -114,65 +115,87 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
   };
 
   const filteredTxns = transactions.filter((t) => {
-    const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          t.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || t.type === filterType;
     return matchesSearch && matchesType;
   });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800">
-        <h1 className="text-xl font-extrabold text-slate-100">Budgeting & Transaction Management</h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Import CSV statements, analyze 50-30-20 cash flows, and manage transactions with duplicate detection.
-        </p>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Budget & Bank Statements"
+        description="Analyze 50-30-20 cash flow allocations, import bank statements (CSV), and audit verified transactions with duplicate detection."
+        icon={<Layers className="w-4 h-4 text-[#6478E8]" />}
+        badge={
+          <Badge variant="blue" size="sm">
+            50-30-20 Allocation
+          </Badge>
+        }
+      />
 
       {/* 50/30/20 Rule Analysis Widget */}
-      <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4">
-        <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <Layers className="w-4 h-4 text-emerald-400" />
-          <span>50 / 30 / 20 Cash Flow Allocation Framework</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-xs text-slate-400">Needs (50% Ideal)</span>
-            <p className="text-lg font-black text-slate-200 mt-1 font-mono">
-              {formatINR(monthlyIncome * 0.50)}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1">Housing, Groceries, EMIs & Bills</p>
-          </div>
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-xs text-slate-400">Wants (30% Ideal)</span>
-            <p className="text-lg font-black text-slate-200 mt-1 font-mono">
-              {formatINR(monthlyIncome * 0.30)}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1">Dining, Travel, Subscriptions & Leisure</p>
-          </div>
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-xs text-slate-400">Savings & Investments (20% Target)</span>
-            <p className="text-lg font-black text-emerald-400 mt-1 font-mono">
-              {formatINR(monthlyIncome * 0.20)}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1">Liquid reserve, SIPs, Debt pre-payments</p>
-          </div>
-        </div>
-      </div>
-
-      {/* CSV Bank Statement Import Card */}
-      <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Import Bank Statement (CSV)</span>
+            <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#6478E8]" />
+              <span>50 / 30 / 20 Cash Flow Allocation Framework</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Supports HDFC, ICICI, SBI, Axis, Zerodha, and standard CSV statements with duplicate detection.
+            <p className="text-xs text-[#697386]">
+              Standard recommended allocation benchmarked against your net monthly income of {formatINR(monthlyIncome)}.
             </p>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Needs */}
+          <div className="p-4 rounded-2xl bg-[#E8F2FF]/60 border border-[#E8F2FF] space-y-1">
+            <span className="text-xs font-semibold text-[#2B6CB0]">Needs (50% Target)</span>
+            <p className="text-xl font-extrabold text-[#172033] font-mono tabular-nums">
+              {formatINR(monthlyIncome * 0.50)}
+            </p>
+            <p className="text-[11px] text-[#697386]">
+              Rent, Groceries, EMIs, Utilities & Healthcare
+            </p>
+          </div>
+
+          {/* Wants */}
+          <div className="p-4 rounded-2xl bg-[#FFF0E5]/60 border border-[#FFF0E5] space-y-1">
+            <span className="text-xs font-semibold text-[#B7791F]">Wants (30% Target)</span>
+            <p className="text-xl font-extrabold text-[#172033] font-mono tabular-nums">
+              {formatINR(monthlyIncome * 0.30)}
+            </p>
+            <p className="text-[11px] text-[#697386]">
+              Dining out, Travel, Subscriptions & Hobbies
+            </p>
+          </div>
+
+          {/* Savings */}
+          <div className="p-4 rounded-2xl bg-[#E5F7EF]/60 border border-[#E5F7EF] space-y-1">
+            <span className="text-xs font-semibold text-[#16865C]">Savings & Investments (20% Target)</span>
+            <p className="text-xl font-extrabold text-[#16865C] font-mono tabular-nums">
+              {formatINR(monthlyIncome * 0.20)}
+            </p>
+            <p className="text-[11px] text-[#697386]">
+              Liquid funds, SIPs, PPF, Pre-payments
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* CSV Bank Statement Import Card */}
+      <Card className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4 text-[#6478E8]" />
+            <span>Import Bank Statement (CSV)</span>
+          </h2>
+          <p className="text-xs text-[#697386] mt-0.5">
+            Compatible with HDFC, ICICI, SBI, Axis, Kotak, and standard bank exports with automatic duplicate suppression.
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -180,75 +203,91 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer"
+            className="w-full text-xs text-[#697386] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-[#E6EAF0] file:text-xs file:font-semibold file:bg-[#F6F8FC] file:text-[#172033] hover:file:bg-slate-100 cursor-pointer"
           />
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={uploadAndPreview}
             disabled={!file || isUploading}
-            className="w-full sm:w-auto px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-xl shrink-0 transition-all shadow-md shadow-emerald-500/20"
+            loading={isUploading}
+            icon={<Upload className="w-3.5 h-3.5" />}
+            className="w-full sm:w-auto shrink-0"
           >
-            {isUploading ? 'Validating...' : 'Upload & Preview'}
-          </button>
+            {isUploading ? 'Validating CSV...' : 'Upload & Validate'}
+          </Button>
         </div>
 
         {error && (
-          <p className="text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20">
+          <div className="p-3 rounded-xl bg-[#FDF2F4] border border-[#D9485F]/20 text-xs text-[#D9485F]">
             {error}
-          </p>
+          </div>
         )}
 
         {/* CSV Preview Results Table */}
         {previewData && (
-          <div className="mt-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-4 animate-in fade-in duration-200">
+          <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-4 animate-in fade-in duration-200">
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-4">
-                <span className="text-slate-300">Total: <strong>{previewData.total_rows}</strong></span>
-                <span className="text-emerald-400 font-semibold">Valid New: <strong>{previewData.valid_rows}</strong></span>
-                <span className="text-amber-400 font-semibold">Duplicates: <strong>{previewData.duplicate_rows}</strong></span>
-                <span className="text-rose-400 font-semibold">Invalid: <strong>{previewData.invalid_rows}</strong></span>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 font-medium">
+                <span className="text-[#697386]">
+                  Total Rows: <strong className="text-[#172033]">{previewData.total_rows}</strong>
+                </span>
+                <span className="text-[#16865C]">
+                  Valid New: <strong>{previewData.valid_rows}</strong>
+                </span>
+                <span className="text-[#B7791F]">
+                  Duplicates: <strong>{previewData.duplicate_rows}</strong>
+                </span>
+                <span className="text-[#D9485F]">
+                  Invalid: <strong>{previewData.invalid_rows}</strong>
+                </span>
               </div>
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={confirmImport}
                 disabled={previewData.valid_rows === 0 || isConfirming}
-                className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20"
+                loading={isConfirming}
               >
-                {isConfirming ? 'Importing...' : `Confirm Import (${previewData.valid_rows} txns)`}
-              </button>
+                {isConfirming
+                  ? 'Importing...'
+                  : `Confirm Import (${previewData.valid_rows} txns)`}
+              </Button>
             </div>
 
-            <div className="max-h-56 overflow-y-auto border border-slate-800/80 rounded-lg">
-              <table className="w-full text-left text-[11px] text-slate-300">
-                <thead className="bg-slate-900 sticky top-0 text-slate-400 uppercase text-[9px] tracking-wider">
+            <div className="max-h-60 overflow-y-auto border border-[#E6EAF0] rounded-xl bg-white">
+              <table className="w-full text-left text-xs text-[#172033]">
+                <thead className="bg-[#F6F8FC] sticky top-0 text-[#697386] uppercase text-[10px] tracking-wider border-b border-[#E6EAF0]">
                   <tr>
-                    <th className="py-2 px-3">Date</th>
-                    <th className="py-2 px-3">Description</th>
-                    <th className="py-2 px-3">Category</th>
-                    <th className="py-2 px-3 text-right">Amount</th>
-                    <th className="py-2 px-3 text-center">Status</th>
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Description</th>
+                    <th className="py-2.5 px-3">Category</th>
+                    <th className="py-2.5 px-3 text-right">Amount</th>
+                    <th className="py-2.5 px-3 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium">
+                <tbody className="divide-y divide-[#E6EAF0] font-medium">
                   {previewData.preview.map((row: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-slate-800/20">
-                      <td className="py-2 px-3 font-mono text-slate-400">{row.date}</td>
-                      <td className="py-2 px-3 text-slate-200 truncate max-w-xs">{row.description}</td>
-                      <td className="py-2 px-3 text-slate-400">{row.category}</td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-200">
+                    <tr key={idx} className="hover:bg-[#F6F8FC] transition-colors">
+                      <td className="py-2.5 px-3 font-mono text-[#697386]">{row.date}</td>
+                      <td className="py-2.5 px-3 text-[#172033] truncate max-w-xs">{row.description}</td>
+                      <td className="py-2.5 px-3 text-[#697386]">{row.category}</td>
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-[#172033]">
                         {row.type === 'income' ? '+' : '-'} ₹{row.amount}
                       </td>
-                      <td className="py-2 px-3 text-center">
+                      <td className="py-2.5 px-3 text-center">
                         {row.is_duplicate ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          <Badge variant="peach" size="sm">
                             Duplicate
-                          </span>
+                          </Badge>
                         ) : row.is_valid ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Badge variant="mint" size="sm">
                             Ready
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20" title={row.validation_error}>
+                          <Badge variant="danger" size="sm" title={row.validation_error}>
                             Invalid
-                          </span>
+                          </Badge>
                         )}
                       </td>
                     </tr>
@@ -258,29 +297,34 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Transaction History Filter & Table */}
-      <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-4">
+      <Card className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-slate-100">Transaction History ({filteredTxns.length})</h2>
+          <div>
+            <h2 className="text-base font-bold text-[#172033]">
+              Transaction History ({filteredTxns.length})
+            </h2>
+            <p className="text-xs text-[#697386]">Search and filter categorized transactions.</p>
+          </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-60">
-              <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500" />
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#697386]" />
               <input
                 type="text"
                 placeholder="Search transactions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#172033] placeholder-[#697386]/60 focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
               />
             </div>
 
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+              className="bg-white border border-[#E6EAF0] rounded-xl px-3 py-1.5 text-xs text-[#172033] font-medium focus:outline-none focus:border-[#6478E8] transition-all"
             >
               <option value="all">All Types</option>
               <option value="income">Income Only</option>
@@ -289,9 +333,9 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/60 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+        <div className="overflow-x-auto -mx-5 sm:mx-0">
+          <table className="w-full text-left text-xs text-[#172033]">
+            <thead className="bg-[#F6F8FC] text-[#697386] uppercase text-[10px] tracking-wider border-y border-[#E6EAF0]">
               <tr>
                 <th className="py-2.5 px-4 font-semibold">Date</th>
                 <th className="py-2.5 px-4 font-semibold">Description</th>
@@ -301,25 +345,31 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                 <th className="py-2.5 px-4 font-semibold text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-[#E6EAF0] font-medium">
               {filteredTxns.length > 0 ? (
                 filteredTxns.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-4 font-mono text-slate-400">{t.date}</td>
-                    <td className="py-3 px-4 text-slate-200 font-semibold">{t.description}</td>
+                  <tr key={t.id} className="hover:bg-[#F6F8FC] transition-colors">
+                    <td className="py-3 px-4 font-mono text-[#697386]">{t.date}</td>
+                    <td className="py-3 px-4 text-[#172033] font-semibold">{t.description}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
+                      <Badge variant="neutral" size="sm">
                         {t.category}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="py-3 px-4 text-[11px] text-slate-400 capitalize">{t.source.replace('_', ' ')}</td>
-                    <td className={`py-3 px-4 text-right font-mono font-bold ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                    <td className="py-3 px-4 text-[#697386] capitalize">
+                      {t.source.replace('_', ' ')}
+                    </td>
+                    <td
+                      className={`py-3 px-4 text-right font-mono font-bold tabular-nums ${
+                        t.type === 'income' ? 'text-[#16865C]' : 'text-[#172033]'
+                      }`}
+                    >
                       {t.type === 'income' ? '+' : '-'} {formatINR(t.amount)}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleDelete(t.id)}
-                        className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors"
+                        className="text-[#697386] hover:text-[#D9485F] hover:bg-[#FDF2F4] p-1.5 rounded-lg transition-colors"
                         title="Delete transaction"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -329,15 +379,15 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    No matching transactions found.
+                  <td colSpan={6} className="py-8 text-center text-[#697386]">
+                    No transactions match the selected filters.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

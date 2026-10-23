@@ -4,63 +4,76 @@
 
 @layer base {
   :root {
-    --color-bg: #090d16;
-    --color-surface: #111827;
-    --color-surface-hover: #1f2937;
-    --color-border: #374151;
-    --color-primary: #10b981;
-    --color-primary-hover: #059669;
+    --color-bg: #F6F8FC;
+    --color-card: #FFFFFF;
+    --color-border: #E6EAF0;
+    --color-text-primary: #172033;
+    --color-text-secondary: #697386;
+    --color-primary: #6478E8;
+    --color-primary-hover: #5365D6;
+    --color-lavender: #EEF0FF;
+    --color-mint: #E5F7EF;
+    --color-blue: #E8F2FF;
+    --color-peach: #FFF0E5;
+    --color-success: #16865C;
+    --color-warning: #B7791F;
+    --color-danger: #D9485F;
   }
 
   body {
     background-color: var(--color-bg);
-    color: #f3f4f6;
+    color: var(--color-text-primary);
     overflow-x: hidden;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Glassmorphism and modern gradient cards */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Tabular numbers for financial alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
-.glass-panel-interactive {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* Modern, restrained card surfaces */
+.finpilot-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E6EAF0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease-in-out;
 }
 
-.glass-panel-interactive:hover {
-  background: rgba(31, 41, 55, 0.8);
-  border-color: rgba(16, 185, 129, 0.3);
+.finpilot-card-interactive {
+  background-color: #FFFFFF;
+  border: 1px solid #E6EAF0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.finpilot-card-interactive:hover {
+  border-color: #D1D9E6;
+  box-shadow: 0 6px 16px -2px rgba(23, 32, 51, 0.06);
   transform: translateY(-1px);
 }
 
-/* Subtle glow effects */
-.glow-primary {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
-}
-
-/* Custom modern scrollbar */
+/* Subtle, clean light scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #F6F8FC;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #D1D9E6;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #B4BFD2;
 }
+

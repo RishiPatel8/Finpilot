@@ -6,10 +6,12 @@ import {
   BookOpen,
   Wrench,
   User as UserIcon,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { apiRequest } from '../../services/api';
 import { ChatMessage } from '../../types';
+import { Card, Badge, Button, PageHeader } from '../../components/ui';
 
 export const AssistantView: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -25,9 +27,9 @@ export const AssistantView: React.FC = () => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       citations: [
         "Income Tax Act 1961 (Section 115BAC)",
-        "SEBI Mutual Fund Regulations (Liquid Scheme Norms)"
-      ]
-    }
+        "SEBI Mutual Fund Regulations (Liquid Scheme Norms)",
+      ],
+    },
   ]);
 
   const [input, setInput] = useState('');
@@ -39,7 +41,7 @@ export const AssistantView: React.FC = () => {
     "Compare tax for 15 LPA salary in new vs old regime",
     "Should I invest 3 lakh in liquid fund or bond for 6 months?",
     "How much to save per month for 20 lakh house downpayment in 3 years?",
-    "What is the standard deduction in AY 2025-26 under Finance Act 2024?"
+    "What is the standard deduction in AY 2025-26 under Finance Act 2024?",
   ];
 
   const scrollToBottom = () => {
@@ -58,7 +60,7 @@ export const AssistantView: React.FC = () => {
       id: Date.now().toString(),
       sender: 'user',
       content: query,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -81,7 +83,7 @@ export const AssistantView: React.FC = () => {
         content: res.content,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         citations: res.citations,
-        tool_invocations: res.tool_invocations
+        tool_invocations: res.tool_invocations,
       };
 
       setMessages((prev) => [...prev, asstMsg]);
@@ -89,8 +91,8 @@ export const AssistantView: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        content: `I encountered an issue processing your query: ${err.message || 'Service unavailable'}. Please verify your connection.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        content: `I encountered an issue processing your query: ${err.message || 'Service temporarily unavailable'}. Please verify your connection or retry.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -100,46 +102,52 @@ export const AssistantView: React.FC = () => {
 
   return (
     <div className="space-y-4 flex flex-col h-[calc(100vh-140px)]">
-      {/* Top Header */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800 shrink-0">
-        <div className="flex items-center gap-2">
-          <BotMessageSquare className="w-5 h-5 text-emerald-400" />
-          <h1 className="text-xl font-extrabold text-slate-100">Conversational Financial Assistant</h1>
-          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            Grounded & Deterministic
-          </span>
-        </div>
-        <p className="text-xs text-slate-400 mt-1">
-          Orchestrates calculation tools and retrieves official tax & SEBI statutory citations.
-        </p>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="AI CFO Assistant"
+        description="Grounded conversational intelligence with statutory Income Tax & SEBI RAG citations. Zero hallucinated formulas."
+        icon={<BotMessageSquare className="w-4 h-4 text-[#6478E8]" />}
+        badge={
+          <Badge variant="mint" size="sm">
+            Statutory Citations Verified
+          </Badge>
+        }
+      />
 
-      {/* Chat Messages Body */}
-      <div className="flex-1 overflow-y-auto p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+      {/* Messages Canvas */}
+      <Card
+        padding="none"
+        className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-[#F6F8FC]/50"
+      >
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`flex items-start gap-3 ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex items-start gap-3 ${
+              m.sender === 'user' ? 'justify-end' : 'justify-start'
+            }`}
           >
             {m.sender === 'assistant' && (
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/20 flex items-center justify-center text-[#6478E8] shrink-0 mt-0.5">
                 <Sparkles className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`max-w-2xl rounded-2xl p-4 text-xs space-y-3 ${
+              className={`max-w-2xl rounded-2xl p-4 sm:p-5 text-xs sm:text-sm space-y-3 shadow-sm ${
                 m.sender === 'user'
-                  ? 'bg-emerald-600 text-white rounded-tr-none font-medium'
-                  : 'bg-slate-950/90 border border-slate-800 text-slate-200 rounded-tl-none'
+                  ? 'bg-[#6478E8] text-white rounded-tr-none font-medium'
+                  : 'bg-white border border-[#E6EAF0] text-[#172033] rounded-tl-none'
               }`}
             >
-              {/* Tool Execution Badge */}
+              {/* Tool Execution Badges */}
               {m.tool_invocations && m.tool_invocations.length > 0 && (
-                <div className="space-y-1 pb-2 border-b border-slate-800/80">
+                <div className="space-y-1.5 pb-2.5 border-b border-[#E6EAF0]">
                   {m.tool_invocations.map((t, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 font-semibold">
-                      <Wrench className="w-3 h-3" />
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1.5 text-[11px] font-semibold text-[#16865C] bg-[#E5F7EF] px-2.5 py-1 rounded-lg border border-[#16865C]/15"
+                    >
+                      <Wrench className="w-3.5 h-3.5 shrink-0" />
                       <span>{t.summary}</span>
                     </div>
                   ))}
@@ -151,14 +159,14 @@ export const AssistantView: React.FC = () => {
                 {m.content}
               </div>
 
-              {/* Citations Box */}
+              {/* Statutory Citations */}
               {m.citations && m.citations.length > 0 && (
-                <div className="pt-2 border-t border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                    <BookOpen className="w-3 h-3 text-emerald-400" />
-                    <span>Statutory Sources & Citations:</span>
+                <div className="pt-2.5 border-t border-[#E6EAF0] space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#697386]">
+                    <BookOpen className="w-3.5 h-3.5 text-[#6478E8]" />
+                    <span>Statutory Citations:</span>
                   </div>
-                  <ul className="list-disc list-inside text-[10px] text-slate-400 space-y-0.5">
+                  <ul className="list-disc list-inside text-[11px] text-[#697386] space-y-0.5">
                     {m.citations.map((cite, idx) => (
                       <li key={idx}>{cite}</li>
                     ))}
@@ -166,13 +174,17 @@ export const AssistantView: React.FC = () => {
                 </div>
               )}
 
-              <div className="text-[9px] text-right text-slate-400 opacity-60">
+              <div
+                className={`text-[10px] text-right ${
+                  m.sender === 'user' ? 'text-white/80' : 'text-[#697386]'
+                }`}
+              >
                 {m.timestamp}
               </div>
             </div>
 
             {m.sender === 'user' && (
-              <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/30 flex items-center justify-center text-[#6478E8] shrink-0 mt-0.5 font-bold text-xs">
                 <UserIcon className="w-4 h-4" />
               </div>
             )}
@@ -181,51 +193,54 @@ export const AssistantView: React.FC = () => {
 
         {loading && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/20 flex items-center justify-center text-[#6478E8] shrink-0">
               <Sparkles className="w-4 h-4 animate-spin" />
             </div>
-            <div className="rounded-2xl rounded-tl-none p-3.5 bg-slate-950/90 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Orchestrating financial engines and checking citations...</span>
+            <div className="rounded-2xl rounded-tl-none p-3.5 bg-white border border-[#E6EAF0] text-xs text-[#697386] flex items-center gap-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#6478E8] animate-pulse" />
+              <span>Evaluating statutory calculations and citation models...</span>
             </div>
           </div>
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+      </Card>
 
-      {/* Quick Prompts Chips */}
+      {/* Suggested Quick Prompts */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 shrink-0 scrollbar-none">
         {samplePrompts.map((p, idx) => (
           <button
             key={idx}
             onClick={() => handleSend(p)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-emerald-300 transition-colors shrink-0"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-xl bg-white hover:bg-[#F6F8FC] border border-[#E6EAF0] text-[#697386] hover:text-[#172033] shadow-sm transition-colors shrink-0"
           >
             {p}
           </button>
         ))}
       </div>
 
-      {/* Input Field */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Composer Input */}
+      <div className="flex items-center gap-2.5 shrink-0">
         <input
           type="text"
-          placeholder="Ask any tax, investment, or goal question in plain English (e.g. 15 LPA salary tax)..."
+          placeholder="Ask any tax, investment, or goal question in plain English (e.g. 15 LPA salary tax in new vs old regime)..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSend();
           }}
-          className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+          className="flex-1 bg-white border border-[#E6EAF0] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#172033] placeholder-[#697386]/60 shadow-sm focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
         />
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           onClick={() => handleSend()}
           disabled={!input.trim() || loading}
-          className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 rounded-2xl transition-all shadow-md shadow-emerald-500/20"
+          icon={<Send className="w-4 h-4" />}
+          className="rounded-2xl px-5"
         >
-          <Send className="w-5 h-5" />
-        </button>
+          Send
+        </Button>
       </div>
     </div>
   );

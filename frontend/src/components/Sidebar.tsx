@@ -7,71 +7,111 @@ import {
   Target,
   BotMessageSquare,
   ShieldCheck,
-  SlidersHorizontal
+  SlidersHorizontal,
 } from 'lucide-react';
+import { Badge } from './ui';
 
 export type TabType = 'overview' | 'tax' | 'budget' | 'investments' | 'goals' | 'scenarios' | 'assistant';
 
 interface SidebarProps {
   activeTab: TabType;
   onSelectTab: (tab: TabType) => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  onSelectTab,
+  isMobileOpen = false,
+  onCloseMobile,
+}) => {
   const navItems = [
-    { id: 'overview' as TabType, label: 'Dashboard', icon: LayoutDashboard, badge: null },
-    { id: 'tax' as TabType, label: 'Tax Planner', icon: ReceiptIndianRupee, badge: 'AY 25-26' },
+    { id: 'overview' as TabType, label: 'Financial Overview', icon: LayoutDashboard, badge: null },
+    { id: 'scenarios' as TabType, label: 'Decision Simulator', icon: SlidersHorizontal, badge: 'Flagship' },
+    { id: 'assistant' as TabType, label: 'AI CFO Assistant', icon: BotMessageSquare, badge: 'RAG' },
     { id: 'budget' as TabType, label: 'Budget & CSV', icon: Wallet, badge: null },
+    { id: 'tax' as TabType, label: 'Tax Planning', icon: ReceiptIndianRupee, badge: 'AY 25-26' },
     { id: 'investments' as TabType, label: 'Investments', icon: TrendingUp, badge: 'Liquid vs Bonds' },
-    { id: 'goals' as TabType, label: 'Goal Planner', icon: Target, badge: null },
-    { id: 'scenarios' as TabType, label: 'Decision Simulator', icon: SlidersHorizontal, badge: 'CFO' },
-    { id: 'assistant' as TabType, label: 'Connected AI CFO', icon: BotMessageSquare, badge: 'RAG' },
+    { id: 'goals' as TabType, label: 'Financial Goals', icon: Target, badge: null },
   ];
 
-  return (
-    <aside className="w-64 border-r border-slate-800 bg-slate-950/60 p-4 flex flex-col justify-between shrink-0 hidden md:flex">
-      <div className="space-y-1">
-        <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          Financial Intelligence
-        </p>
+  const handleNavClick = (tab: TabType) => {
+    onSelectTab(tab);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const sidebarContent = (
+    <div className="flex flex-col justify-between h-full p-4">
+      <div className="space-y-1.5">
+        <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-[#697386]">
+          Planning & Intelligence
+        </div>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              onClick={() => handleNavClick(item.id)}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all select-none ${
                 isActive
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm shadow-emerald-500/5 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+                  ? 'bg-[#EEF0FF] text-[#6478E8] font-bold shadow-sm shadow-[#6478E8]/5'
+                  : 'text-[#697386] hover:text-[#172033] hover:bg-[#F6F8FC]'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
+                <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#6478E8]' : 'text-[#697386]'}`} />
+                <span className="truncate">{item.label}</span>
               </div>
               {item.badge && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-                  isActive ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'
-                }`}>
+                <Badge
+                  variant={isActive ? 'lavender' : 'neutral'}
+                  size="sm"
+                  className={isActive ? 'bg-white/80 text-[#6478E8] font-semibold' : ''}
+                >
                   {item.badge}
-                </span>
+                </Badge>
               )}
             </button>
           );
         })}
       </div>
 
-      <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs space-y-2">
-        <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Section 288B Tested</span>
+      {/* Compliance & Security Card */}
+      <div className="p-3.5 rounded-2xl bg-[#F6F8FC] border border-[#E6EAF0] text-xs space-y-2 mt-4">
+        <div className="flex items-center gap-2 text-[#16865C] font-bold text-xs">
+          <ShieldCheck className="w-4 h-4 text-[#16865C] shrink-0" />
+          <span>Statutory Compliance</span>
         </div>
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          Deterministic arithmetic & verified Income Tax Act formulas. Zero hallucination.
+        <p className="text-[11px] text-[#697386] leading-relaxed">
+          Deterministic Income Tax Act formulas (Sec 288B) & SEBI Mutual Fund norms. Zero hallucinated numbers.
         </p>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="w-64 border-r border-[#E6EAF0] bg-white shrink-0 hidden md:block">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobile}
+          />
+          {/* Drawer panel */}
+          <aside className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl z-10 flex flex-col animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

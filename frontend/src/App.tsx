@@ -17,6 +17,7 @@ export const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDemoActive, setIsDemoActive] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [summary, setSummary] = useState<FinancialHealthSummary | null>(null);
   const [recentTxns, setRecentTxns] = useState<Transaction[]>([]);
@@ -87,7 +88,6 @@ export const App: React.FC = () => {
   }, [user, isDemoActive]);
 
   const handleSeedDemo = async () => {
-    // If not signed in, create a quick demo session
     if (!user) {
       try {
         const email = `demo_${Date.now()}@finpilot.local`;
@@ -124,7 +124,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#F6F8FC] text-[#172033] flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Navbar */}
       <Navbar
         user={user}
@@ -133,15 +133,22 @@ export const App: React.FC = () => {
         onSeedDemo={handleSeedDemo}
         isDemoActive={isDemoActive}
         activeTab={activeTab}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        isMobileMenuOpen={isMobileMenuOpen}
       />
 
       {/* Main Container */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar activeTab={activeTab} onSelectTab={(tab) => setActiveTab(tab)} />
+        {/* Left Sidebar (Desktop + Mobile Drawer) */}
+        <Sidebar
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab)}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
         {/* Dynamic Content View Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'overview' && (
               <DashboardView
@@ -152,7 +159,8 @@ export const App: React.FC = () => {
                 onNavigateToTab={(tab) => setActiveTab(tab)}
               />
             )}
-            {activeTab === 'tax' && <TaxPlannerView />}
+            {activeTab === 'scenarios' && <ScenarioSimulatorView />}
+            {activeTab === 'assistant' && <AssistantView />}
             {activeTab === 'budget' && (
               <BudgetView
                 transactions={recentTxns}
@@ -161,12 +169,11 @@ export const App: React.FC = () => {
                 monthlyExpenses={summary?.monthly_expenses || 68000}
               />
             )}
+            {activeTab === 'tax' && <TaxPlannerView />}
             {activeTab === 'investments' && <InvestmentsView />}
             {activeTab === 'goals' && (
               <GoalsView goals={goals} onRefresh={fetchData} />
             )}
-            {activeTab === 'scenarios' && <ScenarioSimulatorView />}
-            {activeTab === 'assistant' && <AssistantView />}
           </div>
         </main>
       </div>
