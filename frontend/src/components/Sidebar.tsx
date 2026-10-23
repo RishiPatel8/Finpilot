@@ -7,10 +7,10 @@ import {
   Target,
   BotMessageSquare,
   ShieldCheck,
-  FileSpreadsheet
+  SlidersHorizontal
 } from 'lucide-react';
 
-export type TabType = 'overview' | 'tax' | 'budget' | 'investments' | 'goals' | 'assistant';
+export type TabType = 'overview' | 'tax' | 'budget' | 'investments' | 'goals' | 'scenarios' | 'assistant';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -24,7 +24,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
     { id: 'budget' as TabType, label: 'Budget & CSV', icon: Wallet, badge: null },
     { id: 'investments' as TabType, label: 'Investments', icon: TrendingUp, badge: 'Liquid vs Bonds' },
     { id: 'goals' as TabType, label: 'Goal Planner', icon: Target, badge: null },
-    { id: 'assistant' as TabType, label: 'AI Assistant', icon: BotMessageSquare, badge: 'RAG' },
+    { id: 'scenarios' as TabType, label: 'Decision Simulator', icon: SlidersHorizontal, badge: 'CFO' },
+    { id: 'assistant' as TabType, label: 'Connected AI CFO', icon: BotMessageSquare, badge: 'RAG' },
   ];
 
   return (

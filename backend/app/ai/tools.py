@@ -5,6 +5,8 @@ from app.schemas.tax import TaxCalculationInput
 from app.finance.investments.engine import InvestmentEngine
 from app.schemas.investment import InvestmentCompareRequest, GoalProjectionRequest
 from app.finance.budget.engine import BudgetEngine
+from app.finance.scenarios.engine import ScenarioEngine
+from app.schemas.scenario import ScenarioInput
 
 
 class FinancialToolsRegistry:
@@ -124,10 +126,50 @@ class FinancialToolsRegistry:
             "is_emergency_fund_sufficient": res["is_emergency_fund_sufficient"]
         }
 
+    @classmethod
+    def simulate_scenario(cls, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Simulates multi-variable financial decision scenarios."""
+        inp = ScenarioInput(
+            scenario_type=params.get("scenario_type", "major_purchase"),
+            monthly_income=Decimal(str(params["monthly_income"])) if "monthly_income" in params else None,
+            monthly_expenses=Decimal(str(params["monthly_expenses"])) if "monthly_expenses" in params else None,
+            current_savings=Decimal(str(params["current_savings"])) if "current_savings" in params else None,
+            target_amount=Decimal(str(params["target_amount"])) if "target_amount" in params else None,
+            time_horizon_months=int(params["time_horizon_months"]) if "time_horizon_months" in params else None,
+            expense_reduction_amount=Decimal(str(params["expense_reduction_amount"])) if "expense_reduction_amount" in params else None,
+            target_savings_rate_pct=Decimal(str(params["target_savings_rate_pct"])) if "target_savings_rate_pct" in params else None,
+        )
+        res = ScenarioEngine.simulate(inp)
+        return {
+            "scenario_type": res.scenario_type,
+            "title": res.title,
+            "is_feasible": res.is_feasible,
+            "summary_verdict": res.summary_verdict,
+            "baseline_surplus": float(res.baseline_surplus),
+            "scenario_surplus": float(res.scenario_surplus),
+            "required_monthly_allocation": float(res.required_monthly_allocation),
+            "cash_flow_gap": float(res.cash_flow_gap),
+            "baseline_runway_months": res.baseline_runway_months,
+            "projected_runway_months": res.projected_runway_months,
+            "alternative_options": [
+                {
+                    "name": opt.name,
+                    "description": opt.description,
+                    "monthly_commitment": float(opt.monthly_commitment),
+                    "feasibility": opt.feasibility,
+                    "pros": opt.pros,
+                    "cons": opt.cons
+                } for opt in res.alternative_options
+            ],
+            "risks_and_assumptions": res.risks_and_assumptions,
+            "citations": res.citations
+        }
+
 
 AVAILABLE_TOOLS = {
     "calculate_tax": FinancialToolsRegistry.calculate_tax,
     "compare_investments": FinancialToolsRegistry.compare_investments,
     "calculate_goal_plan": FinancialToolsRegistry.calculate_goal_plan,
     "analyze_budget": FinancialToolsRegistry.analyze_budget,
+    "simulate_scenario": FinancialToolsRegistry.simulate_scenario,
 }

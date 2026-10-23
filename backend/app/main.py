@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.core.config import settings
+from app.db.session import engine, Base
+import app.models  # ensure all models are registered
 from app.api.v1.api import api_router
 
 # Configure logging
@@ -12,6 +14,13 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("finpilot")
+
+# Ensure database tables exist
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables initialized successfully.")
+except Exception as e:
+    logger.warning(f"Database table initialization deferred: {e}")
 
 app = FastAPI(
     title=settings.APP_NAME,

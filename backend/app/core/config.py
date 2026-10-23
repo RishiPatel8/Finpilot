@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gemini-1.5-flash"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
+    # Firebase Authentication
+    FIREBASE_PROJECT_ID: str = ""
+    FIREBASE_CREDENTIALS_JSON: str = ""
+    FIREBASE_CREDENTIALS_PATH: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

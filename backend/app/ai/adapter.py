@@ -23,9 +23,10 @@ class BaseAIProvider(ABC):
 
 class MockAIProvider(BaseAIProvider):
     """
-    Offline, deterministic AI provider that parses user financial questions,
-    retrieves official knowledge citations, executes registered calculation tools,
-    and returns grounded, explainable answers with zero external API dependencies.
+    Connected AI CFO:
+    Context-aware financial planner that uses authenticated user context,
+    retrieves statutory knowledge citations, executes deterministic calculation tools,
+    and returns grounded, explainable financial decisions with zero external API dependencies.
     """
 
     def generate_response(
@@ -37,16 +38,76 @@ class MockAIProvider(BaseAIProvider):
         q = query.lower()
         tool_results = []
         citations = []
+        ctx = user_context or {}
 
         # 1. RAG Knowledge Retrieval
         retrieved_docs = KnowledgeRetriever.search(query, top_k=2)
         for doc in retrieved_docs:
             citations.append(f"{doc['title']} ({doc['citation']})")
 
-        # 2. Intent Detection & Tool Invocation
+        # 2. Extract multi-variable scenario parameters (merging user input with authenticated context)
+        extracted_income = self._extract_amount_after_keywords(q, ["earn", "salary", "income"])
+        extracted_expenses = self._extract_amount_after_keywords(q, ["spend", "expense", "expenses", "cost"])
+        extracted_savings = self._extract_amount_after_keywords(q, ["savings", "saved", "have", "reserve"])
+        extracted_months = self._extract_months(q)
+        extracted_target = self._extract_amount_after_keywords(q, ["buy", "purchase", "car", "house", "target", "cost of"])
+
+        # Fallback to authenticated user context where authorized
+        income = extracted_income or ctx.get("monthly_income") or 60000.0
+        expenses = extracted_expenses or ctx.get("monthly_expenses") or 35000.0
+        savings = extracted_savings or ctx.get("current_savings") or 200000.0
+
+        # Scenario: Major Purchase / "What are my options" (e.g. Car purchase in 18 months)
+        if any(w in q for w in ["car", "buy a", "options", "purchase", "afford"]) and ("month" in q or "year" in q or extracted_months):
+            months = extracted_months or 18
+            target = extracted_target or 800000.0  # default 8L if car model/cost unspecified
+
+            params = {
+                "scenario_type": "major_purchase",
+                "monthly_income": income,
+                "monthly_expenses": expenses,
+                "current_savings": savings,
+                "target_amount": target,
+                "time_horizon_months": months,
+            }
+            res = AVAILABLE_TOOLS["simulate_scenario"](params)
+            tool_results.append({
+                "tool": "simulate_scenario",
+                "summary": f"Simulated major purchase (₹{target:,.0f} in {months} months). Cash flow surplus: ₹{res['baseline_surplus']:,.0f}/mo, Required SIP: ₹{res['required_monthly_allocation']:,.0f}/mo."
+            })
+            for c in res.get("citations", []):
+                if c not in citations:
+                    citations.append(c)
+
+            content = (
+                f"### AI CFO Strategic Financial Assessment\n\n"
+                f"**Baseline Financial Diagnostics (Authenticated Context)**:\n"
+                f"- **Monthly Net Income**: ₹{income:,.0f}\n"
+                f"- **Monthly Living Expenses**: ₹{expenses:,.0f}\n"
+                f"- **Current Net Monthly Surplus**: **₹{res['baseline_surplus']:,.0f} / month**\n"
+                f"- **Existing Liquid Savings**: **₹{savings:,.0f}** ({res['baseline_runway_months']:.1f} months essential runway)\n\n"
+                f"**Direct Feasibility Assessment**:\n"
+                f"{res['summary_verdict']}\n\n"
+                f"**Your 3 Strategic Options**:\n"
+            )
+            for idx, opt in enumerate(res["alternative_options"], 1):
+                content += (
+                    f"\n**Option {idx}: {opt['name']}** ({opt['feasibility']})\n"
+                    f"- *Plan*: {opt['description']}\n"
+                    f"- *Monthly Commitment*: ₹{opt['monthly_commitment']:,.0f}/month\n"
+                    f"- *Advantage*: {opt['pros'][0]}\n"
+                    f"- *Trade-off*: {opt['cons'][0]}\n"
+                )
+
+            content += (
+                f"\n**CFO Next Step Recommendation**:\n"
+                f"Do you have a specific on-road price or model in mind? We can also simulate how "
+                f"trimming ₹3,000–₹5,000 in monthly lifestyle spending or extending your horizon to 24 months affects this purchase."
+            )
+
         # Tax Query Detection
-        if any(w in q for w in ["tax", "regime", "115bac", "slab", "87a", "standard deduction"]):
-            salary = self._extract_amount(q) or 1200000.0  # default 12L if not mentioned
+        elif any(w in q for w in ["tax", "regime", "115bac", "slab", "87a", "standard deduction"]):
+            salary = self._extract_amount(q) or income * 12.0
             params = {
                 "gross_annual_salary": salary,
                 "assessment_year": "2025-26",
@@ -99,7 +160,7 @@ class MockAIProvider(BaseAIProvider):
             content += f"\n> [!NOTE]\n> {res['disclaimer']}"
 
         # Goal Projection Query Detection
-        elif any(w in q for w in ["goal", "save for", "house", "car", "downpayment", "education", "retirement"]):
+        elif any(w in q for w in ["goal", "save for", "downpayment", "education", "retirement"]):
             target = self._extract_amount(q) or 1500000.0
             months = self._extract_months(q) or 36
             params = {
@@ -127,9 +188,9 @@ class MockAIProvider(BaseAIProvider):
         # Budget / Emergency Fund Query
         elif any(w in q for w in ["emergency", "budget", "runway", "surplus", "savings rate"]):
             params = {
-                "monthly_income": 100000.0,
-                "monthly_expenses": 55000.0,
-                "emergency_fund_current": 150000.0
+                "monthly_income": income,
+                "monthly_expenses": expenses,
+                "emergency_fund_current": savings
             }
             res = AVAILABLE_TOOLS["analyze_budget"](params)
             tool_results.append({
@@ -148,13 +209,15 @@ class MockAIProvider(BaseAIProvider):
         # General Financial Inquiry
         else:
             content = (
-                f"Hello! I am **FinPilot AI**, your explainable personal finance intelligence assistant.\n\n"
-                f"I can help you with:\n"
-                f"1. **Indian Tax Planning**: Slabs, Section 115BAC New vs Old Regime comparisons for FY 24-25 / AY 25-26.\n"
-                f"2. **Investment Comparisons**: Liquid Mutual Funds vs Bonds vs Fixed Deposits (liquidity, credit risk, Section 50AA taxes).\n"
-                f"3. **Goal Planning**: Calculating exact monthly SIP contributions for home down payments, education, or emergency funds.\n"
-                f"4. **Cash Flow & Budgeting**: Savings rate analysis, 50/30/20 budget framework, and debt payoff optimization (Avalanche vs Snowball).\n\n"
-                f"How can I assist your financial journey today?"
+                f"Hello! I am your **Connected AI CFO** on FinPilot.\n\n"
+                f"I connect directly to your verified financial context (income, expenses, emergency reserve, and tax profile) "
+                f"to run scenario simulations and give grounded financial advice.\n\n"
+                f"**Try asking questions like**:\n"
+                f"1. *'I earn ₹60,000 per month, spend ₹35,000 and have ₹2 lakh in savings. I want to buy a car in 18 months. What are my options?'*\n"
+                f"2. *'Compare AY 2025-26 New vs Old Tax Regime for a 15 LPA salary.'*\n"
+                f"3. *'Should I park my emergency fund in a Liquid Mutual Fund or a Fixed Deposit?'*\n"
+                f"4. *'How much do I need to invest each month for a ₹20 Lakh house down payment in 3 years?'*\n\n"
+                f"What financial decision can we simulate today?"
             )
 
         return {
@@ -163,8 +226,23 @@ class MockAIProvider(BaseAIProvider):
             "tool_invocations": tool_results
         }
 
+    def _extract_amount_after_keywords(self, text: str, keywords: List[str]) -> Optional[float]:
+        for kw in keywords:
+            m = re.search(rf"{kw}\s*(?:of|is|around|about)?\s*₹?\s*(\d+(?:\.\d+)?)\s*(?:lakhs?|lakh|lpa|lac|lacs)", text)
+            if m:
+                return float(m.group(1)) * 100000.0
+            m2 = re.search(rf"{kw}\s*(?:of|is|around|about)?\s*₹?\s*(\d+(?:,\d{2,3})*(?:\.\d+)?)", text)
+            if m2:
+                raw = m2.group(1).replace(",", "")
+                try:
+                    val = float(raw)
+                    if val >= 500:
+                        return val
+                except ValueError:
+                    pass
+        return None
+
     def _extract_amount(self, text: str) -> Optional[float]:
-        # Matches formats: "12 LPA", "12lpa", "15 lakh", "15 lakhs", "15,00,000", "500000"
         m = re.search(r"(\d+(?:\.\d+)?)\s*(?:lakhs?|lakh|lpa|lac|lacs)", text)
         if m:
             return float(m.group(1)) * 100000.0
@@ -173,14 +251,13 @@ class MockAIProvider(BaseAIProvider):
             raw = m2.group(1).replace(",", "")
             try:
                 val = float(raw)
-                if val >= 1000:  # filter out years or single digits
+                if val >= 1000:
                     return val
             except ValueError:
                 pass
         return None
 
     def _extract_months(self, text: str) -> Optional[int]:
-        # Matches "6 months", "3 years", "2 yrs"
         m_yr = re.search(r"(\d+)\s*(?:years?|yrs?)", text)
         if m_yr:
             return int(m_yr.group(1)) * 12
@@ -209,12 +286,14 @@ class GeminiAIProvider(BaseAIProvider):
             return self.fallback.generate_response(query, chat_history, user_context)
 
         try:
-            # When google-genai is installed and key is present
             from google import genai
             client = genai.Client(api_key=self.api_key)
+            context_str = f"User Financial Context: {user_context}" if user_context else ""
             prompt = (
-                f"You are FinPilot AI, an Indian personal finance assistant. Respond to: {query}. "
-                "Always ground numbers in deterministic Indian tax and investment rules. Do not fabricate returns."
+                f"You are FinPilot AI, a Senior Indian Personal Finance CFO. {context_str}\n"
+                f"User Question: {query}\n"
+                "Ground all numbers in official Indian Income Tax Act 1961 rules and SEBI/RBI regulations. "
+                "Never invent returns or arithmetic."
             )
             resp = client.models.generate_content(
                 model=self.model_name,
@@ -234,5 +313,4 @@ def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
     if provider == "gemini" and settings.LLM_API_KEY:
         return GeminiAIProvider(api_key=settings.LLM_API_KEY, model_name=settings.LLM_MODEL)
-    # Default zero-cost offline mock provider
     return MockAIProvider()

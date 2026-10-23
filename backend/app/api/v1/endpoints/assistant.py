@@ -37,13 +37,25 @@ def chat_with_assistant(
 ):
     provider = get_ai_provider()
     
-    # Retrieve recent chat history if user is authenticated
+    # Retrieve recent chat history and authorized financial context
     history = []
+    user_context = {}
+
     if current_user:
         past = db.query(ChatMessage).filter(ChatMessage.user_id == current_user.id).order_by(ChatMessage.created_at.desc()).limit(6).all()
         history = [{"sender": m.sender, "content": m.content} for m in reversed(past)]
 
-    resp_dict = provider.generate_response(query=req.message, chat_history=history)
+        # Authorized financial context injection
+        if current_user.profile:
+            user_context["monthly_income"] = float(current_user.profile.monthly_income)
+            user_context["monthly_expenses"] = float(current_user.profile.monthly_expenses)
+        
+        # Calculate liquid savings
+        if current_user.assets:
+            liquid_sum = sum(float(a.current_value) for a in current_user.assets if a.category in ["liquid_mf", "cash", "fd"])
+            user_context["current_savings"] = liquid_sum
+
+    resp_dict = provider.generate_response(query=req.message, chat_history=history, user_context=user_context)
 
     # Persist interaction if authenticated
     if current_user:

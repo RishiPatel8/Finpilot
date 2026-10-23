@@ -7,6 +7,7 @@ import { TaxPlannerView } from './features/tax/TaxPlannerView';
 import { BudgetView } from './features/budget/BudgetView';
 import { InvestmentsView } from './features/investments/InvestmentsView';
 import { GoalsView } from './features/goals/GoalsView';
+import { ScenarioSimulatorView } from './features/scenarios/ScenarioSimulatorView';
 import { AssistantView } from './features/assistant/AssistantView';
 import { apiRequest, getAuthToken, clearAuthToken, setAuthToken } from './services/api';
 import { User, FinancialHealthSummary, Transaction, FinancialGoal } from './types';
@@ -164,6 +165,7 @@ export const App: React.FC = () => {
             {activeTab === 'goals' && (
               <GoalsView goals={goals} onRefresh={fetchData} />
             )}
+            {activeTab === 'scenarios' && <ScenarioSimulatorView />}
             {activeTab === 'assistant' && <AssistantView />}
           </div>
         </main>

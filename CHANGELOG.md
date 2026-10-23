@@ -5,6 +5,34 @@ All notable changes to **FinPilot AI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-23
+
+### Added
+- **Firebase Authentication Integration**:
+  - Frontend Firebase Web SDK integration with Google Sign-In popup flow and graceful local development fallback.
+  - Backend Firebase Admin token verification (`firebase_admin.auth.verify_id_token`) validating token signature, issuer, audience, and expiry.
+  - Internal FinPilot `User` model mapping with `firebase_uid`, `auth_provider`, and nullable `hashed_password`.
+  - Strict explicit account linking security: prevents automatic account takeover when a Google Sign-In matches an existing password account; returns `409 Conflict` requiring explicit password confirmation before linking.
+  - Safe `.env.example` documenting all Firebase public and admin configuration keys without secrets.
+- **Financial Decision Simulator Engine (`/api/v1/scenarios/`)**:
+  - Deterministic simulation engine comparing baseline vs. proposed alternative financial scenarios.
+  - Major purchase simulation (e.g. ₹8L car purchase in 18 months) modeling 3 strategic execution pathways:
+    1. Prudent Down Payment + Auto Loan (preserving 3 months essential emergency runway).
+    2. Extended Horizon All-Cash Purchase (accumulating 100% purchase cost without debt).
+    3. Discretionary Budget Compression (trimming 20% lifestyle expenses).
+  - Savings Boost simulator and Expense Reduction simulator calculating liquidity additions and debt acceleration.
+  - Reusable frontend interface (`features/scenarios/ScenarioSimulatorView.tsx`) with dynamic charts, parameter inputs, and scenario persistence to `ScenarioRecord`.
+- **Connected AI CFO Experience**:
+  - Context-aware financial assistant with direct access to authorized user profile data (net income, living expenses, liquid savings).
+  - Deterministic tool calling to financial scenario engines, avoiding model arithmetic hallucination.
+  - Multi-option trade-off breakdown distinguishing facts, estimates, assumptions, and debt commitments.
+  - Grounded statutory and regulatory citations (SEBI Liquid Fund norms, RBI Auto Loan EMI guidelines, DICGC bank deposit insurance).
+- **Test Suite & Verification Enhancements**:
+  - Added `test_firebase_auth.py` covering registration, account linking conflict prevention, and invalid token rejection.
+  - Added `test_scenario_simulator.py` covering car purchase calculation reproducibility, savings increase, and expense optimization.
+  - Added `test_ai_cfo.py` verifying context injection, tool invocation, and multi-turn planning.
+  - Test suite expanded from 29 to **38 passing tests (100% pass rate in 3.51s)**.
+
 ## [1.0.0] - 2026-10-23
 
 ### Added

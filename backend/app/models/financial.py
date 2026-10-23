@@ -116,3 +116,15 @@ class ChatMessage(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user = relationship("User", back_populates="chat_messages")
+
+
+class ScenarioRecord(Base):
+    __tablename__ = "scenario_records"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    scenario_type = Column(String(50), nullable=False)
+    input_data = Column(JSON, nullable=False)
+    result_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

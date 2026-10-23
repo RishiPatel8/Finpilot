@@ -35,6 +35,7 @@ export const AssistantView: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const samplePrompts = [
+    "I earn ₹60,000 per month, spend ₹35,000 and have ₹2 lakh in savings. I want to buy a car in 18 months. What are my options?",
     "Compare tax for 15 LPA salary in new vs old regime",
     "Should I invest 3 lakh in liquid fund or bond for 6 months?",
     "How much to save per month for 20 lakh house downpayment in 3 years?",

@@ -9,7 +9,8 @@ from app.api.v1.endpoints import (
     goals,
     dashboard,
     assistant,
-    demo
+    demo,
+    scenarios
 )
 
 api_router = APIRouter()
@@ -21,6 +22,7 @@ api_router.include_router(transactions.router, prefix="/transactions", tags=["Tr
 api_router.include_router(tax.router, prefix="/tax", tags=["Indian Tax Engine"])
 api_router.include_router(investments.router, prefix="/investments", tags=["Investments & Liquid vs Bonds"])
 api_router.include_router(goals.router, prefix="/goals", tags=["Financial Goals"])
+api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Financial Decision Simulator"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(assistant.router, prefix="/assistant", tags=["AI Assistant & RAG"])
 api_router.include_router(demo.router, prefix="/demo", tags=["Demo Data"])
