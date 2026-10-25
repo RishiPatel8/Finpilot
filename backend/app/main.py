@@ -15,12 +15,58 @@ logging.basicConfig(
 )
 logger = logging.getLogger("finpilot")
 
-# Ensure database tables exist
+# Ensure database tables exist and update schema
 try:
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables initialized successfully.")
+    # Check SQLite schema to ensure newly added columns are present
+    if engine.url.drivername.startswith("sqlite"):
+        with engine.connect() as conn:
+            result = conn.exec_driver_sql("PRAGMA table_info(transactions);")
+            existing_cols = {row[1] for row in result.fetchall()}
+            cols_to_add = [
+                ("value_date", "DATE"),
+                ("reference_number", "VARCHAR(128)"),
+                ("balance_after", "NUMERIC(14, 2)"),
+                ("source_file", "VARCHAR(255)"),
+                ("source_row", "INTEGER"),
+                ("batch_id", "VARCHAR(36)"),
+                ("account_mask", "VARCHAR(30)"),
+                ("raw_type", "VARCHAR(30)"),
+            ]
+            for col_name, col_type in cols_to_add:
+                if col_name not in existing_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE transactions ADD COLUMN {col_name} {col_type};")
+
+            liab_result = conn.exec_driver_sql("PRAGMA table_info(liabilities);")
+            existing_liab_cols = {row[1] for row in liab_result.fetchall()}
+            liab_cols_to_add = [
+                ("debt_type", "VARCHAR(32) DEFAULT 'payable'"),
+                ("counterparty", "VARCHAR(255)"),
+                ("interest_period", "VARCHAR(20) DEFAULT 'annual'"),
+                ("status", "VARCHAR(32) DEFAULT 'active'"),
+                ("loan_date", "DATE"),
+                ("due_date", "DATE"),
+                ("repayment_frequency", "VARCHAR(32) DEFAULT 'monthly'"),
+                ("notes", "TEXT"),
+            ]
+            for col_name, col_type in liab_cols_to_add:
+                if col_name not in existing_liab_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE liabilities ADD COLUMN {col_name} {col_type};")
+
+            conn.commit()
+    logger.info("Database tables and schema initialized successfully.")
 except Exception as e:
     logger.warning(f"Database table initialization deferred: {e}")
+
+# Startup provider logging (Never log credentials or secrets)
+selected_bank_provider = getattr(settings, "BANK_PROVIDER", "sandbox").lower().strip()
+logger.info(f"Account Aggregator Bank Provider initialized: {selected_bank_provider.upper()}")
+if selected_bank_provider == "finvu":
+    if not getattr(settings, "BANK_FINVU_CLIENT_ID", "") or not getattr(settings, "BANK_FINVU_CLIENT_SECRET", ""):
+        logger.warning(
+            "Finvu AA selected (BANK_PROVIDER=finvu) but BANK_FINVU_CLIENT_ID or BANK_FINVU_CLIENT_SECRET is missing. "
+            "Consent requests will fail with BankProviderConfigurationError until credentials are configured in backend/.env."
+        )
 
 app = FastAPI(
     title=settings.APP_NAME,

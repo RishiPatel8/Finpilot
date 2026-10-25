@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
 from app.models.financial import FinancialProfile, Transaction, AssetHolding, Liability, FinancialGoal
+from app.core.config import settings
 from app.api.deps import get_current_user
 
 router = APIRouter()
@@ -16,8 +17,15 @@ def seed_demo_data(
     db: Session = Depends(get_db)
 ):
     """
-    Seeds realistic synthetic Indian personal finance demo data for the authenticated user.
+    Seeds realistic synthetic Indian personal finance demo data for automated tests and isolated sandbox.
+    Strictly blocked in production environments to guarantee ZERO MOCK DATA in real user accounts.
     """
+    if getattr(settings, "ENVIRONMENT", "").lower() == "production":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo data seeding is strictly disabled in production environments. Please import genuine bank statements."
+        )
+
     # 1. Update Profile
     profile = db.query(FinancialProfile).filter(FinancialProfile.user_id == current_user.id).first()
     if not profile:

@@ -30,9 +30,16 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  if (!(options.body instanceof FormData)) {
+    if (!headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+  } else {
+    delete headers['Content-Type'];
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -60,7 +67,16 @@ export async function apiRequest<T>(
       );
     }
 
-    return await res.json();
+    if (res.status === 204) {
+      return {} as T;
+    }
+
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await res.json();
+    }
+    const text = await res.text();
+    return (text ? JSON.parse(text) : {}) as T;
   } catch (err) {
     if (err instanceof ApiError) {
       throw err;

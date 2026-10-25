@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   RefreshCw,
 } from 'lucide-react';
-import { apiRequest } from '../../services/api';
+import { apiRequest, getAuthToken } from '../../services/api';
 import { ChatMessage } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
 
@@ -41,14 +41,35 @@ export const AssistantView: React.FC = () => {
     apiRequest<{ provider: string; model: string; ready: boolean }>('/assistant/provider-status')
       .then((data) => setProviderStatus(data))
       .catch(() => setProviderStatus(null));
+
+    if (getAuthToken()) {
+      apiRequest<Array<{ id: string; sender: 'user' | 'assistant'; content: string; citations?: string[]; created_at: string }>>('/assistant/history')
+        .then((data) => {
+          if (data && data.length > 0) {
+            const mapped: ChatMessage[] = data.map((m) => ({
+              id: m.id,
+              sender: m.sender,
+              content: m.content,
+              timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              citations: m.citations || [],
+            }));
+            setMessages(mapped);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load chat history:', err);
+        });
+    }
   }, []);
 
   const samplePrompts = [
-    "I earn ₹60,000 per month, spend ₹35,000 and have ₹2 lakh in savings. I want to buy a car in 18 months. What are my options?",
+    "What recurring payments do I have next month?",
+    "How much do I spend on subscriptions every month?",
+    "What happens to my cash flow if I pause a ₹1,500 subscription?",
+    "Why did I spend more this month and what are my spending anomalies?",
+    "What is my projected cash flow and ending balance for the next 30 days?",
+    "Am I on track for my savings goals with my current surplus?",
     "Compare tax for 15 LPA salary in new vs old regime",
-    "Should I invest 3 lakh in liquid fund or bond for 6 months?",
-    "How much to save per month for 20 lakh house downpayment in 3 years?",
-    "What is the standard deduction in AY 2025-26 under Finance Act 2024?",
   ];
 
   const scrollToBottom = () => {
@@ -112,7 +133,7 @@ export const AssistantView: React.FC = () => {
       {/* Page Header */}
       <PageHeader
         title="AI CFO Assistant"
-        description="Grounded conversational intelligence with statutory Income Tax & SEBI RAG citations. Zero hallucinated formulas."
+        description="Grounded conversational intelligence with verified Income Tax Act & SEBI guidelines. Zero hallucinated formulas."
         icon={<BotMessageSquare className="w-4 h-4 text-[#6478E8]" />}
         badge={
           <div className="flex items-center gap-2">
@@ -120,7 +141,7 @@ export const AssistantView: React.FC = () => {
               {providerStatus?.provider === 'gemini' ? 'Gemini 2.5 Flash (Cloud)' : 'Deterministic CFO Engine'}
             </Badge>
             <Badge variant="blue" size="sm">
-              RAG Verified
+              Verified Rules
             </Badge>
           </div>
         }

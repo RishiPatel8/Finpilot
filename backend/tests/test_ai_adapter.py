@@ -42,7 +42,9 @@ def test_mock_ai_provider_goal_intent():
     assert res["tool_invocations"][0]["tool"] == "calculate_goal_plan"
 
 
-def test_get_ai_provider_default():
+def test_get_ai_provider_default(monkeypatch):
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "LLM_PROVIDER", "mock")
     provider = get_ai_provider()
     assert isinstance(provider, MockAIProvider)
 

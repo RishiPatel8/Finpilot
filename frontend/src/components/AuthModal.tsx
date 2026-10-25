@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User as UserIcon, Briefcase, Link as LinkIcon, ShieldCheck } from 'lucide-react';
+import { X, Lock, Mail, User as UserIcon, Briefcase, Link as LinkIcon, ShieldCheck, Zap } from 'lucide-react';
 import { apiRequest, setAuthToken } from '../services/api';
 import { signInWithGoogle, isFirebaseConfigured } from '../services/firebase';
 import { User, UserRole } from '../types';
@@ -9,16 +9,28 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (user: User) => void;
+  initialMode?: 'login' | 'register';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialMode = 'login',
+}) => {
+  const [isLogin, setIsLogin] = useState(initialMode !== 'register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<UserRole>('salaried');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync mode when initialMode changes or modal opens
+  React.useEffect(() => {
+    setIsLogin(initialMode !== 'register');
+    setError(null);
+  }, [initialMode, isOpen]);
 
   // Explicit Account Linking State
   const [linkingPendingToken, setLinkingPendingToken] = useState<string | null>(null);
@@ -92,6 +104,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     }
   };
 
+  const handleQuickDemoLogin = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const mockEmail = 'aditya@example.com';
+      const idToken = `mock-firebase:demo_uid_aditya:${mockEmail}:Aditya Verma`;
+      const res = await apiRequest<{ access_token: string; user: User }>('/auth/firebase-login', {
+        method: 'POST',
+        body: JSON.stringify({
+          id_token: idToken,
+          role: 'salaried',
+        }),
+      });
+      setAuthToken(res.access_token);
+      onSuccess(res.user);
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Demo login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleConfirmLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!linkingPendingToken || !linkPassword) return;
@@ -117,19 +152,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#172033]/40 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md bg-white border border-[#E6EAF0] rounded-2xl shadow-[0_20px_25px_-5px_rgba(23,32,51,0.1),0_8px_10px_-6px_rgba(23,32,51,0.05)] p-6 sm:p-7 z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-[#0D111A] border border-[rgba(212,175,55,0.25)] rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.9),0_0_30px_rgba(212,175,55,0.12)] p-6 sm:p-7 z-10 animate-in fade-in zoom-in-95 duration-200 text-[#F3F4F6]">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl text-[#697386] hover:text-[#172033] hover:bg-[#F6F8FC] transition-colors"
+          className="absolute top-5 right-5 p-1.5 rounded-xl text-[#9CA3AF] hover:text-[#F3F4F6] hover:bg-white/5 transition-colors border border-transparent hover:border-[#D4AF37]/20"
           aria-label="Close modal"
         >
           <X className="w-4 h-4" />
@@ -137,14 +172,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         {/* Modal Header */}
         <div className="mb-6">
-          <h2 className="text-xl font-extrabold text-[#172033] tracking-tight">
+          <h2 className="text-xl font-extrabold text-[#F3F4F6] tracking-tight">
             {linkingPendingToken
               ? 'Link Your Google Account'
               : isLogin
               ? 'Sign In to FinPilot AI'
               : 'Create Your FinPilot Account'}
           </h2>
-          <p className="text-xs text-[#697386] mt-1">
+          <p className="text-xs text-[#9CA3AF] mt-1">
             {linkingPendingToken
               ? 'Confirm ownership to securely link Google Sign-In to your existing profile.'
               : isLogin
@@ -155,7 +190,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-[#FDF2F4] border border-[#D9485F]/20 text-xs text-[#D9485F] leading-relaxed">
+          <div className="mb-4 p-3 rounded-xl bg-[#F43F5E]/15 border border-[#F43F5E]/30 text-xs text-[#F43F5E] leading-relaxed">
             {error}
           </div>
         )}
@@ -163,26 +198,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Account Linking Special Flow */}
         {linkingPendingToken ? (
           <form onSubmit={handleConfirmLink} className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/20 flex items-start gap-2.5 text-xs text-[#172033]">
-              <LinkIcon className="w-4 h-4 text-[#6478E8] shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-[#131824] border border-[#D4AF37]/25 flex items-start gap-2.5 text-xs text-[#F3F4F6]">
+              <LinkIcon className="w-4 h-4 text-[#F5DE88] shrink-0 mt-0.5" />
               <span>
                 Enter your existing password for <strong>{email}</strong> to authenticate and link Google.
               </span>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#172033] mb-1.5">
+              <label className="block text-xs font-semibold text-[#D1D5DB] mb-1.5">
                 Existing Account Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 w-4 h-4 text-[#697386]" />
+                <Lock className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" />
                 <input
                   type="password"
                   required
                   value={linkPassword}
                   onChange={(e) => setLinkPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#172033] placeholder-[#697386]/60 focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                  className="w-full bg-[#131824] border border-[#222A3F] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F3F4F6] placeholder-[#9CA3AF]/40 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 transition-all"
                 />
               </div>
             </div>
@@ -215,7 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-white hover:bg-[#F6F8FC] border border-[#E6EAF0] hover:border-[#D1D9E6] text-xs font-semibold text-[#172033] rounded-xl transition-all shadow-[0_1px_2px_rgba(0,0,0,0.03)] focus:outline-none focus:ring-2 focus:ring-[#6478E8]/20"
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-[#131824] hover:bg-[#1A2131] border border-[rgba(212,175,55,0.25)] hover:border-[#D4AF37]/50 text-xs font-semibold text-[#F3F4F6] rounded-xl transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -238,10 +273,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               <span>Continue with Google</span>
             </button>
 
+            {/* Quick Demo Access Button */}
+            <button
+              type="button"
+              onClick={handleQuickDemoLogin}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-[#D4AF37]/15 to-[#B89327]/10 hover:from-[#D4AF37]/25 hover:to-[#B89327]/20 border border-[#D4AF37]/35 text-xs font-semibold text-[#F5DE88] rounded-xl transition-all shadow-sm"
+            >
+              <Zap className="w-3.5 h-3.5 text-[#F5DE88]" />
+              <span>Quick Demo Sign In (1-Click)</span>
+            </button>
+
             {/* Divider */}
             <div className="relative flex items-center justify-center my-3">
-              <div className="border-t border-[#E6EAF0] w-full" />
-              <span className="bg-white px-2.5 text-[10px] font-semibold text-[#697386] uppercase tracking-wider">
+              <div className="border-t border-white/10 w-full" />
+              <span className="bg-[#0D111A] px-2.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
                 Or with Email
               </span>
             </div>
@@ -251,32 +297,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               {!isLogin && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-[#172033] mb-1">
+                    <label className="block text-xs font-semibold text-[#D1D5DB] mb-1">
                       Full Name
                     </label>
                     <div className="relative">
-                      <UserIcon className="absolute left-3 top-2.5 w-4 h-4 text-[#697386]" />
+                      <UserIcon className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" />
                       <input
                         type="text"
                         required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Aditya Verma"
-                        className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#172033] placeholder-[#697386]/60 focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                        className="w-full bg-[#131824] border border-[#222A3F] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F3F4F6] placeholder-[#9CA3AF]/40 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#172033] mb-1">
+                    <label className="block text-xs font-semibold text-[#D1D5DB] mb-1">
                       Taxpayer Profile
                     </label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-2.5 w-4 h-4 text-[#697386]" />
+                      <Briefcase className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" />
                       <select
                         value={role}
                         onChange={(e) => setRole(e.target.value as UserRole)}
-                        className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#172033] focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                        className="w-full bg-[#131824] border border-[#222A3F] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F3F4F6] focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 transition-all"
                       >
                         <option value="salaried">Salaried Employee</option>
                         <option value="freelancer">Freelancer / Professional (44ADA)</option>
@@ -289,35 +335,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                <label className="block text-xs font-semibold text-[#D1D5DB] mb-1">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 w-4 h-4 text-[#697386]" />
+                  <Mail className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="aditya@example.com"
-                    className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#172033] placeholder-[#697386]/60 focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                    className="w-full bg-[#131824] border border-[#222A3F] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F3F4F6] placeholder-[#9CA3AF]/40 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                <label className="block text-xs font-semibold text-[#D1D5DB] mb-1">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 w-4 h-4 text-[#697386]" />
+                  <Lock className="absolute left-3 top-2.5 w-4 h-4 text-[#9CA3AF]" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#172033] placeholder-[#697386]/60 focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                    className="w-full bg-[#131824] border border-[#222A3F] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F3F4F6] placeholder-[#9CA3AF]/40 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 transition-all"
                   />
                 </div>
               </div>
@@ -341,7 +387,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   setIsLogin(!isLogin);
                   setError(null);
                 }}
-                className="text-xs font-semibold text-[#6478E8] hover:underline"
+                className="text-xs font-semibold text-[#F5DE88] hover:underline"
               >
                 {isLogin
                   ? "Don't have an account yet? Register here"

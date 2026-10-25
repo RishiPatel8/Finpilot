@@ -65,7 +65,7 @@ class CloudGeminiEmbeddingProvider(BaseEmbeddingProvider):
     Falls back gracefully to DeterministicEmbeddingProvider if no API key or network fails.
     """
 
-    def __init__(self, api_key: str, model_name: str = "text-embedding-004"):
+    def __init__(self, api_key: str, model_name: str = "gemini-embedding-001"):
         self.api_key = api_key
         self.model_name = model_name
         self.fallback = DeterministicEmbeddingProvider()
@@ -74,21 +74,22 @@ class CloudGeminiEmbeddingProvider(BaseEmbeddingProvider):
         if not self.api_key:
             return self.fallback.embed_text(text)
 
-        try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
-            resp = client.models.embed_content(
-                model=self.model_name,
-                contents=text
-            )
-            if hasattr(resp, "embeddings") and resp.embeddings:
-                return resp.embeddings[0].values
-            elif hasattr(resp, "embedding") and resp.embedding:
-                return resp.embedding.values
-            return self.fallback.embed_text(text)
-        except Exception as e:
-            logger.warning(f"Gemini embedding API call failed ({e}). Falling back to deterministic embedding.")
-            return self.fallback.embed_text(text)
+        for model in [self.model_name, "gemini-embedding-001", "text-embedding-004"]:
+            try:
+                from google import genai
+                client = genai.Client(api_key=self.api_key)
+                resp = client.models.embed_content(
+                    model=model,
+                    contents=text
+                )
+                if hasattr(resp, "embeddings") and resp.embeddings:
+                    return resp.embeddings[0].values
+                elif hasattr(resp, "embedding") and resp.embedding:
+                    return resp.embedding.values
+            except Exception:
+                continue
+
+        return self.fallback.embed_text(text)
 
     def embed_batch(self, texts: List[str]) -> List[List[float]]:
         return [self.embed_text(t) for t in texts]

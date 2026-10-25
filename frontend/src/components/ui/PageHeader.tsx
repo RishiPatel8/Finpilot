@@ -23,7 +23,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     <div
       className={twMerge(
         clsx(
-          'bg-white border border-[#E6EAF0] rounded-2xl p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4',
+          'bg-[#111622]/90 backdrop-blur-md border border-[rgba(212,175,55,0.18)] rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-4',
           className
         )
       )}
@@ -31,16 +31,16 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2.5">
           {icon && (
-            <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] text-[#6478E8] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#B89327]/10 text-[#F5DE88] border border-[#D4AF37]/30 flex items-center justify-center shrink-0 shadow-sm shadow-[#D4AF37]/15">
               {icon}
             </div>
           )}
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#F3F4F6] tracking-tight">
             {title}
           </h1>
           {badge && <div className="shrink-0">{badge}</div>}
         </div>
-        <p className="text-xs sm:text-sm text-[#697386] max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#9CA3AF] max-w-2xl leading-relaxed">
           {description}
         </p>
       </div>

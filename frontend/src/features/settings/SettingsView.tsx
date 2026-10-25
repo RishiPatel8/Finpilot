@@ -11,10 +11,19 @@ import {
   KeyRound,
   ShieldCheck,
   AlertTriangle,
+  Send,
+  MessageSquare,
+  Copy,
+  Check,
+  ExternalLink,
+  Bell,
+  RefreshCw,
+  Unlink,
 } from 'lucide-react';
 import { apiRequest } from '../../services/api';
-import { User, FinancialProfile } from '../../types';
+import { User, FinancialProfile, TelegramStatusResponse, TelegramLinkCodeResponse } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
 
 interface SettingsViewProps {
   user: User | null;
@@ -47,6 +56,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleting, setDeleting] = useState(false);
 
+  // Telegram Bot Integration State
+  const [telegramStatus, setTelegramStatus] = useState<TelegramStatusResponse | null>(null);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [linkCodeData, setLinkCodeData] = useState<TelegramLinkCodeResponse | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [unlinkingTg, setUnlinkingTg] = useState(false);
+  const [updatingTgPrefs, setUpdatingTgPrefs] = useState(false);
+  const [testingPing, setTestingPing] = useState(false);
+  const [testPingSuccess, setTestPingSuccess] = useState<string | null>(null);
+  const [tgError, setTgError] = useState<string | null>(null);
+
+  const fetchTelegramStatus = async () => {
+    if (!user) return;
+    setTgLoading(true);
+    try {
+      const data = await apiRequest<TelegramStatusResponse>('/telegram/status');
+      setTelegramStatus(data);
+    } catch (err: any) {
+      console.error('Failed to load telegram status:', err);
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -69,10 +104,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     if (user) {
       fetchProfile();
+      fetchTelegramStatus();
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  // Expiration Countdown Timer for Link Code
+  useEffect(() => {
+    if (countdownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCountdownSeconds((prev) => {
+        if (prev <= 1) {
+          setLinkCodeData(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [countdownSeconds]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,6 +183,80 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
+  // Telegram Handlers
+  const handleGenerateLinkCode = async () => {
+    setGeneratingCode(true);
+    setTgError(null);
+    try {
+      const data = await apiRequest<TelegramLinkCodeResponse>('/telegram/link-code', { method: 'POST' });
+      setLinkCodeData(data);
+      setCountdownSeconds(data.valid_for_seconds || 900);
+    } catch (err: any) {
+      setTgError(err.message || 'Failed to generate link code.');
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (!linkCodeData?.code) return;
+    navigator.clipboard.writeText(linkCodeData.code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2500);
+  };
+
+  const handleToggleNotification = async (key: string, value: boolean) => {
+    if (!telegramStatus?.is_linked) return;
+    setUpdatingTgPrefs(true);
+    try {
+      const updated = await apiRequest<TelegramStatusResponse>('/telegram/notifications', {
+        method: 'PUT',
+        body: JSON.stringify({ [key]: value }),
+      });
+      setTelegramStatus(updated);
+    } catch (err: any) {
+      console.error('Failed to update notification preference:', err);
+    } finally {
+      setUpdatingTgPrefs(false);
+    }
+  };
+
+  const handleSendTestAlert = async () => {
+    setTestingPing(true);
+    setTestPingSuccess(null);
+    try {
+      await apiRequest('/telegram/test-notification', { method: 'POST' });
+      setTestPingSuccess('Test notification sent to your Telegram chat!');
+      setTimeout(() => setTestPingSuccess(null), 4000);
+    } catch (err: any) {
+      setTgError(err.message || 'Failed to send test alert.');
+    } finally {
+      setTestingPing(false);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    if (!confirm('Are you sure you want to disconnect this Telegram account from FinPilot?')) return;
+    setUnlinkingTg(true);
+    try {
+      await apiRequest('/telegram/unlink', { method: 'POST' });
+      setTelegramStatus({
+        is_linked: false,
+        notifications_enabled: true,
+        notify_bills: true,
+        notify_budget: true,
+        notify_goals: true,
+        notify_summary: false,
+      });
+      setLinkCodeData(null);
+      setCountdownSeconds(0);
+    } catch (err: any) {
+      setTgError(err.message || 'Failed to unlink Telegram account.');
+    } finally {
+      setUnlinkingTg(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Page Header */}
@@ -150,14 +275,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* Left Column: Financial Profile Editor (2 cols) */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="space-y-5">
-            <div>
-              <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
-                <UserIcon className="w-4 h-4 text-[#6478E8]" />
-                <span>Financial Profile Baseline</span>
-              </h2>
-              <p className="text-xs text-[#697386] mt-0.5">
-                These figures calibrate your Dashboard health score, AI CFO contextual prompts, and emergency reserve targets.
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
+                    <UserIcon className="w-4 h-4 text-[#6478E8]" />
+                    <span>Financial Profile Baseline</span>
+                  </h2>
+                  <KnowMore termId="emergency_fund" variant="badge" label="About Profile Baselines" />
+                </div>
+                <p className="text-xs text-[#697386] mt-0.5">
+                  These figures calibrate your Dashboard health score, AI CFO contextual prompts, and emergency reserve targets.
+                </p>
+              </div>
             </div>
 
             {error && (
@@ -297,6 +427,263 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </Button>
               </div>
             </form>
+          </Card>
+
+          {/* Telegram Bot Integration Card */}
+          <Card className="space-y-5 border border-[#E6EAF0]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
+                  <Send className="w-4 h-4 text-[#6478E8]" />
+                  <span>Telegram Global AI CFO</span>
+                </h2>
+                <p className="text-xs text-[#697386] mt-0.5">
+                  Connect FinPilot to Telegram to query spending, review budgets, manage debts, and confirm write actions directly from mobile.
+                </p>
+              </div>
+              <div>
+                {telegramStatus?.is_linked ? (
+                  <Badge variant="mint" size="sm">
+                    🟢 Connected
+                  </Badge>
+                ) : (
+                  <Badge variant="neutral" size="sm">
+                    Not Linked
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {tgError && (
+              <div className="p-3 rounded-xl bg-[#FDF2F4] border border-[#D9485F]/20 text-xs text-[#D9485F]">
+                {tgError}
+              </div>
+            )}
+
+            {testPingSuccess && (
+              <div className="p-3 rounded-xl bg-[#E8F8F0] border border-[#16865C]/20 text-xs text-[#16865C] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{testPingSuccess}</span>
+              </div>
+            )}
+
+            {telegramStatus?.is_linked ? (
+              /* CONNECTED STATE */
+              <div className="space-y-4">
+                <div className="p-3.5 rounded-2xl bg-[#F8F9FE] border border-[#6478E8]/20 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#697386]">Linked Telegram User:</span>
+                    <span className="font-semibold text-[#172033]">
+                      {telegramStatus.telegram_username ? `@${telegramStatus.telegram_username}` : telegramStatus.telegram_first_name || 'Active User'}
+                    </span>
+                  </div>
+                  {telegramStatus.linked_at && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#697386]">Connected Since:</span>
+                      <span className="font-mono text-[#697386]">
+                        {new Date(telegramStatus.linked_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  {telegramStatus.bot_username && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#697386]">Bot Handle:</span>
+                      <a
+                        href={`https://t.me/${telegramStatus.bot_username}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-[#6478E8] hover:underline flex items-center gap-1"
+                      >
+                        @{telegramStatus.bot_username}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {/* Granular Notification Preferences */}
+                <div className="space-y-3 pt-2 border-t border-[#E6EAF0]">
+                  <h3 className="text-xs font-bold text-[#172033] flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-[#6478E8]" />
+                    <span>Opt-In Proactive Notifications</span>
+                  </h3>
+
+                  <div className="space-y-2.5">
+                    <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#E6EAF0] hover:bg-[#F8F9FE] cursor-pointer transition-colors">
+                      <div>
+                        <div className="text-xs font-semibold text-[#172033]">Master Notifications Switch</div>
+                        <div className="text-[11px] text-[#697386]">Allow Telegram alerts for your account</div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={telegramStatus.notifications_enabled}
+                        onChange={(e) => handleToggleNotification('notifications_enabled', e.target.checked)}
+                        disabled={updatingTgPrefs}
+                        className="w-4 h-4 accent-[#6478E8] cursor-pointer"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#E6EAF0] hover:bg-[#F8F9FE] cursor-pointer transition-colors">
+                      <div>
+                        <div className="text-xs font-semibold text-[#172033]">Upcoming Recorded Bills</div>
+                        <div className="text-[11px] text-[#697386]">Alerts 3 days before recurring payments and subscriptions</div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={telegramStatus.notify_bills}
+                        disabled={!telegramStatus.notifications_enabled || updatingTgPrefs}
+                        onChange={(e) => handleToggleNotification('notify_bills', e.target.checked)}
+                        className="w-4 h-4 accent-[#6478E8] cursor-pointer"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#E6EAF0] hover:bg-[#F8F9FE] cursor-pointer transition-colors">
+                      <div>
+                        <div className="text-xs font-semibold text-[#172033]">Monthly Budget Limits</div>
+                        <div className="text-[11px] text-[#697386]">Warnings when monthly expenses reach 85% and 100% of target</div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={telegramStatus.notify_budget}
+                        disabled={!telegramStatus.notifications_enabled || updatingTgPrefs}
+                        onChange={(e) => handleToggleNotification('notify_budget', e.target.checked)}
+                        className="w-4 h-4 accent-[#6478E8] cursor-pointer"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#E6EAF0] hover:bg-[#F8F9FE] cursor-pointer transition-colors">
+                      <div>
+                        <div className="text-xs font-semibold text-[#172033]">Financial Goal Milestones</div>
+                        <div className="text-[11px] text-[#697386]">Celebratory alerts when saving goals hit target completion</div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={telegramStatus.notify_goals}
+                        disabled={!telegramStatus.notifications_enabled || updatingTgPrefs}
+                        onChange={(e) => handleToggleNotification('notify_goals', e.target.checked)}
+                        className="w-4 h-4 accent-[#6478E8] cursor-pointer"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Actions: Send Test Ping & Unlink */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E6EAF0]">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSendTestAlert}
+                    loading={testingPing}
+                    icon={<Bell className="w-3.5 h-3.5" />}
+                  >
+                    Send Test Alert
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleUnlinkTelegram}
+                    loading={unlinkingTg}
+                    icon={<Unlink className="w-3.5 h-3.5" />}
+                  >
+                    Disconnect Telegram
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* UNLINKED STATE */
+              <div className="space-y-4">
+                {linkCodeData ? (
+                  <div className="p-4 rounded-2xl bg-[#F8F9FE] border border-[#6478E8]/30 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#172033]">Your Single-Use Link Code:</span>
+                      <span className="text-[11px] font-mono text-[#D9485F] font-semibold">
+                        Expires in {Math.floor(countdownSeconds / 60)}:{String(countdownSeconds % 60).padStart(2, '0')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-white border border-[#E6EAF0] rounded-xl px-4 py-3 text-center">
+                        <span className="font-mono text-xl font-black text-[#6478E8] tracking-widest">
+                          {linkCodeData.code}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyCode}
+                        icon={copiedCode ? <Check className="w-3.5 h-3.5 text-[#16865C]" /> : <Copy className="w-3.5 h-3.5" />}
+                      >
+                        {copiedCode ? 'Copied!' : 'Copy'}
+                      </Button>
+                    </div>
+
+                    <div className="text-xs text-[#697386] space-y-1">
+                      <p className="font-semibold text-[#172033]">How to complete linking:</p>
+                      <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
+                        <li>Click <strong>Open in Telegram</strong> below or open Telegram on your phone.</li>
+                        <li>Send <code>/start {linkCodeData.code}</code> or <code>/link {linkCodeData.code}</code> in private chat.</li>
+                        <li>Your account is securely verified and linked instantly.</li>
+                      </ol>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      {linkCodeData.deep_link_url ? (
+                        <a
+                          href={linkCodeData.deep_link_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1"
+                        >
+                          <Button variant="primary" size="sm" className="w-full justify-center" icon={<ExternalLink className="w-3.5 h-3.5" />}>
+                            Open in Telegram
+                          </Button>
+                        </a>
+                      ) : (
+                        <a
+                          href="https://t.me"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1"
+                        >
+                          <Button variant="primary" size="sm" className="w-full justify-center" icon={<ExternalLink className="w-3.5 h-3.5" />}>
+                            Launch Telegram
+                          </Button>
+                        </a>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGenerateLinkCode}
+                        loading={generatingCode}
+                        icon={<RefreshCw className="w-3.5 h-3.5" />}
+                      >
+                        New Code
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-3">
+                    <p className="text-xs text-[#697386] leading-relaxed">
+                      Link FinPilot with Telegram to access your Global AI CFO anywhere. Never link based on public usernames alone — generate a cryptographically secure, 15-minute single-use code to authorize your Telegram chat.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleGenerateLinkCode}
+                        loading={generatingCode}
+                        disabled={!user}
+                        icon={<Send className="w-3.5 h-3.5" />}
+                      >
+                        Generate Single-Use Link Code
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </div>
 

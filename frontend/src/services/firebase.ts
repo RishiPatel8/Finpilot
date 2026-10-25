@@ -46,9 +46,19 @@ export const signInWithGoogle = async (): Promise<string> => {
     return `mock-firebase:g_${Date.now()}:${mockEmail}:Google Explorer`;
   }
 
-  const result: UserCredential = await signInWithPopup(auth, googleProvider);
-  const idToken = await result.user.getIdToken();
-  return idToken;
+  try {
+    const result: UserCredential = await signInWithPopup(auth, googleProvider);
+    const idToken = await result.user.getIdToken();
+    return idToken;
+  } catch (error: any) {
+    // In development mode, handle domain authorization errors (e.g., 127.0.0.1 vs localhost)
+    if (!import.meta.env.PROD && (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain'))) {
+      console.warn('Firebase auth/unauthorized-domain detected in development. Using development session fallback.');
+      const mockEmail = `demo_user_${Math.floor(Math.random() * 900 + 100)}@finpilot.local`;
+      return `mock-firebase:g_${Date.now()}:${mockEmail}:Demo User`;
+    }
+    throw error;
+  }
 };
 
 export const signOutFirebase = async (): Promise<void> => {

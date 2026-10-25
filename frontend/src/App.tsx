@@ -14,16 +14,49 @@ import { AssistantView } from './features/assistant/AssistantView';
 import { BankAccountsView } from './features/bank/BankAccountsView';
 import { FirePlanningView } from './features/fire/FirePlanningView';
 import { SettingsView } from './features/settings/SettingsView';
+import { BankConsentCallbackView } from './features/bank/BankConsentCallbackView';
+import { RecurringTransactionsView } from './features/recurring/RecurringTransactionsView';
+import { GlobalAICFO } from './features/assistant/GlobalAICFO';
+import { StatementUploadModal } from './features/statement/StatementUploadModal';
+import { LandingPage } from './features/landing/LandingPage';
 import { apiRequest, getAuthToken, clearAuthToken } from './services/api';
 import { User, FinancialHealthSummary, Transaction, FinancialGoal } from './types';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [user, setUser] = useState<User | null>(null);
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>(() => {
+    const token = getAuthToken();
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+    const hash = window.location.hash;
+    if (
+      token ||
+      pathname.includes('/bank/consent') ||
+      pathname.includes('/sandbox') ||
+      search.includes('consentHandle') ||
+      search.includes('view=app') ||
+      hash === '#app'
+    ) {
+      return 'app';
+    }
+    return 'landing';
+  });
+  const [authInitialMode, setAuthInitialMode] = useState<'login' | 'register'>('login');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [isDemoActive, setIsDemoActive] = useState(false);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isConsentCallback, setIsConsentCallback] = useState<boolean>(() => {
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+    return (
+      pathname.includes('/bank/consent/callback') ||
+      pathname.includes('/bank/consent-callback') ||
+      pathname.includes('/sandbox/aa-consent') ||
+      new URLSearchParams(search).has('consentHandle')
+    );
+  });
 
   const [summary, setSummary] = useState<FinancialHealthSummary | null>(null);
   const [recentTxns, setRecentTxns] = useState<Transaction[]>([]);
@@ -48,39 +81,33 @@ export const App: React.FC = () => {
     initSession();
   }, []);
 
-  // Fetch financial dashboard data
+  // Fetch financial dashboard data (Strictly data-driven with ZERO MOCK DATA)
   const fetchData = async () => {
     const token = getAuthToken();
     if (!token) {
-      // Guest baseline numbers
-      setSummary({
-        net_worth: 1845000,
-        total_assets: 2095000,
-        total_liabilities: 250000,
-        monthly_income: 145000,
-        monthly_expenses: 68000,
-        monthly_surplus: 77000,
-        savings_rate: 53.1,
-        emergency_fund_current: 318500,
-        emergency_fund_target: 408000,
-        emergency_fund_months: 4.7,
-      });
+      setSummary(null);
+      setRecentTxns([]);
+      setGoals([]);
       return;
     }
 
     try {
       const dashData = await apiRequest<any>('/dashboard/summary');
       setSummary({
-        net_worth: Number(dashData.net_worth),
-        total_assets: Number(dashData.total_assets),
-        total_liabilities: Number(dashData.total_liabilities),
-        monthly_income: Number(dashData.monthly_income),
-        monthly_expenses: Number(dashData.monthly_expenses),
-        monthly_surplus: Number(dashData.monthly_surplus),
-        savings_rate: Number(dashData.savings_rate_pct),
-        emergency_fund_current: Number(dashData.emergency_fund_current),
-        emergency_fund_target: Number(dashData.emergency_fund_target),
-        emergency_fund_months: Number(dashData.emergency_fund_months_covered),
+        net_worth: Number(dashData.net_worth || 0),
+        total_assets: Number(dashData.total_assets || 0),
+        total_liabilities: Number(dashData.total_liabilities || 0),
+        monthly_income: Number(dashData.monthly_income || 0),
+        monthly_expenses: Number(dashData.monthly_expenses || 0),
+        monthly_surplus: Number(dashData.monthly_surplus || 0),
+        savings_rate: Number(dashData.savings_rate_pct || 0),
+        emergency_fund_current: Number(dashData.emergency_fund_current || 0),
+        emergency_fund_target: Number(dashData.emergency_fund_target || 0),
+        emergency_fund_months: Number(dashData.emergency_fund_months_covered || 0),
+        monthly_history: dashData.monthly_history || [],
+        statement_coverage: dashData.statement_coverage || null,
+        is_empty: Boolean(dashData.is_empty),
+        data_quality: dashData.data_quality || {},
       });
       setRecentTxns(dashData.recent_transactions || []);
       setGoals(dashData.goals || []);
@@ -91,111 +118,67 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [user, isDemoActive]);
 
-  const handleSeedDemo = async () => {
-    if (!user) {
-      // Isolated guest demo preview without creating real accounts in database
-      setIsDemoActive(true);
-      setSummary({
-        net_worth: 1845000,
-        total_assets: 2095000,
-        total_liabilities: 250000,
-        monthly_income: 145000,
-        monthly_expenses: 68000,
-        monthly_surplus: 77000,
-        savings_rate: 53.1,
-        emergency_fund_current: 318500,
-        emergency_fund_target: 408000,
-        emergency_fund_months: 4.7,
-      });
-      setRecentTxns([
-        {
-          id: 'demo-1',
-          date: new Date().toISOString().slice(0, 10),
-          amount: 145000,
-          type: 'income',
-          category: 'Income',
-          description: 'Monthly Tech Salary Credit',
-          source: 'manual',
-          is_recurring: true,
-        },
-        {
-          id: 'demo-2',
-          date: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10),
-          amount: 32000,
-          type: 'expense',
-          category: 'Housing',
-          description: 'HDFC Home Loan EMI',
-          source: 'manual',
-          is_recurring: true,
-        },
-        {
-          id: 'demo-3',
-          date: new Date(Date.now() - 86400000 * 4).toISOString().slice(0, 10),
-          amount: 8500,
-          type: 'expense',
-          category: 'Food & Dining',
-          description: 'Supermarket & Groceries',
-          source: 'manual',
-          is_recurring: false,
-        },
-      ]);
-      setGoals([
-        {
-          id: 'demo-g1',
-          name: 'Emergency Reserve',
-          category: 'emergency_fund',
-          target_amount: 408000,
-          current_amount: 318500,
-          target_date: '2026-12-31',
-          progress_pct: 78.1,
-          monthly_required: 12500,
-        },
-        {
-          id: 'demo-g2',
-          name: 'EV Car Purchase',
-          category: 'custom',
-          target_amount: 800000,
-          current_amount: 350000,
-          target_date: '2027-06-30',
-          progress_pct: 43.8,
-          monthly_required: 22000,
-        },
-      ]);
-      return;
-    }
-
-    try {
-      await apiRequest('/demo/seed', { method: 'POST' });
-      setIsDemoActive(true);
-      await fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to seed demo data');
-    }
-  };
+    const handleDataUpdate = () => {
+      fetchData();
+    };
+    window.addEventListener('finpilot:financial-data-updated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('finpilot:financial-data-updated', handleDataUpdate);
+    };
+  }, [user]);
 
   const handleLogout = () => {
     clearAuthToken();
     setUser(null);
-    setIsDemoActive(false);
+    setSummary(null);
+    setRecentTxns([]);
+    setGoals([]);
     setActiveTab('overview');
-    fetchData();
+    setViewMode('landing');
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F8FC] text-[#172033] flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#07090E] text-[#F3F4F6] flex flex-col font-['Plus_Jakarta_Sans',sans-serif] relative">
+      {/* Floating Public Landing Page with Smooth Glass & Levitation Transitions */}
+      <div
+        className={`fixed inset-0 z-50 overflow-y-auto transition-all duration-500 ease-out bg-[#07090E]/95 backdrop-blur-2xl ${
+          viewMode === 'landing'
+            ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 scale-95 translate-y-8 pointer-events-none'
+        }`}
+        aria-hidden={viewMode !== 'landing'}
+      >
+        <LandingPage
+          onGetStarted={() => {
+            setAuthInitialMode('register');
+            setIsAuthOpen(true);
+          }}
+          onLogin={() => {
+            setAuthInitialMode('login');
+            setIsAuthOpen(true);
+          }}
+          onOpenDashboard={() => {
+            setViewMode('app');
+          }}
+          isAuthenticated={Boolean(user || getAuthToken())}
+        />
+      </div>
+
       {/* Top Navbar */}
       <Navbar
         user={user}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => {
+          setAuthInitialMode('login');
+          setIsAuthOpen(true);
+        }}
         onLogout={handleLogout}
-        onSeedDemo={handleSeedDemo}
-        isDemoActive={isDemoActive}
+        onOpenStatementModal={() => setIsStatementModalOpen(true)}
         activeTab={activeTab}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMobileMenuOpen={isMobileMenuOpen}
         onSelectTab={(tab) => setActiveTab(tab)}
+        onOpenLanding={() => setViewMode('landing')}
       />
 
       {/* Main Container */}
@@ -211,49 +194,75 @@ export const App: React.FC = () => {
         {/* Dynamic Content View Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            {activeTab === 'overview' && (
-              <DashboardView
-                summary={summary}
-                recentTxns={recentTxns}
-                goals={goals}
-                isDemoActive={isDemoActive}
-                onNavigateToTab={(tab) => setActiveTab(tab)}
+            {isConsentCallback ? (
+              <BankConsentCallbackView
+                onComplete={(targetTab) => {
+                  window.history.replaceState({}, '', '/');
+                  setIsConsentCallback(false);
+                  setActiveTab(targetTab || 'bank');
+                  fetchData();
+                }}
               />
-            )}
-            {activeTab === 'fire' && <FirePlanningView />}
-            {activeTab === 'bank' && (
-              <BankAccountsView onNavigateToCsv={() => setActiveTab('budget')} />
-            )}
-            {activeTab === 'scenarios' && <ScenarioSimulatorView />}
-            {activeTab === 'assistant' && <AssistantView />}
-            {activeTab === 'budget' && (
-              <BudgetView
-                transactions={recentTxns}
-                onRefresh={fetchData}
-                monthlyIncome={summary?.monthly_income || 145000}
-                monthlyExpenses={summary?.monthly_expenses || 68000}
-              />
-            )}
-            {activeTab === 'debts' && <DebtManagementView />}
-            {activeTab === 'tax' && <TaxPlannerView />}
-            {activeTab === 'investments' && <InvestmentsView />}
-            {activeTab === 'goals' && (
-              <GoalsView goals={goals} onRefresh={fetchData} />
-            )}
-            {activeTab === 'settings' && (
-              <SettingsView
-                user={user}
-                onProfileUpdated={fetchData}
-                onLogout={handleLogout}
-              />
+            ) : (
+              <>
+                {activeTab === 'overview' && (
+                  <DashboardView
+                    summary={summary}
+                    recentTxns={recentTxns}
+                    goals={goals}
+                    onNavigateToTab={(tab) => setActiveTab(tab)}
+                    onOpenStatementModal={() => setIsStatementModalOpen(true)}
+                  />
+                )}
+                {activeTab === 'fire' && <FirePlanningView />}
+                {activeTab === 'bank' && (
+                  <BankAccountsView onNavigateToCsv={() => setActiveTab('budget')} />
+                )}
+                {activeTab === 'scenarios' && <ScenarioSimulatorView />}
+                {activeTab === 'assistant' && <AssistantView />}
+                {activeTab === 'budget' && (
+                  <BudgetView
+                    transactions={recentTxns}
+                    onRefresh={fetchData}
+                    monthlyIncome={summary?.monthly_income || 0}
+                    monthlyExpenses={summary?.monthly_expenses || 0}
+                  />
+                )}
+                {activeTab === 'recurring' && (
+                  <RecurringTransactionsView
+                    onRefresh={fetchData}
+                  />
+                )}
+                {activeTab === 'debts' && <DebtManagementView />}
+                {activeTab === 'tax' && <TaxPlannerView />}
+                {activeTab === 'investments' && <InvestmentsView />}
+                {activeTab === 'goals' && (
+                  <GoalsView goals={goals} onRefresh={fetchData} />
+                )}
+                {activeTab === 'settings' && (
+                  <SettingsView
+                    user={user}
+                    onProfileUpdated={fetchData}
+                    onLogout={handleLogout}
+                  />
+                )}
+              </>
             )}
           </div>
         </main>
       </div>
 
+      {/* Bank Statement Upload Modal (CSV, XLSX, PDF) */}
+      <StatementUploadModal
+        isOpen={isStatementModalOpen}
+        onClose={() => setIsStatementModalOpen(false)}
+        onSuccess={fetchData}
+      />
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
+        initialMode={authInitialMode}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={(u) => {
           setUser(u);
@@ -273,6 +282,15 @@ export const App: React.FC = () => {
           fetchData();
         }}
       />
+
+      {/* Global Floating AI CFO 2.0 Assistant */}
+      {activeTab !== 'assistant' && (
+        <GlobalAICFO
+          activePage={activeTab}
+          user={user}
+          onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+        />
+      )}
     </div>
   );
 };

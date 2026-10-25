@@ -12,10 +12,12 @@ import {
   FileSpreadsheet,
   Clock,
   ExternalLink,
+  Info,
 } from 'lucide-react';
 import { apiRequest } from '../../services/api';
 import { BankAccount, BankConsent, BankSyncResult } from '../../types';
 import { Card, Badge, Button, PageHeader, MetricCard } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
 
 interface BankAccountsViewProps {
   onNavigateToCsv?: () => void;
@@ -45,35 +47,7 @@ export const BankAccountsView: React.FC<BankAccountsViewProps> = ({ onNavigateTo
       const res = await apiRequest<BankAccount[]>('/bank/accounts');
       setAccounts(res);
     } catch {
-      // Guest preview fallback: show verified sample accounts
-      setAccounts([
-        {
-          id: 'acc_demo_hdfc',
-          institution_name: 'HDFC Bank',
-          account_number_masked: 'XXXX-XXXX-4921',
-          account_type: 'savings',
-          ifsc_code: 'HDFC0001234',
-          currency: 'INR',
-          current_balance: 184500.00,
-          balance_type: 'provider_reported',
-          balance_timestamp: new Date().toISOString(),
-          sync_status: 'synced',
-          last_synced_at: new Date().toISOString(),
-        },
-        {
-          id: 'acc_demo_icici',
-          institution_name: 'ICICI Bank',
-          account_number_masked: 'XXXX-XXXX-8834',
-          account_type: 'savings',
-          ifsc_code: 'ICIC0000001',
-          currency: 'INR',
-          current_balance: 65200.00,
-          balance_type: 'provider_reported',
-          balance_timestamp: new Date().toISOString(),
-          sync_status: 'synced',
-          last_synced_at: new Date().toISOString(),
-        },
-      ]);
+      setAccounts([]);
     } finally {
       setLoading(false);
     }
@@ -120,6 +94,12 @@ export const BankAccountsView: React.FC<BankAccountsViewProps> = ({ onNavigateTo
         valid_to: res.valid_to,
         fip_ids: selectedBanks,
       });
+
+      // If external provider (Finvu / Setu) or external redirect URL is supplied, redirect user to the AA portal
+      if (res.provider === 'finvu' || res.provider === 'setu' || (res.redirect_url && (res.redirect_url.startsWith('http://') || res.redirect_url.startsWith('https://')))) {
+        window.location.href = res.redirect_url;
+        return;
+      }
 
       // Auto-approve in Sandbox to complete the loop effortlessly
       await handleApproveConsent(res.id);
@@ -223,14 +203,9 @@ export const BankAccountsView: React.FC<BankAccountsViewProps> = ({ onNavigateTo
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <PageHeader
-        title="Bank Accounts & Connectivity"
-        description="Secure, consent-driven bank integration via the RBI Account Aggregator framework with automated transaction deduplication."
-        badge={
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-[#EEF2F6] border border-[#D0D7E2] rounded-full text-[12px] font-medium text-[#2E3338]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#6478E8]" />
-            RBI NBFC-AA Architecture
-          </div>
-        }
+        title="Bank Accounts & Balances"
+        description="View verified bank balances, track cash reserves across linked accounts, and understand how they protect your emergency runway."
+        badge={<KnowMore termId="investable_assets" variant="badge" label="About Bank Accounts" />}
       />
 
       {statusMessage && (

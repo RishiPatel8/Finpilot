@@ -30,6 +30,15 @@ def test_export_data_and_account_deletion(client, db_session):
         category="Food & Dining",
         description="Grocery Store"
     )
+    from app.models.agent import AgentMemory
+    mem = AgentMemory(
+        user_id=user.id,
+        conversation_id="default",
+        memory_type="preference",
+        key="tax_regime",
+        value="new"
+    )
+    db_session.add(mem)
     db_session.add(profile)
     db_session.add(txn)
     db_session.commit()

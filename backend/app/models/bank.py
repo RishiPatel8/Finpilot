@@ -64,3 +64,17 @@ class BankSyncLog(Base):
 
     user = relationship("User")
     account = relationship("BankAccount", back_populates="sync_logs")
+
+
+class BankWebhookLog(Base):
+    __tablename__ = "bank_webhook_logs"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    txnid = Column(String(128), unique=True, index=True, nullable=False)
+    event_type = Column(String(50), nullable=False)  # CONSENT_STATUS, FI_STATUS
+    notifier_type = Column(String(50), nullable=True)  # AA
+    notifier_id = Column(String(100), nullable=True)  # finvu-aa
+    consent_handle = Column(String(128), nullable=True, index=True)
+    status = Column(String(50), nullable=False)
+    processed = Column(String(20), default="PROCESSED", nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

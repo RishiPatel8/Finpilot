@@ -4,20 +4,22 @@
 
 @layer base {
   :root {
-    --color-bg: #F6F8FC;
-    --color-card: #FFFFFF;
-    --color-border: #E6EAF0;
-    --color-text-primary: #172033;
-    --color-text-secondary: #697386;
-    --color-primary: #6478E8;
-    --color-primary-hover: #5365D6;
-    --color-lavender: #EEF0FF;
-    --color-mint: #E5F7EF;
-    --color-blue: #E8F2FF;
-    --color-peach: #FFF0E5;
-    --color-success: #16865C;
-    --color-warning: #B7791F;
-    --color-danger: #D9485F;
+    --color-bg: #07090E;
+    --color-card: #111622;
+    --color-border: rgba(212, 175, 55, 0.15);
+    --color-text-primary: #F3F4F6;
+    --color-text-secondary: #9CA3AF;
+    --color-primary: #D4AF37;
+    --color-primary-hover: #ECC856;
+    --color-gold: #D4AF37;
+    --color-gold-light: #F5DE88;
+    --color-lavender: rgba(212, 175, 55, 0.12);
+    --color-mint: rgba(16, 185, 129, 0.15);
+    --color-blue: rgba(56, 189, 248, 0.15);
+    --color-peach: rgba(245, 158, 11, 0.15);
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #F43F5E;
   }
 
   body {
@@ -35,45 +37,280 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Modern, restrained card surfaces */
+/* Premium Black & Gold Card Surfaces */
 .finpilot-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E6EAF0;
+  background-color: rgba(17, 22, 34, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: all 0.15s ease-in-out;
-}
-
-.finpilot-card-interactive {
-  background-color: #FFFFFF;
-  border: 1px solid #E6EAF0;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.finpilot-card-interactive:hover {
-  border-color: #D1D9E6;
-  box-shadow: 0 6px 16px -2px rgba(23, 32, 51, 0.06);
-  transform: translateY(-1px);
+.finpilot-card-interactive {
+  background-color: rgba(17, 22, 34, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Subtle, clean light scrollbar */
+.finpilot-card-interactive:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Gold Gradient Utilities */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF0BE 0%, #D4AF37 50%, #AA820A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-gold-glow {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #ECC856 0%, #D4AF37 50%, #B89327 100%);
+}
+
+.bg-gold-soft {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.05) 100%);
+}
+
+/* ==========================================================================
+   FLOATING KEYFRAMES & MICRO-TRANSITIONS
+   ========================================================================== */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.5deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(9px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes shimmer-gold {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
+.animate-shimmer-gold {
+  background: linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(212,175,55,0.2) 50%, rgba(212,175,55,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-gold 3s infinite linear;
+}
+
+/* Dark Gold Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F6F8FC;
+  background: #07090E;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D1D9E6;
+  background: rgba(212, 175, 55, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B4BFD2;
+  background: rgba(212, 175, 55, 0.45);
 }
+
+/* ==========================================================================
+   HIGH-CONTRAST VISIBILITY & ACCESSIBILITY OVERRIDES (Black & Gold Theme)
+   ========================================================================== */
+
+/* 1. Global Input, Select & Textarea Form Controls */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  background-color: #0B0F17 !important;
+  color: #F3F4F6 !important;
+  border-color: rgba(212, 175, 55, 0.28) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #D4AF37 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF !important;
+  opacity: 0.8 !important;
+}
+
+/* 2. Text Visibility & Contrast Remapping */
+/* Main headings, titles, and values that used dark ink on light background */
+.text-\[\#172033\],
+.text-slate-900,
+.text-slate-800,
+.text-gray-900,
+.text-gray-800 {
+  color: #F3F4F6 !important;
+}
+
+/* Secondary labels, descriptions, and subtitles */
+.text-\[\#697386\],
+.text-\[\#8C9BAE\],
+.text-slate-600,
+.text-slate-500,
+.text-gray-600,
+.text-gray-500 {
+  color: #9CA3AF !important;
+}
+
+/* Action and link texts that used old purple/indigo */
+.text-\[\#6478E8\],
+.text-\[\#4F5ECE\] {
+  color: #F5DE88 !important;
+}
+
+/* Positive / Success / Income indicators */
+.text-\[\#16865C\],
+.text-\[\#38A169\],
+.text-green-700,
+.text-emerald-700 {
+  color: #34D399 !important;
+}
+
+/* Negative / Danger / Deficit indicators */
+.text-\[\#D9485F\],
+.text-\[\#C53030\],
+.text-red-700 {
+  color: #F87171 !important;
+}
+
+/* Warning / Alert indicators */
+.text-\[\#B25E09\],
+.text-\[\#D9822B\],
+.text-\[\#F5A623\] {
+  color: #FBBF24 !important;
+}
+
+/* 3. Surface & Card Background Remapping */
+/* Prevent blinding white backgrounds and ensure high-contrast text */
+.bg-white {
+  background-color: #111622 !important;
+  color: #F3F4F6 !important;
+}
+
+/* Sub-card wells, table headers, and parameter blocks */
+.bg-\[\#F6F8FC\],
+.bg-\[\#F8FAFC\],
+.bg-\[\#F1F4F9\] {
+  background-color: #0D111A !important;
+  color: #F3F4F6 !important;
+}
+
+/* Old light purple containers */
+.bg-\[\#EEF0FF\],
+.bg-\[\#F0F3FF\] {
+  background-color: rgba(212, 175, 55, 0.1) !important;
+  color: #F5DE88 !important;
+}
+
+/* Old light green containers */
+.bg-\[\#E5F7EF\],
+.bg-\[\#E6F4EA\] {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #34D399 !important;
+}
+
+/* Old light amber/peach containers */
+.bg-\[\#FFF8E6\],
+.bg-\[\#FFF8EB\] {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  color: #FBBF24 !important;
+}
+
+/* Old light red containers */
+.bg-\[\#FDF2F4\],
+.bg-\[\#FFF0E5\] {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  color: #F87171 !important;
+}
+
+/* 4. Borders & Dividers */
+.border-\[\#E6EAF0\],
+.border-slate-200,
+.border-gray-200 {
+  border-color: rgba(212, 175, 55, 0.18) !important;
+}
+
+.divide-\[\#E6EAF0\] > :not([hidden]) ~ :not([hidden]),
+.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Tables */
+table th {
+  color: #9CA3AF !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+table td {
+  color: #F3F4F6 !important;
+}
+
 

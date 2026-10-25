@@ -13,6 +13,7 @@ import {
 import { apiRequest } from '../../services/api';
 import { TaxComparisonResult } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
 
 export const TaxPlannerView: React.FC = () => {
   const [assessmentYear, setAssessmentYear] = useState('2025-26');
@@ -71,14 +72,10 @@ export const TaxPlannerView: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Income Tax Regime Comparator"
-        description="Statutory tax calculator comparing New Concessional Regime (Section 115BAC) vs Old Regime for AY 2025-26 (Finance Act 2024) and AY 2024-25."
+        title="Tax Planning: New vs Old Regime"
+        description="Compare take-home pay and tax liability under India's New and Old Tax Regimes for AY 2025-26 and AY 2024-25."
         icon={<ReceiptIndianRupee className="w-4 h-4 text-[#6478E8]" />}
-        badge={
-          <Badge variant="lavender" size="sm">
-            AY {assessmentYear} Verified
-          </Badge>
-        }
+        badge={<KnowMore termId="tax_regime" variant="badge" label="About Tax Regimes" />}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

@@ -15,6 +15,7 @@ import {
 import { apiRequest, getAuthToken } from '../../services/api';
 import { Liability, DebtRepaymentPlan } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
 
 export const DebtManagementView: React.FC = () => {
   const [liabilities, setLiabilities] = useState<Liability[]>([]);
@@ -47,39 +48,8 @@ export const DebtManagementView: React.FC = () => {
   const fetchLiabilities = async () => {
     const token = getAuthToken();
     if (!token) {
-      // Guest demo sample debts
-      const sampleDebts: Liability[] = [
-        {
-          id: 'demo-l1',
-          user_id: 'guest',
-          name: 'HDFC Home Loan',
-          principal: 2850000,
-          interest_rate: 8.5,
-          monthly_emi: 26500,
-          tenure_months: 240,
-          remaining_months: 195,
-        },
-        {
-          id: 'demo-l2',
-          user_id: 'guest',
-          name: 'ICICI Coral Credit Card',
-          principal: 65000,
-          interest_rate: 42.0,
-          monthly_emi: 6500,
-          tenure_months: 12,
-          remaining_months: 8,
-        },
-      ];
-      setLiabilities(sampleDebts);
-      setRepaymentPlan({
-        total_debt_principal: 2915000,
-        total_monthly_emi: 33000,
-        extra_payment_applied: extraPayment,
-        avalanche_priority: ['ICICI Coral Credit Card', 'HDFC Home Loan'],
-        snowball_priority: ['ICICI Coral Credit Card', 'HDFC Home Loan'],
-        strategy_recommendation:
-          'Debt Avalanche is mathematically optimal to save maximum total interest, prioritizing high-interest liabilities first (e.g. credit cards and personal loans). Debt Snowball provides faster psychological wins by eliminating smaller balances first.',
-      });
+      setLiabilities([]);
+      setRepaymentPlan(null);
       setLoading(false);
       return;
     }
@@ -174,17 +144,16 @@ export const DebtManagementView: React.FC = () => {
         title="Debt Management & Accelerated Payoff"
         description="Audit loans and credit cards, eliminate high-interest liabilities, and compare Debt Avalanche vs Debt Snowball strategies."
         icon={<CreditCard className="w-4 h-4 text-[#6478E8]" />}
-        badge={
-          <Badge variant="blue" size="sm">
-            Avalanche vs Snowball
-          </Badge>
-        }
+        badge={<KnowMore termId="debt_payoff" variant="badge" label="About Payoff Strategies" />}
       />
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="space-y-1">
-          <span className="text-xs text-[#697386] font-medium">Total Outstanding Debt</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#697386] font-medium">Total Outstanding Debt</span>
+            <KnowMore termId="net_worth" />
+          </div>
           <p className="text-2xl font-black text-[#172033] font-mono tabular-nums">
             {formatINR(totalPrincipal)}
           </p>
@@ -200,7 +169,10 @@ export const DebtManagementView: React.FC = () => {
         </Card>
 
         <Card className="space-y-1">
-          <span className="text-xs text-[#697386] font-medium">Recommended Strategy</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#697386] font-medium">Recommended Strategy</span>
+            <KnowMore termId="debt_payoff" />
+          </div>
           <p className="text-xl font-bold text-[#6478E8] flex items-center gap-1.5 pt-1">
             <Flame className="w-4 h-4 text-[#D9485F]" />
             <span>Debt Avalanche</span>

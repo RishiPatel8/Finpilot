@@ -30,6 +30,8 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { Card, Button, Badge } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
+import { apiRequest, getAuthToken } from '../../services/api';
 import {
   FireCalculationResponse,
   FinancialHealthAssessment,
@@ -73,20 +75,11 @@ export const FirePlanningView: React.FC = () => {
         essential_expenses_pct: overrides.essentialPct ?? essentialPct,
       };
 
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('/api/v1/fire/calculate', {
+      const data = await apiRequest<FireCalculationResponse>('/fire/calculate', {
         method: 'POST',
-        headers,
         body: JSON.stringify(payload),
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setFireData(data);
-      }
+      setFireData(data);
     } catch (err) {
       console.error('Failed to calculate FIRE data:', err);
     } finally {
@@ -95,27 +88,58 @@ export const FirePlanningView: React.FC = () => {
     }
   };
 
+  // Fetch user profile-assembled FIRE projection
+  const loadUserProfile = async () => {
+    const token = getAuthToken();
+    if (!token) return false;
+    try {
+      const profileData = await apiRequest<FireCalculationResponse>('/fire/profile');
+      if (profileData && (profileData.fire_target_future || profileData.current_age)) {
+        setFireData(profileData);
+        if (profileData.current_age) {
+          setCurrentAge(Number(profileData.current_age));
+        }
+        if (profileData.planned_retirement_age) {
+          setRetirementAge(Number(profileData.planned_retirement_age));
+        }
+        if (profileData.current_monthly_expenses) {
+          setMonthlyExpenses(Number(profileData.current_monthly_expenses));
+        }
+        if (profileData.current_investable_assets !== undefined) {
+          setCurrentAssets(Number(profileData.current_investable_assets));
+        }
+        if (profileData.current_monthly_investment !== undefined) {
+          setMonthlyInvestment(Number(profileData.current_monthly_investment));
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn('Could not load user FIRE profile:', err);
+    }
+    return false;
+  };
+
   // Fetch Health Assessment
   const fetchHealthAssessment = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('/api/v1/fire/health-assessment', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setHealthData(data);
-      }
+      const data = await apiRequest<FinancialHealthAssessment>('/fire/health-assessment');
+      setHealthData(data);
     } catch (err) {
       console.error('Failed to fetch health assessment:', err);
     }
   };
 
-  // Initial Load
+  // Initial Load: auto-load real user profile if signed in, else calculate defaults
   useEffect(() => {
-    calculateFire();
-    fetchHealthAssessment();
+    const init = async () => {
+      const loaded = await loadUserProfile();
+      if (!loaded) {
+        await calculateFire();
+      }
+      await fetchHealthAssessment();
+      setLoading(false);
+    };
+    init();
   }, []);
 
   // Format INR in Crores or Lakhs
@@ -164,45 +188,43 @@ export const FirePlanningView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-[#E6EAF0] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-[#111622]/95 border border-[rgba(212,175,55,0.2)] shadow-[0_4px_25px_-2px_rgba(0,0,0,0.6)]">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#EEF0FF] rounded-xl text-[#6478E8]">
+            <div className="p-2 bg-[rgba(212,175,55,0.15)] rounded-xl text-[#F5DE88] border border-[rgba(212,175,55,0.3)] shadow-[0_0_12px_rgba(212,175,55,0.2)]">
               <Flame className="w-5 h-5" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#172033] tracking-tight">
-              FIRE Forecaster & Financial Planning
+            <h1 className="text-xl sm:text-2xl font-bold text-[#F3F4F6] tracking-tight">
+              Retirement & Financial Freedom Planner
             </h1>
-            <Badge variant="lavender" size="sm" className="font-bold">
-              v2.2 Complete
-            </Badge>
+            <KnowMore termId="financial_independence" variant="badge" label="Know More" />
           </div>
-          <p className="text-xs sm:text-sm text-[#697386]">
-            Mathematically exact compound projections, safe withdrawal analysis, and transparent 8-pillar health tracking.
+          <p className="text-xs sm:text-sm text-[#9CA3AF]">
+            Clear, understandable projections to help you plan when you can retire and how much you need.
           </p>
         </div>
 
         {/* Sub-tab navigation */}
-        <div className="flex items-center gap-2 bg-[#F6F8FC] p-1.5 rounded-xl border border-[#E6EAF0]">
+        <div className="flex items-center gap-2 bg-[#0A0D14] p-1.5 rounded-xl border border-white/10">
           <button
             onClick={() => setActiveSubTab('forecaster')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               activeSubTab === 'forecaster'
-                ? 'bg-white text-[#6478E8] shadow-sm'
-                : 'text-[#697386] hover:text-[#172033]'
+                ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-charcoal-950 font-bold shadow-sm'
+                : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
             }`}
           >
-            FIRE Dashboard
+            Retirement Planner
           </button>
           <button
             onClick={() => setActiveSubTab('health')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               activeSubTab === 'health'
-                ? 'bg-white text-[#6478E8] shadow-sm'
-                : 'text-[#697386] hover:text-[#172033]'
+                ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-charcoal-950 font-bold shadow-sm'
+                : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
             }`}
           >
-            Financial Health (8 Pillars)
+            Check My Financial Health
           </button>
         </div>
       </div>
@@ -212,43 +234,44 @@ export const FirePlanningView: React.FC = () => {
         <div className="space-y-6">
           {/* Quick What-If Buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-[#697386] mr-1">Instant What-Ifs:</span>
+            <span className="text-xs font-semibold text-[#9CA3AF] mr-1">Instant What-Ifs:</span>
             <button
               onClick={() => applyPreset('boost_sip')}
-              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white border border-[#E6EAF0] hover:border-[#6478E8] hover:text-[#6478E8] transition-all text-[#172033] shadow-sm flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#111622] border border-[rgba(212,175,55,0.2)] hover:border-[#D4AF37] hover:text-[#F5DE88] transition-all text-[#F3F4F6] shadow-sm flex items-center gap-1.5"
             >
-              <TrendingUp className="w-3.5 h-3.5 text-[#16865C]" />
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
               +₹10,000/mo Investment
             </button>
             <button
               onClick={() => applyPreset('retire_early')}
-              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white border border-[#E6EAF0] hover:border-[#6478E8] hover:text-[#6478E8] transition-all text-[#172033] shadow-sm flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#111622] border border-[rgba(212,175,55,0.2)] hover:border-[#D4AF37] hover:text-[#F5DE88] transition-all text-[#F3F4F6] shadow-sm flex items-center gap-1.5"
             >
-              <Calendar className="w-3.5 h-3.5 text-[#6478E8]" />
+              <Calendar className="w-3.5 h-3.5 text-[#F5DE88]" />
               Target Age 45
             </button>
             <button
               onClick={() => applyPreset('high_inflation')}
-              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white border border-[#E6EAF0] hover:border-[#E56F4A] hover:text-[#E56F4A] transition-all text-[#172033] shadow-sm flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#111622] border border-[rgba(212,175,55,0.2)] hover:border-[#F59E0B] hover:text-[#F59E0B] transition-all text-[#F3F4F6] shadow-sm flex items-center gap-1.5"
             >
-              <ShieldAlert className="w-3.5 h-3.5 text-[#E56F4A]" />
-              Stress Test (7.5% Inflation)
+              <ShieldAlert className="w-3.5 h-3.5 text-[#F59E0B]" />
+              What If Costs Rise? (7.5% Inflation)
             </button>
             <button
               onClick={() => applyPreset('reset')}
-              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white border border-[#E6EAF0] hover:bg-[#F6F8FC] text-[#697386] transition-all ml-auto flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#111622] border border-white/10 hover:border-white/20 text-[#9CA3AF] hover:text-[#F3F4F6] transition-all ml-auto flex items-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              Reset Baselines
+              Reset to Starting Values
             </button>
           </div>
 
           {/* Interactive Parameters Card */}
-          <Card className="p-5 bg-white border border-[#E6EAF0] shadow-sm space-y-4">
+          <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-[#6478E8]" />
                 <h3 className="text-sm font-bold text-[#172033]">Planning Parameters</h3>
+                <KnowMore termId="retirement_target" variant="badge" label="About Target" />
               </div>
               <button
                 onClick={() => setShowAdvanced(!showAdvanced)}
@@ -272,7 +295,10 @@ export const FirePlanningView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#697386] block mb-1">Target Retirement Age</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-[#697386] truncate">Age You Want to Retire</label>
+                  <KnowMore termId="retirement_target" />
+                </div>
                 <input
                   type="number"
                   min="30"
@@ -284,7 +310,10 @@ export const FirePlanningView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#697386] block mb-1">Monthly Expenses (₹)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-[#697386] truncate">Current Monthly Costs (₹)</label>
+                  <KnowMore termId="cash_flow" />
+                </div>
                 <input
                   type="number"
                   step="5000"
@@ -295,7 +324,10 @@ export const FirePlanningView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#697386] block mb-1">Investable Assets (₹)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-[#697386] truncate">Available for Investing (₹)</label>
+                  <KnowMore termId="investable_assets" />
+                </div>
                 <input
                   type="number"
                   step="50000"
@@ -306,7 +338,10 @@ export const FirePlanningView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#697386] block mb-1">Monthly Investment (₹)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-semibold text-[#697386] truncate">Invested Each Month (₹)</label>
+                  <KnowMore termId="monthly_investment" />
+                </div>
                 <input
                   type="number"
                   step="5000"
@@ -320,7 +355,10 @@ export const FirePlanningView: React.FC = () => {
             {showAdvanced && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-3 border-t border-[#E6EAF0]">
                 <div>
-                  <label className="text-[11px] font-semibold text-[#697386] block mb-1">Inflation Rate (%)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-[#697386] truncate">Expected Inflation (%)</label>
+                    <KnowMore termId="inflation" />
+                  </div>
                   <input
                     type="number"
                     step="0.5"
@@ -330,7 +368,9 @@ export const FirePlanningView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-[#697386] block mb-1">Pre-Retire Return (%)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-[#697386] truncate">Expected Return (%)</label>
+                  </div>
                   <input
                     type="number"
                     step="0.5"
@@ -340,7 +380,10 @@ export const FirePlanningView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-[#697386] block mb-1">Safe Withdrawal Rate (%)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-[#697386] truncate">Yearly Withdrawal Rate (%)</label>
+                    <KnowMore termId="safe_withdrawal_rate" />
+                  </div>
                   <input
                     type="number"
                     step="0.25"
@@ -350,7 +393,10 @@ export const FirePlanningView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-[#697386] block mb-1">Essential Needs Ratio (%)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-[#697386] truncate">Basic Needs Ratio (%)</label>
+                    <KnowMore termId="lean_fire" />
+                  </div>
                   <input
                     type="number"
                     step="5"
@@ -373,76 +419,116 @@ export const FirePlanningView: React.FC = () => {
                 {calculating ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Recalculating...</span>
+                    <span>Updating Estimates...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Recalculate Projections</span>
+                    <span>Update My Retirement Estimate</span>
                   </>
                 )}
               </Button>
             </div>
           </Card>
 
-          {/* Top KPI Cards */}
+          {/* Top KPI Cards with Plain Language */}
           {fireData && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="p-4 bg-white border border-[#E6EAF0] shadow-sm space-y-2">
-                <div className="flex items-center justify-between text-[#697386] text-xs">
-                  <span className="font-semibold">FIRE Target (Today's Value)</span>
-                  <Coins className="w-4 h-4 text-[#6478E8]" />
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between text-[#9CA3AF] text-xs">
+                  <span className="font-semibold text-[#F3F4F6]">Money You Need to Retire</span>
+                  <div className="flex items-center gap-1">
+                    <KnowMore
+                      termId="retirement_target"
+                      contextualValue={{
+                        label: "Money You Need to Retire (Today's Value)",
+                        value: formatInr(fireData.fire_target_today),
+                        isEstimate: true,
+                      }}
+                    />
+                    <Coins className="w-4 h-4 text-[#D4AF37]" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-[#172033] tracking-tight">
+                <div className="text-2xl font-bold text-[#F5DE88] tracking-tight tabular-nums">
                   {formatInr(fireData.fire_target_today)}
                 </div>
-                <p className="text-[11px] text-[#697386]">
-                  At {fireData.safe_withdrawal_rate_pct}% SWR for ₹{Math.round(fireData.current_monthly_expenses).toLocaleString('en-IN')}/mo spending
+                <p className="text-[11px] text-[#9CA3AF]">
+                  In today's value, assuming a {fireData.safe_withdrawal_rate_pct}% yearly withdrawal rate for ₹{Math.round(fireData.current_monthly_expenses).toLocaleString('en-IN')}/mo living costs
                 </p>
               </Card>
 
-              <Card className="p-4 bg-white border border-[#E6EAF0] shadow-sm space-y-2">
-                <div className="flex items-center justify-between text-[#697386] text-xs">
-                  <span className="font-semibold">Target at Age {fireData.planned_retirement_age}</span>
-                  <Calendar className="w-4 h-4 text-[#16865C]" />
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between text-[#9CA3AF] text-xs">
+                  <span className="font-semibold text-[#F3F4F6]">Money Needed by Age {fireData.planned_retirement_age}</span>
+                  <div className="flex items-center gap-1">
+                    <KnowMore
+                      termId="inflation"
+                      contextualValue={{
+                        label: `Money Needed by Age ${fireData.planned_retirement_age} (Future Value)`,
+                        value: formatInr(fireData.fire_target_future),
+                        isEstimate: true,
+                      }}
+                    />
+                    <Calendar className="w-4 h-4 text-emerald-400" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-[#172033] tracking-tight">
+                <div className="text-2xl font-bold text-[#F5DE88] tracking-tight tabular-nums">
                   {formatInr(fireData.fire_target_future)}
                 </div>
-                <p className="text-[11px] text-[#697386]">
-                  Adjusted for {inflationRate}% annual inflation ({fireData.years_to_retirement} years)
+                <p className="text-[11px] text-[#9CA3AF]">
+                  Adjusted for {inflationRate}% annual inflation ({fireData.years_to_retirement} years until retirement)
                 </p>
               </Card>
 
-              <Card className="p-4 bg-white border border-[#E6EAF0] shadow-sm space-y-2">
-                <div className="flex items-center justify-between text-[#697386] text-xs">
-                  <span className="font-semibold">Projected FIRE Age</span>
-                  <Flame className="w-4 h-4 text-[#E56F4A]" />
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between text-[#9CA3AF] text-xs">
+                  <span className="font-semibold text-[#F3F4F6]">Estimated Age You Can Retire</span>
+                  <div className="flex items-center gap-1">
+                    <KnowMore
+                      termId="financial_independence"
+                      contextualValue={{
+                        label: 'Estimated Age You Can Retire',
+                        value: fireData.projected_fire_age ? `Age ${fireData.projected_fire_age}` : 'Beyond 85',
+                        isEstimate: true,
+                      }}
+                    />
+                    <Flame className="w-4 h-4 text-amber-400" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-[#172033] tracking-tight flex items-baseline gap-2">
-                  <span>{fireData.projected_fire_age ? `Age ${fireData.projected_fire_age}` : 'Beyond 85'}</span>
+                <div className="text-2xl font-bold text-[#F3F4F6] tracking-tight flex items-baseline gap-2 tabular-nums">
+                  <span className="text-[#F5DE88]">{fireData.projected_fire_age ? `Age ${fireData.projected_fire_age}` : 'Beyond 85'}</span>
                   {fireData.projected_fire_age && (
-                    <span className="text-xs font-semibold text-[#16865C]">
+                    <span className="text-xs font-semibold text-emerald-400">
                       ({fireData.projected_fire_age - fireData.current_age} yrs left)
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#697386]">
-                  At current ₹{Math.round(fireData.current_monthly_investment).toLocaleString('en-IN')}/mo contribution
+                <p className="text-[11px] text-[#9CA3AF]">
+                  Based on investing ₹{Math.round(fireData.current_monthly_investment).toLocaleString('en-IN')} each month
                 </p>
               </Card>
 
-              <Card className="p-4 bg-white border border-[#E6EAF0] shadow-sm space-y-2">
-                <div className="flex items-center justify-between text-[#697386] text-xs">
-                  <span className="font-semibold">FIRE Progress</span>
-                  <Activity className="w-4 h-4 text-[#6478E8]" />
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between text-[#9CA3AF] text-xs">
+                  <span className="font-semibold text-[#F3F4F6]">Progress Towards Retirement Goal</span>
+                  <div className="flex items-center gap-1">
+                    <KnowMore
+                      termId="retirement_shortfall"
+                      contextualValue={{
+                        label: 'Progress Towards Retirement Goal',
+                        value: `${fireData.fire_progress_pct}%`,
+                        isEstimate: true,
+                      }}
+                    />
+                    <Activity className="w-4 h-4 text-[#D4AF37]" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-[#172033] tracking-tight">
+                <div className="text-2xl font-bold text-[#D4AF37] tracking-tight tabular-nums">
                   {fireData.fire_progress_pct}%
                 </div>
-                <div className="w-full bg-[#F6F8FC] h-2 rounded-full overflow-hidden border border-[#E6EAF0]">
+                <div className="w-full bg-charcoal-800 h-2 rounded-full overflow-hidden border border-white/5">
                   <div
-                    className="bg-[#6478E8] h-full rounded-full transition-all"
+                    className="bg-gradient-to-r from-[#D4AF37] to-[#ECC856] h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
                     style={{ width: `${Math.min(100, fireData.fire_progress_pct)}%` }}
                   />
                 </div>
@@ -450,96 +536,117 @@ export const FirePlanningView: React.FC = () => {
             </div>
           )}
 
-          {/* FIRE Strategy Comparison Section */}
+          {/* Retirement Lifestyle Comparison Section */}
           {fireData && (
             <div className="space-y-3">
-              <h2 className="text-sm font-bold text-[#172033] flex items-center gap-2">
-                <Award className="w-4 h-4 text-[#6478E8]" />
-                FIRE Strategy Comparisons
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#D4AF37]" />
+                  Retirement Lifestyle Comparisons
+                </h2>
+                <KnowMore termId="regular_fire" variant="badge" label="About Lifestyles" />
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {fireData.strategies.map((strat) => (
-                  <Card
-                    key={strat.strategy_type}
-                    className={`p-4 bg-white border rounded-2xl space-y-3 transition-all ${
-                      strat.is_achievable_by_target_age
-                        ? 'border-[#16865C]/30 shadow-sm'
-                        : 'border-[#E6EAF0]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm text-[#172033]">{strat.name}</h4>
-                      <Badge
-                        variant={strat.is_achievable_by_target_age ? 'mint' : 'neutral'}
-                        size="sm"
-                      >
-                        {strat.is_achievable_by_target_age ? 'Achievable' : 'Shortfall'}
-                      </Badge>
-                    </div>
+                {fireData.strategies.map((strat) => {
+                  const strategyMeta: Record<string, { title: string; termId: string }> = {
+                    lean: { title: 'Retirement With Basic Expenses', termId: 'lean_fire' },
+                    standard: { title: 'Retirement With Current Lifestyle', termId: 'regular_fire' },
+                    fat: { title: 'Retirement With More Spending and Comfort', termId: 'fat_fire' },
+                    coast: { title: 'Investments Ready to Grow on Their Own', termId: 'coast_fire' },
+                  };
+                  const meta = strategyMeta[strat.strategy_type] || { title: strat.name, termId: 'financial_independence' };
 
-                    <p className="text-[11px] text-[#697386] leading-relaxed min-h-[34px]">
-                      {strat.description}
-                    </p>
+                  return (
+                    <Card
+                      key={strat.strategy_type}
+                      className="p-4 space-y-3 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <h4 className="font-bold text-sm text-[#F3F4F6]">{meta.title}</h4>
+                            <KnowMore termId={meta.termId} />
+                          </div>
+                          <span className="text-[10px] text-[#9CA3AF] font-mono">({strat.name})</span>
+                        </div>
+                        <Badge
+                          variant={strat.is_achievable_by_target_age ? 'mint' : 'neutral'}
+                          size="sm"
+                        >
+                          {strat.is_achievable_by_target_age ? 'On Track' : 'Need to Build More'}
+                        </Badge>
+                      </div>
 
-                    <div className="space-y-1.5 pt-2 border-t border-[#F6F8FC] text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Retirement Spending:</span>
-                        <span className="font-bold text-[#172033]">
-                          ₹{Math.round(strat.monthly_expense_in_retirement).toLocaleString('en-IN')}/mo
-                        </span>
+                      <p className="text-[11px] text-[#9CA3AF] leading-relaxed min-h-[34px]">
+                        {strat.description}
+                      </p>
+
+                      <div className="space-y-1.5 pt-2 border-t border-white/10 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-[#9CA3AF]">Monthly Living Cost:</span>
+                          <span className="font-bold text-[#F3F4F6]">
+                            ₹{Math.round(strat.monthly_expense_in_retirement).toLocaleString('en-IN')}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#9CA3AF]">Goal in Today's Money:</span>
+                          <span className="font-bold text-[#F5DE88]">{formatInr(strat.target_corpus_today)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#697386]">Goal at Retirement Age:</span>
+                          <span className="font-bold text-[#172033]">{formatInr(strat.target_corpus_at_retirement)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#697386]">Estimated Age Achieved:</span>
+                          <span className="font-bold text-[#6478E8]">
+                            {strat.projected_fire_age ? `Age ${strat.projected_fire_age}` : 'Beyond 85'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#697386] flex items-center gap-1">
+                            <span>Monthly Investment Needed:</span>
+                            <KnowMore termId="required_monthly_investment" />
+                          </span>
+                          <span className="font-bold text-[#16865C]">
+                            ₹{Math.round(strat.required_monthly_investment).toLocaleString('en-IN')}/mo
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Target Today:</span>
-                        <span className="font-bold text-[#172033]">{formatInr(strat.target_corpus_today)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Target at Ret.:</span>
-                        <span className="font-bold text-[#172033]">{formatInr(strat.target_corpus_at_retirement)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Projected Age:</span>
-                        <span className="font-bold text-[#6478E8]">
-                          {strat.projected_fire_age ? `Age ${strat.projected_fire_age}` : 'Beyond 85'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#697386]">Required SIP:</span>
-                        <span className="font-bold text-[#16865C]">
-                          ₹{Math.round(strat.required_monthly_investment).toLocaleString('en-IN')}/mo
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* Year-by-Year Multi-Scenario Chart */}
+          {/* Year-by-Year Multi-Scenario Growth Chart */}
           {fireData && (
             <Card className="p-5 bg-white border border-[#E6EAF0] shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-sm font-bold text-[#172033]">
-                    Accumulation & Post-Retirement Decumulation Curve (Age {fireData.current_age} to 80)
-                  </h3>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#172033]">
+                      How Your Money Could Grow Over Time (Age {fireData.current_age} to 80)
+                    </h3>
+                    <KnowMore termId="growth_chart" variant="button" label="How this works" />
+                  </div>
                   <p className="text-xs text-[#697386]">
-                    Simulating continuous compounding during work years and inflation-adjusted withdrawals during retirement.
+                    An estimate of how your savings may grow before retirement and how they may change when you begin using them.
                   </p>
                 </div>
-                <div className="flex items-center gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#16865C]" />
-                    <span className="text-[#697386]">Optimistic (+2%)</span>
+                    <span className="text-[#697386]">Higher-return scenario (+2%)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#6478E8]" />
-                    <span className="text-[#697386]">Base (11%)</span>
+                    <span className="text-[#697386]">Base case assumptions (11%)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#E56F4A]" />
-                    <span className="text-[#697386]">Conservative (-2.5%)</span>
+                    <span className="text-[#697386]">Lower-return scenario (-2.5%)</span>
                   </div>
                 </div>
               </div>
@@ -586,7 +693,7 @@ export const FirePlanningView: React.FC = () => {
                     <Area
                       type="monotone"
                       dataKey="portfolio_optimistic"
-                      name="Optimistic"
+                      name="Higher-return scenario"
                       fill="#16865C"
                       fillOpacity={0.06}
                       stroke="#16865C"
@@ -595,7 +702,7 @@ export const FirePlanningView: React.FC = () => {
                     <Line
                       type="monotone"
                       dataKey="portfolio_base"
-                      name="Base Return"
+                      name="Base case estimate"
                       stroke="#6478E8"
                       strokeWidth={2.5}
                       dot={false}
@@ -603,7 +710,7 @@ export const FirePlanningView: React.FC = () => {
                     <Line
                       type="monotone"
                       dataKey="portfolio_conservative"
-                      name="Conservative"
+                      name="Lower-return scenario"
                       stroke="#E56F4A"
                       strokeWidth={1.5}
                       dot={false}
@@ -624,7 +731,7 @@ export const FirePlanningView: React.FC = () => {
               <div className="p-3 bg-[#F6F8FC] rounded-xl text-[11px] text-[#697386] flex items-center gap-2">
                 <Info className="w-4 h-4 text-[#6478E8] shrink-0" />
                 <span>
-                  Notice the inflection point at age {fireData.planned_retirement_age}: contributions stop and annual living expenses begin deducting. Sustainable portfolios remain flat or grow slightly; depleted portfolios slope downward toward zero.
+                  Notice the change at age {fireData.planned_retirement_age}: monthly investments stop and yearly living expenses begin to be drawn from savings. A sustainable plan stays steady or grows, while an underfunded plan declines toward zero.
                 </span>
               </div>
             </Card>
@@ -659,6 +766,7 @@ export const FirePlanningView: React.FC = () => {
                     <Badge variant="mint" size="sm" className="font-bold">
                       Transparent 8-Pillar Engine
                     </Badge>
+                    <KnowMore termId="financial_health_score" variant="badge" label="Understand the 8 Pillars" />
                     <span className="text-xs text-[#697386]">Zero Black-Box AI Hallucinations</span>
                   </div>
                   <h2 className="text-2xl font-bold text-[#172033]">{healthData.status}</h2>

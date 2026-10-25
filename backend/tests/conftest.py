@@ -6,6 +6,13 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.db.session import Base, get_db
+from app.core.config import settings
+
+
+@pytest.fixture(autouse=True)
+def default_sandbox_provider(monkeypatch):
+    """Ensures test suite defaults to deterministic sandbox provider unless explicitly tested otherwise."""
+    monkeypatch.setattr(settings, "BANK_PROVIDER", "sandbox")
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 

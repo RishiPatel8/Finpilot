@@ -48,6 +48,14 @@ def create_liability(
         monthly_emi=liability_in.monthly_emi,
         tenure_months=liability_in.tenure_months,
         remaining_months=liability_in.remaining_months,
+        debt_type=liability_in.debt_type,
+        counterparty=liability_in.counterparty,
+        interest_period=liability_in.interest_period,
+        status=liability_in.status,
+        loan_date=liability_in.loan_date,
+        due_date=liability_in.due_date,
+        repayment_frequency=liability_in.repayment_frequency,
+        notes=liability_in.notes,
     )
     db.add(liability)
     db.commit()

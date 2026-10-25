@@ -337,6 +337,12 @@ def delete_user_account(
     """
     Permanently deletes user account and all cascaded personal and financial records.
     """
+    from app.models.agent import PendingAction, AgentMemory, AgentFeedback, PendingClarification
+    db.query(PendingAction).filter(PendingAction.user_id == current_user.id).delete(synchronize_session=False)
+    db.query(AgentMemory).filter(AgentMemory.user_id == current_user.id).delete(synchronize_session=False)
+    db.query(AgentFeedback).filter(AgentFeedback.user_id == current_user.id).delete(synchronize_session=False)
+    db.query(PendingClarification).filter(PendingClarification.user_id == current_user.id).delete(synchronize_session=False)
     db.delete(current_user)
     db.commit()
+    return None
 

@@ -45,6 +45,27 @@ class Settings(BaseSettings):
     FIREBASE_CREDENTIALS_PATH: str = ""
     ALLOW_MOCK_FIREBASE: bool = True  # Strictly ignored and rejected if ENVIRONMENT == 'production'
 
+    # Bank & Account Aggregator Configuration (Finvu / Setu / Sandbox)
+    BANK_PROVIDER: str = "sandbox"  # finvu, setu, sandbox
+    BANK_SETU_CLIENT_ID: str = ""
+    BANK_SETU_CLIENT_SECRET: str = ""
+    BANK_SETU_PRODUCT_INSTANCE_ID: str = ""
+    BANK_FINVU_CLIENT_ID: str = ""
+    BANK_FINVU_CLIENT_SECRET: str = ""
+    BANK_FINVU_BASE_URL: str = "https://fiu-uat.finvu.in"
+    BANK_FINVU_FIU_ID: str = "finpilot-fiu"
+    BANK_FINVU_WEB_URL: str = "https://web-uat.finvu.in"
+    BANK_FINVU_PUBLIC_KEY: str = ""
+    BANK_WEBHOOK_SECRET: str = ""
+    BANK_REDIRECT_URL: str = "https://confidingly-ketonic-evelina.ngrok-free.dev/bank/consent/callback"
+
+    # Telegram Bot Integration
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_WEBHOOK_SECRET: str = ""
+    TELEGRAM_WEBHOOK_URL: str = ""
+    TELEGRAM_POLLING_MODE: bool = False
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),
         env_file_encoding="utf-8",

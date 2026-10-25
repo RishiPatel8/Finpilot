@@ -27,17 +27,17 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const variantStyles: Record<ButtonVariant, string> = {
     primary:
-      'bg-[#6478E8] hover:bg-[#5365D6] text-white shadow-sm shadow-[#6478E8]/20 focus-visible:ring-2 focus-visible:ring-[#6478E8]/50 active:scale-[0.98]',
+      'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] hover:brightness-110 text-[#07090E] font-bold shadow-md shadow-[#D4AF37]/25 focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 active:scale-[0.98]',
     secondary:
-      'bg-white hover:bg-[#F6F8FC] text-[#172033] border border-[#E6EAF0] shadow-[0_1px_2px_rgba(0,0,0,0.03)] focus-visible:ring-2 focus-visible:ring-[#E6EAF0]',
+      'bg-[#131824] hover:bg-[#1A2131] text-[#F3F4F6] border border-[#D4AF37]/25 shadow-sm shadow-black/40 focus-visible:ring-2 focus-visible:ring-[#D4AF37]/30',
     soft:
-      'bg-[#EEF0FF] hover:bg-[#E2E6FF] text-[#6478E8] font-semibold focus-visible:ring-2 focus-visible:ring-[#6478E8]/30',
+      'bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#F5DE88] border border-[#D4AF37]/25 font-semibold focus-visible:ring-2 focus-visible:ring-[#D4AF37]/30',
     outline:
-      'bg-transparent hover:bg-[#F6F8FC] text-[#172033] border border-[#E6EAF0]',
+      'bg-transparent hover:bg-[#D4AF37]/10 text-[#F3F4F6] border border-[#D4AF37]/35 hover:border-[#D4AF37]/60',
     ghost:
-      'bg-transparent hover:bg-[#F1F4F9] text-[#697386] hover:text-[#172033]',
+      'bg-transparent hover:bg-white/[0.06] text-[#9CA3AF] hover:text-[#F3F4F6]',
     danger:
-      'bg-[#D9485F] hover:bg-[#C23B51] text-white shadow-sm shadow-[#D9485F]/20',
+      'bg-[#F43F5E] hover:bg-[#E11D48] text-white shadow-sm shadow-[#F43F5E]/20',
   };
 
   const sizeStyles: Record<ButtonSize, string> = {

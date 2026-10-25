@@ -38,6 +38,14 @@ class Transaction(Base):
     provider_txn_ref = Column(String(128), unique=True, nullable=True, index=True)
     is_internal_transfer = Column(Boolean, default=False, nullable=False)
     is_recurring = Column(Boolean, default=False, nullable=False)
+    value_date = Column(Date, nullable=True)
+    reference_number = Column(String(128), nullable=True, index=True)
+    balance_after = Column(Numeric(14, 2), nullable=True)
+    source_file = Column(String(255), nullable=True)
+    source_row = Column(Integer, nullable=True)
+    batch_id = Column(String(36), nullable=True, index=True)
+    account_mask = Column(String(30), nullable=True)
+    raw_type = Column(String(30), nullable=True)  # debit, credit, refund, transfer, fee, etc.
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user = relationship("User", back_populates="transactions")
@@ -56,6 +64,16 @@ class Liability(Base):
     tenure_months = Column(Integer, nullable=False)
     remaining_months = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # Extended peer-to-peer debt and loan tracking
+    debt_type = Column(String(32), default="payable", nullable=False)  # payable (borrowed), receivable (lent)
+    counterparty = Column(String(255), nullable=True)  # Name of friend, brother, lender, etc.
+    interest_period = Column(String(20), default="annual", nullable=False)  # annual, monthly
+    status = Column(String(32), default="active", nullable=False)  # active, repaid, closed
+    loan_date = Column(Date, nullable=True)
+    due_date = Column(Date, nullable=True)
+    repayment_frequency = Column(String(32), default="monthly", nullable=False)  # monthly, lump_sum
+    notes = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="liabilities")
 
@@ -134,3 +152,78 @@ class ScenarioRecord(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user = relationship("User", back_populates="scenario_records")
+
+
+class RecurringTransaction(Base):
+    __tablename__ = "recurring_transactions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    bank_account_id = Column(String(36), ForeignKey("bank_accounts.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    name = Column(String(255), nullable=False)
+    merchant = Column(String(255), nullable=True)
+    transaction_type = Column(String(20), default="expense", nullable=False)  # income, expense
+    amount = Column(Numeric(14, 2), nullable=False)
+    category = Column(String(100), nullable=False, index=True)
+    frequency = Column(String(30), default="monthly", nullable=False)  # weekly, fortnightly, monthly, quarterly, yearly
+    status = Column(String(30), default="detected", nullable=False, index=True)  # detected, confirmed, paused, dismissed, cancelled
+    confidence = Column(String(20), default="medium", nullable=False)  # high, medium, low
+    detection_source = Column(String(50), default="intelligence_engine", nullable=False)
+    explanation = Column(Text, nullable=True)
+
+    next_expected_date = Column(Date, nullable=True, index=True)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    last_occurrence_date = Column(Date, nullable=True)
+    occurrence_count = Column(Integer, default=1, nullable=False)
+
+    user_confirmed_at = Column(DateTime, nullable=True)
+    user_feedback = Column(Text, nullable=True)
+    user_notes = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    user = relationship("User", back_populates="recurring_transactions")
+    bank_account = relationship("BankAccount")
+
+
+class StatementImportBatch(Base):
+    __tablename__ = "statement_import_batches"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    filename = Column(String(255), nullable=False)
+    file_format = Column(String(20), nullable=False)  # csv, xlsx, pdf
+    total_rows = Column(Integer, default=0, nullable=False)
+    imported_rows = Column(Integer, default=0, nullable=False)
+    duplicate_rows = Column(Integer, default=0, nullable=False)
+    skipped_rows = Column(Integer, default=0, nullable=False)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    total_credits = Column(Numeric(14, 2), default=0.00, nullable=False)
+    total_debits = Column(Numeric(14, 2), default=0.00, nullable=False)
+    account_number_masked = Column(String(50), nullable=True)
+    bank_name = Column(String(100), nullable=True)
+    closing_balance = Column(Numeric(14, 2), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    user = relationship("User", back_populates="statement_batches")
+
+
+class InvestmentScenario(Base):
+    __tablename__ = "investment_scenarios"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    scenario_mode = Column(String(50), default="multi_product", nullable=False)  # multi_product, lumpsum_vs_sip, goal_plan, stress_test, portfolio_analysis
+    notes = Column(Text, nullable=True)
+    inputs = Column(JSON, nullable=False)
+    results_summary = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    user = relationship("User", back_populates="investment_scenarios")
+

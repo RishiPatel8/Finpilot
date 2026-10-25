@@ -23,12 +23,12 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
 
   const variantStyles: Record<BadgeVariant, string> = {
-    mint: 'bg-[#E5F7EF] text-[#16865C] border-[#16865C]/15',
-    lavender: 'bg-[#EEF0FF] text-[#6478E8] border-[#6478E8]/20',
-    blue: 'bg-[#E8F2FF] text-[#2B6CB0] border-[#2B6CB0]/20',
-    peach: 'bg-[#FFF0E5] text-[#B7791F] border-[#B7791F]/20',
-    danger: 'bg-[#FDF2F4] text-[#D9485F] border-[#D9485F]/20',
-    neutral: 'bg-[#F1F4F9] text-[#697386] border-[#E6EAF0]',
+    mint: 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30',
+    lavender: 'bg-[#D4AF37]/15 text-[#F5DE88] border-[#D4AF37]/30',
+    blue: 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/30',
+    peach: 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30',
+    danger: 'bg-[#F43F5E]/15 text-[#F43F5E] border-[#F43F5E]/30',
+    neutral: 'bg-white/[0.06] text-[#9CA3AF] border-white/10',
   };
 
   const sizeStyles = {

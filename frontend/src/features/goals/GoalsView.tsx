@@ -14,6 +14,7 @@ import {
 import { apiRequest } from '../../services/api';
 import { FinancialGoal } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
+import { KnowMore } from '../../components/KnowMore';
 
 interface GoalsViewProps {
   goals: FinancialGoal[];
@@ -81,14 +82,10 @@ export const GoalsView: React.FC<GoalsViewProps> = ({ goals, onRefresh }) => {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Financial Goal Planning & Projections"
-        description="Compute exact required monthly SIPs, track asset milestones, and project target timelines adjusted for Indian inflation."
+        title="Financial Goals & Milestones"
+        description="Calculate the monthly savings needed for your big life targets—such as buying a home, children's education, or building an emergency fund."
         icon={<Target className="w-4 h-4 text-[#6478E8]" />}
-        badge={
-          <Badge variant="mint" size="sm">
-            {goals.length} Active Targets
-          </Badge>
-        }
+        badge={<KnowMore termId="required_monthly_investment" variant="badge" label="About Milestones" />}
         actions={
           <Button
             variant="primary"
