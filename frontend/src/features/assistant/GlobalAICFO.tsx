@@ -527,7 +527,7 @@ export const GlobalAICFO: React.FC<GlobalAICFOProps> = ({
                   <span>Viewing:</span>
                   <span className="font-semibold text-[#D4AF37] capitalize">{activePage}</span>
                   <span>•</span>
-                  <span>{providerStatus?.provider === 'gemini' ? 'Gemini 2.5 Cloud' : 'Deterministic Engine'}</span>
+                  <span>Intelligence Engine</span>
                 </div>
               </div>
             </div>

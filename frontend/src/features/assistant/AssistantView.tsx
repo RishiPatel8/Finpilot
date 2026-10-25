@@ -134,11 +134,11 @@ export const AssistantView: React.FC = () => {
       <PageHeader
         title="AI CFO Assistant"
         description="Grounded conversational intelligence with verified Income Tax Act & SEBI guidelines. Zero hallucinated formulas."
-        icon={<BotMessageSquare className="w-4 h-4 text-[#6478E8]" />}
+        icon={<BotMessageSquare className="w-5 h-5 text-[#ECC856]" />}
         badge={
           <div className="flex items-center gap-2">
-            <Badge variant={providerStatus?.provider === 'gemini' ? 'lavender' : 'mint'} size="sm">
-              {providerStatus?.provider === 'gemini' ? 'Gemini 2.5 Flash (Cloud)' : 'Deterministic CFO Engine'}
+            <Badge variant="mint" size="sm">
+              Intelligence Engine
             </Badge>
             <Badge variant="blue" size="sm">
               Verified Rules
@@ -150,7 +150,7 @@ export const AssistantView: React.FC = () => {
       {/* Messages Canvas */}
       <Card
         padding="none"
-        className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-[#F6F8FC]/50"
+        className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 border border-[rgba(212,175,55,0.2)] bg-[#0D111A]/95 backdrop-blur-md"
       >
         {messages.map((m) => (
           <div
@@ -160,25 +160,25 @@ export const AssistantView: React.FC = () => {
             }`}
           >
             {m.sender === 'assistant' && (
-              <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/20 flex items-center justify-center text-[#6478E8] shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center text-[#ECC856] shrink-0 mt-0.5 shadow-sm shadow-[#D4AF37]/10">
                 <Sparkles className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`max-w-2xl rounded-2xl p-4 sm:p-5 text-xs sm:text-sm space-y-3 shadow-sm ${
+              className={`max-w-2xl rounded-2xl p-4 sm:p-5 text-xs sm:text-sm space-y-3 shadow-md ${
                 m.sender === 'user'
-                  ? 'bg-[#6478E8] text-white rounded-tr-none font-medium'
-                  : 'bg-white border border-[#E6EAF0] text-[#172033] rounded-tl-none'
+                  ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-black font-medium rounded-tr-none shadow-[#D4AF37]/20'
+                  : 'bg-[#141A26]/90 border border-[rgba(212,175,55,0.22)] text-[#F3F4F6] rounded-tl-none'
               }`}
             >
               {/* Tool Execution Badges */}
               {m.tool_invocations && m.tool_invocations.length > 0 && (
-                <div className="space-y-1.5 pb-2.5 border-b border-[#E6EAF0]">
+                <div className="space-y-1.5 pb-2.5 border-b border-white/10">
                   {m.tool_invocations.map((t, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-1.5 text-[11px] font-semibold text-[#16865C] bg-[#E5F7EF] px-2.5 py-1 rounded-lg border border-[#16865C]/15"
+                      className="flex items-center gap-1.5 text-[11px] font-semibold text-[#10B981] bg-[#10B981]/15 px-2.5 py-1 rounded-lg border border-[#10B981]/25"
                     >
                       <Wrench className="w-3.5 h-3.5 shrink-0" />
                       <span>{t.summary}</span>
@@ -194,12 +194,12 @@ export const AssistantView: React.FC = () => {
 
               {/* Statutory Citations */}
               {m.citations && m.citations.length > 0 && (
-                <div className="pt-2.5 border-t border-[#E6EAF0] space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#697386]">
-                    <BookOpen className="w-3.5 h-3.5 text-[#6478E8]" />
+                <div className="pt-2.5 border-t border-white/10 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#ECC856]">
+                    <BookOpen className="w-3.5 h-3.5 text-[#ECC856]" />
                     <span>Statutory Citations:</span>
                   </div>
-                  <ul className="list-disc list-inside text-[11px] text-[#697386] space-y-0.5">
+                  <ul className="list-disc list-inside text-[11px] text-[#9CA3AF] space-y-0.5">
                     {m.citations.map((cite, idx) => (
                       <li key={idx}>{cite}</li>
                     ))}
@@ -209,7 +209,7 @@ export const AssistantView: React.FC = () => {
 
               <div
                 className={`text-[10px] text-right ${
-                  m.sender === 'user' ? 'text-white/80' : 'text-[#697386]'
+                  m.sender === 'user' ? 'text-black/70 font-semibold' : 'text-[#9CA3AF]'
                 }`}
               >
                 {m.timestamp}
@@ -217,7 +217,7 @@ export const AssistantView: React.FC = () => {
             </div>
 
             {m.sender === 'user' && (
-              <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/30 flex items-center justify-center text-[#6478E8] shrink-0 mt-0.5 font-bold text-xs">
+              <div className="w-8 h-8 rounded-xl bg-[#141A26] border border-[#D4AF37]/40 flex items-center justify-center text-[#F5DE88] shrink-0 mt-0.5 font-bold text-xs shadow-sm">
                 <UserIcon className="w-4 h-4" />
               </div>
             )}
@@ -226,11 +226,11 @@ export const AssistantView: React.FC = () => {
 
         {loading && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#EEF0FF] border border-[#6478E8]/20 flex items-center justify-center text-[#6478E8] shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center text-[#ECC856] shrink-0">
               <Sparkles className="w-4 h-4 animate-spin" />
             </div>
-            <div className="rounded-2xl rounded-tl-none p-3.5 bg-white border border-[#E6EAF0] text-xs text-[#697386] flex items-center gap-2 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#6478E8] animate-pulse" />
+            <div className="rounded-2xl rounded-tl-none p-3.5 bg-[#141A26]/90 border border-[rgba(212,175,55,0.22)] text-xs text-[#9CA3AF] flex items-center gap-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#ECC856] animate-pulse" />
               <span>Evaluating statutory calculations and citation models...</span>
             </div>
           </div>
@@ -245,7 +245,7 @@ export const AssistantView: React.FC = () => {
           <button
             key={idx}
             onClick={() => handleSend(p)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-xl bg-white hover:bg-[#F6F8FC] border border-[#E6EAF0] text-[#697386] hover:text-[#172033] shadow-sm transition-colors shrink-0"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-xl bg-[#141A26] hover:bg-[#1A2232] border border-[rgba(212,175,55,0.2)] hover:border-[#D4AF37] text-[#9CA3AF] hover:text-[#F3F4F6] shadow-sm transition-all shrink-0"
           >
             {p}
           </button>
@@ -262,7 +262,7 @@ export const AssistantView: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSend();
           }}
-          className="flex-1 bg-white border border-[#E6EAF0] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#172033] placeholder-[#697386]/60 shadow-sm focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+          className="flex-1 bg-[#141A26] border border-white/15 rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#F3F4F6] placeholder-[#6B7280] shadow-sm focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 transition-all"
         />
         <Button
           variant="primary"
