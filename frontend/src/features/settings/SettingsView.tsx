@@ -455,8 +455,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {tgError && (
-              <div className="p-3 rounded-xl bg-[#FDF2F4] border border-[#D9485F]/20 text-xs text-[#D9485F]">
-                {tgError}
+              <div className="p-3.5 rounded-xl bg-[#FDF2F4] border border-[#D9485F]/30 text-xs text-[#D9485F] space-y-2">
+                <div className="font-semibold">{tgError}</div>
+                {tgError.toLowerCase().includes('user account not found') && (
+                  <div className="text-[11px] text-[#697386] space-y-2 pt-1 border-t border-[#D9485F]/20">
+                    <p>
+                      Your browser has a saved login session from your local database, but this server has a separate database.
+                      Click below to log out and sign in again to register your account on this server.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onLogout}
+                      className="text-xs text-[#D9485F] border-[#D9485F]/40 hover:bg-[#D9485F]/10 font-bold"
+                    >
+                      Log Out & Sign In Again
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
