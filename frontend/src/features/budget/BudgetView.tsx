@@ -314,8 +314,8 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#6478E8]" />
+              <h2 className="text-base font-bold text-[#F3F4F6] flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#ECC856]" />
                 <span>
                   {isCustomFramework
                     ? `${needsPct} / ${wantsPct} / ${savingsPct} Cash Flow Allocation Framework`
@@ -334,9 +334,9 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-[#697386] mt-0.5">
+            <p className="text-xs text-[#9CA3AF] mt-0.5">
               Standard recommended allocation benchmarked against your net monthly income of{' '}
-              <strong className="text-[#172033] font-mono">{formatINR(effectiveIncome)}</strong>.
+              <strong className="text-[#F5DE88] font-mono">{formatINR(effectiveIncome)}</strong>.
             </p>
           </div>
 
@@ -368,41 +368,41 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Needs */}
-              <div className="p-4 rounded-2xl bg-[#E8F2FF]/60 border border-[#E8F2FF] space-y-2.5 transition-all hover:border-[#6478E8]/40">
+              <div className="p-4 rounded-2xl bg-[#141A26]/90 border border-sky-500/30 hover:border-sky-400/60 shadow-md shadow-black/40 space-y-2.5 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#2B6CB0]">
+                  <span className="text-xs font-semibold text-sky-400">
                     Needs ({needsPct}% Target)
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-[#2B6CB0] bg-[#E8F2FF] px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-mono font-bold text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-md">
                     {needsPct}%
                   </span>
                 </div>
                 <div>
-                  <p className="text-xl font-extrabold text-[#172033] font-mono tabular-nums">
+                  <p className="text-xl font-extrabold text-[#F3F4F6] font-mono tabular-nums">
                     {formatINR(needsTargetAmt)}
                   </p>
-                  <p className="text-[11px] text-[#697386] mt-0.5">
+                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">
                     Rent, Groceries, EMIs, Utilities & Healthcare
                   </p>
                 </div>
 
                 {/* Progress vs Actual Observed Spending */}
                 {actualNeedsSpent > 0 && (
-                  <div className="pt-2 border-t border-[#D0E2FF] space-y-1">
+                  <div className="pt-2 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#697386]">Observed Spent:</span>
+                      <span className="text-[#9CA3AF]">Observed Spent:</span>
                       <span
                         className={`font-mono font-bold ${
-                          actualNeedsSpent <= needsTargetAmt ? 'text-[#16865C]' : 'text-[#D9485F]'
+                          actualNeedsSpent <= needsTargetAmt ? 'text-[#10B981]' : 'text-[#F43F5E]'
                         }`}
                       >
                         {formatINR(actualNeedsSpent)}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-[#D0E2FF] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-black/50 border border-white/5 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          actualNeedsSpent <= needsTargetAmt ? 'bg-[#2B6CB0]' : 'bg-[#D9485F]'
+                          actualNeedsSpent <= needsTargetAmt ? 'bg-sky-400' : 'bg-[#F43F5E]'
                         }`}
                         style={{
                           width: `${Math.min(100, needsTargetAmt > 0 ? (actualNeedsSpent / needsTargetAmt) * 100 : 0)}%`,
@@ -414,41 +414,41 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
               </div>
 
               {/* Wants */}
-              <div className="p-4 rounded-2xl bg-[#FFF0E5]/60 border border-[#FFF0E5] space-y-2.5 transition-all hover:border-[#D9822B]/40">
+              <div className="p-4 rounded-2xl bg-[#141A26]/90 border border-amber-500/30 hover:border-amber-400/60 shadow-md shadow-black/40 space-y-2.5 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#B7791F]">
+                  <span className="text-xs font-semibold text-amber-400">
                     Wants ({wantsPct}% Target)
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-[#B7791F] bg-[#FFF0E5] px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md">
                     {wantsPct}%
                   </span>
                 </div>
                 <div>
-                  <p className="text-xl font-extrabold text-[#172033] font-mono tabular-nums">
+                  <p className="text-xl font-extrabold text-[#F3F4F6] font-mono tabular-nums">
                     {formatINR(wantsTargetAmt)}
                   </p>
-                  <p className="text-[11px] text-[#697386] mt-0.5">
+                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">
                     Dining out, Travel, Subscriptions & Hobbies
                   </p>
                 </div>
 
                 {/* Progress vs Actual Observed Spending */}
                 {actualWantsSpent > 0 && (
-                  <div className="pt-2 border-t border-[#FFE2CC] space-y-1">
+                  <div className="pt-2 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#697386]">Observed Spent:</span>
+                      <span className="text-[#9CA3AF]">Observed Spent:</span>
                       <span
                         className={`font-mono font-bold ${
-                          actualWantsSpent <= wantsTargetAmt ? 'text-[#16865C]' : 'text-[#D9485F]'
+                          actualWantsSpent <= wantsTargetAmt ? 'text-[#10B981]' : 'text-[#F43F5E]'
                         }`}
                       >
                         {formatINR(actualWantsSpent)}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-[#FFE2CC] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-black/50 border border-white/5 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          actualWantsSpent <= wantsTargetAmt ? 'bg-[#B7791F]' : 'bg-[#D9485F]'
+                          actualWantsSpent <= wantsTargetAmt ? 'bg-amber-400' : 'bg-[#F43F5E]'
                         }`}
                         style={{
                           width: `${Math.min(100, wantsTargetAmt > 0 ? (actualWantsSpent / wantsTargetAmt) * 100 : 0)}%`,
@@ -460,36 +460,36 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
               </div>
 
               {/* Savings & Investments */}
-              <div className="p-4 rounded-2xl bg-[#E5F7EF]/60 border border-[#E5F7EF] space-y-2.5 transition-all hover:border-[#16865C]/40">
+              <div className="p-4 rounded-2xl bg-[#141A26]/90 border border-emerald-500/30 hover:border-emerald-400/60 shadow-md shadow-black/40 space-y-2.5 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#16865C]">
+                  <span className="text-xs font-semibold text-emerald-400">
                     Savings & Investments ({savingsPct}% Target)
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-[#16865C] bg-[#E5F7EF] px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
                     {savingsPct}%
                   </span>
                 </div>
                 <div>
-                  <p className="text-xl font-extrabold text-[#16865C] font-mono tabular-nums">
+                  <p className="text-xl font-extrabold text-[#10B981] font-mono tabular-nums">
                     {formatINR(savingsTargetAmt)}
                   </p>
-                  <p className="text-[11px] text-[#697386] mt-0.5">
+                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">
                     Liquid funds, SIPs, PPF, Pre-payments
                   </p>
                 </div>
 
                 {/* Progress vs Actual Observed Spending */}
                 {actualSavingsSpent > 0 && (
-                  <div className="pt-2 border-t border-[#C7F0DC] space-y-1">
+                  <div className="pt-2 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#697386]">Observed Saved:</span>
-                      <span className="font-mono font-bold text-[#16865C]">
+                      <span className="text-[#9CA3AF]">Observed Saved:</span>
+                      <span className="font-mono font-bold text-[#10B981]">
                         {formatINR(actualSavingsSpent)}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-[#C7F0DC] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-black/50 border border-white/5 overflow-hidden">
                       <div
-                        className="h-full bg-[#16865C] rounded-full transition-all"
+                        className="h-full bg-[#10B981] rounded-full transition-all"
                         style={{
                           width: `${Math.min(100, savingsTargetAmt > 0 ? (actualSavingsSpent / savingsTargetAmt) * 100 : 0)}%`,
                         }}
@@ -718,7 +718,7 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             type="file"
             accept=".csv,.xlsx,.xls,.pdf"
             onChange={handleFileChange}
-            className="w-full text-xs text-[#697386] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-[#E6EAF0] file:text-xs file:font-semibold file:bg-[#F6F8FC] file:text-[#172033] hover:file:bg-slate-100 cursor-pointer"
+            className="w-full text-xs text-[#9CA3AF] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-[rgba(212,175,55,0.3)] file:text-xs file:font-bold file:bg-[#141A26] file:text-[#ECC856] hover:file:bg-[#1A2232] cursor-pointer"
           />
           <Button
             variant="primary"

@@ -352,7 +352,7 @@ export const InvestmentsView: React.FC = () => {
       )}
 
       {/* Main Tab Navigation */}
-      <div className="flex items-center space-x-1 border-b border-[#E6EAF0] overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex items-center space-x-1 border-b border-white/10 overflow-x-auto pb-2 scrollbar-none">
         {[
           { id: 'screener', label: '1. Product Screener', icon: Filter },
           { id: 'compare', label: '2. Multi-Product Compare', icon: BarChart2 },
@@ -371,8 +371,8 @@ export const InvestmentsView: React.FC = () => {
               onClick={() => setActiveTab(tab.id as TabMode)}
               className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-[#172033] text-white shadow-sm'
-                  : 'text-[#697386] hover:bg-[#F1F4F9] hover:text-[#172033]'
+                  ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-black font-bold shadow-md shadow-[#D4AF37]/20'
+                  : 'text-[#9CA3AF] hover:bg-white/[0.05] hover:text-[#F3F4F6]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -388,9 +388,9 @@ export const InvestmentsView: React.FC = () => {
       {activeTab === 'screener' && (
         <div className="space-y-6">
           {/* Filter Bar */}
-          <Card className="flex flex-wrap items-center justify-between gap-4 p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-semibold text-[#172033]">Filter Category:</span>
+          <Card className="flex flex-wrap items-center justify-between gap-4 p-4 border border-[rgba(212,175,55,0.2)] bg-[#111622]/95 backdrop-blur-md">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-xs font-semibold text-[#F3F4F6]">Filter Category:</span>
               {[
                 { id: 'all', label: 'All Instruments' },
                 { id: 'liquid', label: 'Liquid & Cash' },
@@ -402,10 +402,10 @@ export const InvestmentsView: React.FC = () => {
                 <button
                   key={c.id}
                   onClick={() => setCategoryFilter(c.id)}
-                  className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
+                  className={`text-xs px-3 py-1.5 rounded-xl font-semibold transition-all ${
                     categoryFilter === c.id
-                      ? 'bg-[#6478E8] text-white'
-                      : 'bg-[#F1F4F9] text-[#697386] hover:bg-[#E6EAF0]'
+                      ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-black shadow-md shadow-[#D4AF37]/20'
+                      : 'bg-[#141A26] text-[#9CA3AF] border border-white/10 hover:border-[#D4AF37]/50 hover:text-[#F3F4F6]'
                   }`}
                 >
                   {c.label}
@@ -414,12 +414,12 @@ export const InvestmentsView: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <label className="flex items-center space-x-2 text-xs font-semibold text-[#172033] cursor-pointer">
+              <label className="flex items-center space-x-2 text-xs font-semibold text-[#F3F4F6] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={onlyGuaranteed}
                   onChange={(e) => setOnlyGuaranteed(e.target.checked)}
-                  className="rounded text-[#6478E8] focus:ring-[#6478E8]"
+                  className="rounded accent-[#D4AF37] w-3.5 h-3.5 cursor-pointer"
                 />
                 <span>Only Sovereign / Capital Guaranteed</span>
               </label>
@@ -428,7 +428,7 @@ export const InvestmentsView: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={handleCompare}
-                className="flex items-center space-x-1.5 bg-[#6478E8] hover:bg-[#5365CE]"
+                className="flex items-center space-x-1.5"
               >
                 <BarChart2 className="w-3.5 h-3.5" />
                 <span>Compare Selected ({selectedProductIds.length})</span>
@@ -443,8 +443,10 @@ export const InvestmentsView: React.FC = () => {
               return (
                 <Card
                   key={p.id}
-                  className={`p-5 space-y-4 border-2 transition-all cursor-pointer relative ${
-                    isSelected ? 'border-[#6478E8] shadow-md bg-white' : 'border-transparent bg-white hover:border-[#E6EAF0]'
+                  className={`p-5 space-y-4 border transition-all cursor-pointer relative rounded-2xl ${
+                    isSelected
+                      ? 'border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.25)] bg-[#171F2E]'
+                      : 'border-[rgba(212,175,55,0.2)] bg-[#141A26]/90 hover:border-[#D4AF37]/50 hover:bg-[#1A2232]'
                   }`}
                   onClick={() => toggleSelectProduct(p.id)}
                 >
@@ -452,21 +454,23 @@ export const InvestmentsView: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F1F4F9] text-[#697386]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/[0.06] text-[#9CA3AF] border border-white/10">
                           {p.category.replace('_', ' ')}
                         </span>
                         {p.dicgc_insured && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                             DICGC ₹5L Insured
                           </span>
                         )}
                       </div>
-                      <h3 className="text-base font-bold text-[#172033] mt-1.5">{p.name}</h3>
+                      <h3 className="text-base font-bold text-[#F3F4F6] mt-1.5">{p.name}</h3>
                     </div>
 
                     <div
                       className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
-                        isSelected ? 'bg-[#6478E8] border-[#6478E8] text-white' : 'border-[#CBD5E1]'
+                        isSelected
+                          ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] border-[#D4AF37] text-black font-bold'
+                          : 'border-white/20 bg-white/5'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -474,11 +478,11 @@ export const InvestmentsView: React.FC = () => {
                   </div>
 
                   {/* Yield & Rate Type */}
-                  <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-[#0D111A] border border-[rgba(212,175,55,0.2)] flex items-center justify-between">
                     <div>
-                      <div className="text-[11px] text-[#64748B] font-medium">Indicative / Benchmark Yield</div>
-                      <div className="text-xl font-mono font-bold text-[#1E293B]">
-                        {p.indicative_annual_yield_pct}% <span className="text-xs font-normal text-[#64748B]">p.a.</span>
+                      <div className="text-[11px] text-[#9CA3AF] font-medium">Indicative / Benchmark Yield</div>
+                      <div className="text-xl font-mono font-bold text-[#F5DE88]">
+                        {p.indicative_annual_yield_pct}% <span className="text-xs font-normal text-[#9CA3AF]">p.a.</span>
                       </div>
                     </div>
                     <Badge variant={p.rate_type === 'guaranteed' ? 'mint' : 'lavender'}>
@@ -489,33 +493,33 @@ export const InvestmentsView: React.FC = () => {
                   {/* Key Rules Matrix */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-[#64748B] block text-[10px]">Compounding</span>
-                      <span className="font-semibold text-[#1E293B] capitalize">{p.compounding_frequency.replace('_', ' ')}</span>
+                      <span className="text-[#9CA3AF] block text-[10px]">Compounding</span>
+                      <span className="font-semibold text-[#F3F4F6] capitalize">{p.compounding_frequency.replace('_', ' ')}</span>
                     </div>
                     <div>
-                      <span className="text-[#64748B] block text-[10px]">Lock-In Period</span>
-                      <span className="font-semibold text-[#1E293B]">
+                      <span className="text-[#9CA3AF] block text-[10px]">Lock-In Period</span>
+                      <span className="font-semibold text-[#F3F4F6]">
                         {p.lock_in_months === 0 ? 'None (Liquid)' : `${p.lock_in_months} Months`}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#64748B] block text-[10px]">Credit / Market Risk</span>
-                      <span className="font-semibold text-[#1E293B]">{p.credit_risk_level} / {p.market_risk_level}</span>
+                      <span className="text-[#9CA3AF] block text-[10px]">Credit / Market Risk</span>
+                      <span className="font-semibold text-[#F3F4F6]">{p.credit_risk_level} / {p.market_risk_level}</span>
                     </div>
                     <div>
-                      <span className="text-[#64748B] block text-[10px]">Liquidity Mechanism</span>
-                      <span className="font-semibold text-[#1E293B] capitalize">{p.liquidity_rating.replace('_', ' ')}</span>
+                      <span className="text-[#9CA3AF] block text-[10px]">Liquidity Mechanism</span>
+                      <span className="font-semibold text-[#F3F4F6] capitalize">{p.liquidity_rating.replace('_', ' ')}</span>
                     </div>
                   </div>
 
                   {/* Tax Treatment Summary */}
-                  <div className="text-[11px] text-[#475569] bg-[#F1F5F9] p-2.5 rounded-lg border border-[#E2E8F0]">
-                    <span className="font-bold text-[#1E293B] block mb-0.5">Statutory Tax Treatment:</span>
+                  <div className="text-[11px] text-[#D1D5DB] bg-[#0D111A] p-2.5 rounded-lg border border-white/10 leading-relaxed font-sans">
+                    <span className="font-bold text-[#ECC856] block mb-0.5">Statutory Tax Treatment:</span>
                     {p.tax_treatment_summary}
                   </div>
 
                   {/* Provenance Footer */}
-                  <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-[10px] text-[#64748B]">
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-[#9CA3AF]">
                     <span>Source: {p.data_provenance}</span>
                     <span>As of: {p.as_of_date}</span>
                   </div>
@@ -532,24 +536,28 @@ export const InvestmentsView: React.FC = () => {
       {activeTab === 'compare' && (
         <div className="space-y-6">
           {/* Controls Card */}
-          <Card className="space-y-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6EAF0] pb-4">
-              <h2 className="text-base font-bold text-[#172033]">Comparison Scenario Parameters</h2>
+          <Card className="space-y-4 p-5 border border-[rgba(212,175,55,0.2)] bg-[#111622]/95 backdrop-blur-md">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <h2 className="text-base font-bold text-[#F3F4F6]">Comparison Scenario Parameters</h2>
 
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-semibold text-[#64748B]">Mode:</span>
+                <span className="text-xs font-semibold text-[#9CA3AF]">Mode:</span>
                 <button
                   onClick={() => setInvestMode('lump_sum')}
-                  className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    investMode === 'lump_sum' ? 'bg-[#172033] text-white' : 'bg-[#F1F4F9] text-[#697386]'
+                  className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    investMode === 'lump_sum'
+                      ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-black shadow-md shadow-[#D4AF37]/20'
+                      : 'bg-[#141A26] text-[#9CA3AF] border border-white/10 hover:border-[#D4AF37]/40 hover:text-[#F3F4F6]'
                   }`}
                 >
                   Lump Sum
                 </button>
                 <button
                   onClick={() => setInvestMode('monthly_sip')}
-                  className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    investMode === 'monthly_sip' ? 'bg-[#172033] text-white' : 'bg-[#F1F4F9] text-[#697386]'
+                  className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    investMode === 'monthly_sip'
+                      ? 'bg-gradient-to-r from-[#ECC856] via-[#D4AF37] to-[#B89327] text-black shadow-md shadow-[#D4AF37]/20'
+                      : 'bg-[#141A26] text-[#9CA3AF] border border-white/10 hover:border-[#D4AF37]/40 hover:text-[#F3F4F6]'
                   }`}
                 >
                   Monthly SIP
@@ -559,58 +567,58 @@ export const InvestmentsView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#172033] mb-1">
+                <label className="block font-semibold text-[#D1D5DB] mb-1">
                   {investMode === 'lump_sum' ? 'Investment Amount (₹)' : 'Monthly SIP (₹)'}
                 </label>
                 <input
                   type="number"
                   value={compareAmount || ''}
                   onChange={(e) => setCompareAmount(Number(e.target.value))}
-                  className="w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 font-mono font-medium text-[#1E293B]"
+                  className="w-full bg-[#141A26] border border-white/15 rounded-xl px-3 py-2 font-mono font-medium text-[#F3F4F6] focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#172033] mb-1">Time Horizon (Months)</label>
+                <label className="block font-semibold text-[#D1D5DB] mb-1">Time Horizon (Months)</label>
                 <select
                   value={compareMonths}
                   onChange={(e) => setCompareMonths(Number(e.target.value))}
-                  className="w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#1E293B] font-medium"
+                  className="w-full bg-[#141A26] border border-white/15 rounded-xl px-3 py-2 text-[#F3F4F6] font-medium focus:outline-none focus:border-[#D4AF37] transition-colors"
                 >
-                  <option value={3}>3 Months (Short Term)</option>
-                  <option value={6}>6 Months (Near Term)</option>
-                  <option value={12}>12 Months (1 Year)</option>
-                  <option value={36}>36 Months (3 Years)</option>
-                  <option value={60}>60 Months (5 Years)</option>
-                  <option value={120}>120 Months (10 Years)</option>
-                  <option value={180}>180 Months (15 Years - PPF Term)</option>
+                  <option value={3} className="bg-[#141A26] text-white">3 Months (Short Term)</option>
+                  <option value={6} className="bg-[#141A26] text-white">6 Months (Near Term)</option>
+                  <option value={12} className="bg-[#141A26] text-white">12 Months (1 Year)</option>
+                  <option value={36} className="bg-[#141A26] text-white">36 Months (3 Years)</option>
+                  <option value={60} className="bg-[#141A26] text-white">60 Months (5 Years)</option>
+                  <option value={120} className="bg-[#141A26] text-white">120 Months (10 Years)</option>
+                  <option value={180} className="bg-[#141A26] text-white">180 Months (15 Years - PPF Term)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#172033] mb-1">Your Tax Slab</label>
+                <label className="block font-semibold text-[#D1D5DB] mb-1">Your Tax Slab</label>
                 <select
                   value={taxSlab}
                   onChange={(e) => setTaxSlab(Number(e.target.value))}
-                  className="w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#1E293B] font-medium"
+                  className="w-full bg-[#141A26] border border-white/15 rounded-xl px-3 py-2 text-[#F3F4F6] font-medium focus:outline-none focus:border-[#D4AF37] transition-colors"
                 >
-                  <option value={0}>0% (Tax Exempt / Low Income)</option>
-                  <option value={5}>5% Marginal Slab</option>
-                  <option value={10}>10% Slab</option>
-                  <option value={15}>15% Slab</option>
-                  <option value={20}>20% Slab</option>
-                  <option value={30}>30% Highest Slab (Standard)</option>
+                  <option value={0} className="bg-[#141A26] text-white">0% (Tax Exempt / Low Income)</option>
+                  <option value={5} className="bg-[#141A26] text-white">5% Marginal Slab</option>
+                  <option value={10} className="bg-[#141A26] text-white">10% Slab</option>
+                  <option value={15} className="bg-[#141A26] text-white">15% Slab</option>
+                  <option value={20} className="bg-[#141A26] text-white">20% Slab</option>
+                  <option value={30} className="bg-[#141A26] text-white">30% Highest Slab (Standard)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#172033] mb-1">Expected Inflation (%)</label>
+                <label className="block font-semibold text-[#D1D5DB] mb-1">Expected Inflation (%)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={expectedInflation}
                   onChange={(e) => setExpectedInflation(Number(e.target.value))}
-                  className="w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 font-mono font-medium text-[#1E293B]"
+                  className="w-full bg-[#141A26] border border-white/15 rounded-xl px-3 py-2 font-mono font-medium text-[#F3F4F6] focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 transition-colors"
                 />
               </div>
 
@@ -619,7 +627,7 @@ export const InvestmentsView: React.FC = () => {
                   variant="primary"
                   onClick={handleCompare}
                   disabled={loading}
-                  className="w-full bg-[#6478E8] hover:bg-[#5365CE] py-2 text-xs font-bold"
+                  className="w-full py-2 text-xs font-bold"
                 >
                   {loading ? 'Calculating...' : 'Recalculate Matrix'}
                 </Button>
@@ -627,12 +635,12 @@ export const InvestmentsView: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <label className="flex items-center space-x-2 text-xs font-semibold text-[#172033] cursor-pointer">
+              <label className="flex items-center space-x-2 text-xs font-semibold text-[#F3F4F6] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={canLockFunds}
                   onChange={(e) => setCanLockFunds(e.target.checked)}
-                  className="rounded text-[#6478E8]"
+                  className="rounded accent-[#D4AF37] w-3.5 h-3.5 cursor-pointer"
                 />
                 <span>I can lock these funds for the full tenure without premature withdrawal</span>
               </label>
@@ -642,9 +650,9 @@ export const InvestmentsView: React.FC = () => {
                   variant="secondary"
                   size="sm"
                   onClick={() => setSaveModalOpen(true)}
-                  className="flex items-center space-x-1.5 text-xs font-semibold border-[#CBD5E1]"
+                  className="flex items-center space-x-1.5 text-xs font-semibold"
                 >
-                  <Bookmark className="w-3.5 h-3.5 text-[#6478E8]" />
+                  <Bookmark className="w-3.5 h-3.5 text-[#ECC856]" />
                   <span>Save This Scenario</span>
                 </Button>
               )}
@@ -653,19 +661,19 @@ export const InvestmentsView: React.FC = () => {
 
           {/* Top Recommendation Banner */}
           {compareResult && (
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EEF0FF] via-[#F8FAFC] to-[#E5F7EF] border border-[#CBD5E1] shadow-sm">
+            <div className="p-5 rounded-2xl bg-[#0D111A] border border-[rgba(212,175,55,0.3)] shadow-[0_4px_25px_-2px_rgba(0,0,0,0.6)]">
               <div className="flex items-start space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-[#6478E8] text-white flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[#D4AF37]/15 text-[#ECC856] border border-[#D4AF37]/30 flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#D4AF37]/10">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#6478E8]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#ECC856]">
                       Algorithmic Verdict
                     </span>
                     <Badge variant="mint">Top Option: {compareResult.top_recommendation}</Badge>
                   </div>
-                  <p className="text-sm font-semibold text-[#1E293B] mt-1">{compareResult.rationale}</p>
+                  <p className="text-sm font-semibold text-[#F3F4F6] mt-1">{compareResult.rationale}</p>
                 </div>
               </div>
             </div>
@@ -675,14 +683,14 @@ export const InvestmentsView: React.FC = () => {
           {compareResult && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {compareResult.items.map((it) => (
-                <Card key={it.product_id} className="p-5 space-y-4 border border-[#E2E8F0] bg-white flex flex-col justify-between">
+                <Card key={it.product_id} className="p-5 space-y-4 border border-[rgba(212,175,55,0.2)] bg-[#141A26]/90 flex flex-col justify-between rounded-2xl">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
                           {it.category.replace('_', ' ')}
                         </span>
-                        <h3 className="text-base font-bold text-[#1E293B] mt-0.5">{it.name}</h3>
+                        <h3 className="text-base font-bold text-[#F3F4F6] mt-0.5">{it.name}</h3>
                       </div>
                       <Badge variant={it.rate_type.includes('guaranteed') ? 'mint' : 'lavender'}>
                         {it.rate_used_pct}% p.a.
@@ -690,39 +698,39 @@ export const InvestmentsView: React.FC = () => {
                     </div>
 
                     {/* Financial Figures */}
-                    <div className="space-y-2 bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0] text-xs">
-                      <div className="flex justify-between text-[#64748B]">
+                    <div className="space-y-2 bg-[#0D111A] p-3 rounded-xl border border-[rgba(212,175,55,0.2)] text-xs">
+                      <div className="flex justify-between text-[#9CA3AF]">
                         <span>Invested Principal:</span>
-                        <span className="font-mono font-semibold text-[#1E293B]">{formatINR(it.invested_principal)}</span>
+                        <span className="font-mono font-semibold text-[#F3F4F6]">{formatINR(it.invested_principal)}</span>
                       </div>
-                      <div className="flex justify-between text-[#64748B]">
+                      <div className="flex justify-between text-[#9CA3AF]">
                         <span>Gross Maturity Value:</span>
-                        <span className="font-mono font-semibold text-[#1E293B]">{formatINR(it.gross_maturity_value)}</span>
+                        <span className="font-mono font-semibold text-[#F5DE88]">{formatINR(it.gross_maturity_value)}</span>
                       </div>
-                      <div className="flex justify-between text-[#D9485F]">
+                      <div className="flex justify-between text-[#F43F5E]">
                         <span>Estimated Tax (FA 2024):</span>
                         <span className="font-mono font-semibold">-{formatINR(it.estimated_tax)}</span>
                       </div>
-                      <div className="pt-1.5 border-t border-[#E2E8F0] flex justify-between font-bold text-[#1E293B]">
+                      <div className="pt-1.5 border-t border-white/10 flex justify-between font-bold text-[#F3F4F6]">
                         <span>Net Post-Tax Proceeds:</span>
-                        <span className="font-mono text-emerald-700">{formatINR(it.net_post_tax_proceeds)}</span>
+                        <span className="font-mono text-[#10B981]">{formatINR(it.net_post_tax_proceeds)}</span>
                       </div>
-                      <div className="flex justify-between text-[11px] text-[#64748B]">
+                      <div className="flex justify-between text-[11px] text-[#9CA3AF]">
                         <span>Real Purchasing Power:</span>
                         <span className="font-mono font-medium">{formatINR(it.inflation_adjusted_value)}</span>
                       </div>
                     </div>
 
                     {/* Tax Rules Breakdown */}
-                    <div className="p-2.5 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-[11px] text-[#1E40AF]">
-                      <span className="font-bold block">Tax Rules Applied:</span>
+                    <div className="p-2.5 rounded-lg bg-[#0D111A] border border-white/10 text-[11px] text-[#D1D5DB] leading-relaxed">
+                      <span className="font-bold text-[#ECC856] block mb-0.5">Tax Rules Applied:</span>
                       {it.tax_rules_applied}
                     </div>
 
                     {/* Safety / DICGC */}
                     {it.dicgc_insured && (
-                      <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center space-x-2">
-                        <Shield className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[11px] text-emerald-300 flex items-center space-x-2">
+                        <Shield className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                         <span>DICGC Protection: Covered up to ₹5,00,000 principal</span>
                       </div>
                     )}
@@ -730,14 +738,14 @@ export const InvestmentsView: React.FC = () => {
                     {/* Pros and Cons */}
                     <div className="space-y-1.5 text-xs">
                       {it.pros.map((p, idx) => (
-                        <div key={idx} className="flex items-start space-x-1.5 text-emerald-800 text-[11px]">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <div key={idx} className="flex items-start space-x-1.5 text-emerald-400 text-[11px]">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
                           <span>{p}</span>
                         </div>
                       ))}
                       {it.cons.map((c, idx) => (
-                        <div key={idx} className="flex items-start space-x-1.5 text-red-700 text-[11px]">
-                          <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div key={idx} className="flex items-start space-x-1.5 text-[#F43F5E] text-[11px]">
+                          <AlertTriangle className="w-3.5 h-3.5 text-[#F43F5E] flex-shrink-0 mt-0.5" />
                           <span>{c}</span>
                         </div>
                       ))}
@@ -745,7 +753,7 @@ export const InvestmentsView: React.FC = () => {
                   </div>
 
                   {/* Provenance */}
-                  <div className="pt-3 border-t border-[#E2E8F0] text-[10px] text-[#64748B]">
+                  <div className="pt-3 border-t border-white/10 text-[10px] text-[#9CA3AF]">
                     <span>Source: {it.data_provenance} ({it.as_of_date})</span>
                   </div>
                 </Card>
@@ -754,7 +762,7 @@ export const InvestmentsView: React.FC = () => {
           )}
 
           {compareResult && (
-            <p className="text-[11px] text-[#64748B] italic">{compareResult.regulatory_disclaimer}</p>
+            <p className="text-[11px] text-[#9CA3AF] italic">{compareResult.regulatory_disclaimer}</p>
           )}
         </div>
       )}
