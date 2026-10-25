@@ -67,10 +67,10 @@ class Settings(BaseSettings):
     BANK_REDIRECT_URL: str = "https://confidingly-ketonic-evelina.ngrok-free.dev/bank/consent/callback"
 
     # Telegram Bot Integration
-    TELEGRAM_BOT_TOKEN: str = ""
-    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_BOT_TOKEN: str = "8856359408:AAFxU6SaP2XqNkCd8HLuV9-xi9rMMb6VEn4"
+    TELEGRAM_BOT_USERNAME: str = "my_finpilotcfo_bot"
     TELEGRAM_WEBHOOK_SECRET: str = ""
-    TELEGRAM_WEBHOOK_URL: str = ""
+    TELEGRAM_WEBHOOK_URL: str = "https://finpilot-zs9v.onrender.com/api/v1/telegram/webhook"
     TELEGRAM_POLLING_MODE: bool = False
 
     model_config = SettingsConfigDict(
