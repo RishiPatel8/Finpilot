@@ -520,6 +520,7 @@ export interface FireCalculationResponse {
   years_to_retirement: number;
   current_investable_assets: number;
   current_monthly_expenses: number;
+  current_monthly_income?: number;
   annual_expenses_today: number;
   savings_rate_pct: number;
   safe_withdrawal_rate_pct: number;

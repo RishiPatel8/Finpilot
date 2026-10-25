@@ -53,6 +53,7 @@ class FireCalculationResponse(BaseModel):
     years_to_retirement: int
     current_investable_assets: Decimal
     current_monthly_expenses: Decimal
+    current_monthly_income: Optional[Decimal] = None
     annual_expenses_today: Decimal
     savings_rate_pct: float
     safe_withdrawal_rate_pct: float

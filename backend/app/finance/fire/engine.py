@@ -139,6 +139,7 @@ class FireEngine:
             years_to_retirement=years_to_retire,
             current_investable_assets=curr_assets,
             current_monthly_expenses=monthly_exp,
+            current_monthly_income=monthly_inc,
             annual_expenses_today=annual_exp_today,
             savings_rate_pct=savings_rate,
             safe_withdrawal_rate_pct=float(inp.withdrawal_rate_pct),
