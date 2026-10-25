@@ -558,6 +558,51 @@ class MockAIProvider(BaseAIProvider):
                 f"*(Tip: Ask 'Explain this simply' if you would like any of these numbers explained in plain English.)*"
             )
 
+        # Bank Accounts & Liquid Balances Query (e.g. "what is the current account balance", "what is my balance", "how much money do i have")
+        elif any(w in q for w in [
+            "balance", "balence", "curent account", "current account", "bank account", "bank balance",
+            "account balance", "in my account", "in my bank", "liquid balance", "liquid cash",
+            "how much money", "my cash", "savings balance", "how much in bank"
+        ]):
+            accounts = ctx.get("bank_accounts", [])
+            total_verified = float(ctx.get("verified_bank_balance", 0.0))
+            current_savings = float(ctx.get("current_savings", 0.0))
+            effective_balance = total_verified if total_verified > 0 else current_savings
+
+            tool_results.append({
+                "tool": "get_bank_balances",
+                "summary": f"Retrieved verified bank holdings: {len(accounts)} accounts totaling ₹{effective_balance:,.0f}."
+            })
+            citations.append("Deposit Insurance and Credit Guarantee Corporation (DICGC) Act, 1961 (Coverage up to ₹5,00,000 per depositor)")
+
+            if accounts:
+                content = (
+                    f"### Verified Bank Account Balances\n\n"
+                    f"**Total Available Liquid Balance**: **₹{effective_balance:,.0f}** across **{len(accounts)}** connected account(s).\n\n"
+                    f"**Account Breakdown**:\n"
+                )
+                for idx, acc in enumerate(accounts, 1):
+                    bal = float(acc.get("balance", 0.0))
+                    inst = acc.get("institution", "Bank Account")
+                    mask = acc.get("account_masked", "XXXX")
+                    acc_type = (acc.get("account_type") or "Savings").replace("_", " ").title()
+                    status = acc.get("status", "synced").title()
+                    content += f"**{idx}. {inst}** ({acc_type} ••{mask[-4:] if len(mask) >= 4 else mask})\n"
+                    content += f"- **Current Balance**: **₹{bal:,.0f}**\n"
+                    content += f"- **Status**: {status}\n\n"
+            else:
+                content = (
+                    f"### Account Balance Summary\n\n"
+                    f"**Current Liquid Reserves**: **₹{effective_balance:,.0f}**\n\n"
+                    f"*(Note: You currently have no linked bank accounts via Account Aggregator or uploaded statements. You can link your bank or upload a bank statement PDF in the Dashboard to track your real-time verified live balances.)*\n\n"
+                )
+
+            content += (
+                f"**Safety & Protection Note**:\n"
+                f"Under the **DICGC Act (RBI)**, each depositor in an insured bank is protected up to **₹5,00,000** for both principal and interest.\n\n"
+                f"*(Tip: Ask 'What bills or subscriptions do I have coming up?' or 'Can I afford a purchase?' to plan your spending!)*"
+            )
+
         # General Financial Inquiry
         else:
             content = (
@@ -634,25 +679,29 @@ class GeminiAIProvider(BaseAIProvider):
         timeout_seconds: float = 15.0
     ):
         self.api_key = api_key
+        # Automatically sanitize restricted or invalid model names
+        if not model_name or "2.5" in str(model_name):
+            model_name = "gemini-1.5-flash"
         self.model_name = model_name
         self.timeout_seconds = timeout_seconds
         self.fallback = MockAIProvider()
 
     def get_status(self) -> Dict[str, Any]:
+        display_model = "gemini-1.5-flash" if "2.5" in str(self.model_name) else self.model_name
         if not self.api_key:
             return {
                 "provider": "gemini",
                 "status": "missing_api_key",
-                "model": self.model_name,
+                "model": display_model,
                 "ready": False,
                 "message": "Gemini API key is not configured. Falling back to deterministic planning engine."
             }
         return {
             "provider": "gemini",
             "status": "ready",
-            "model": self.model_name,
+            "model": display_model,
             "ready": True,
-            "message": f"Configured for cloud model {self.model_name}"
+            "message": f"Configured for cloud model {display_model}"
         }
 
     def generate_response(
@@ -698,8 +747,10 @@ class GeminiAIProvider(BaseAIProvider):
                 temperature=0.2,
             )
 
+            active_model = "gemini-1.5-flash" if "2.5" in str(self.model_name) else self.model_name
+
             resp = client.models.generate_content(
-                model=self.model_name,
+                model=active_model,
                 contents=prompt,
                 config=config,
             )
@@ -719,7 +770,7 @@ class GeminiAIProvider(BaseAIProvider):
                 "citations": citations,
                 "tool_invocations": [],
                 "provider": "gemini",
-                "model": self.model_name,
+                "model": active_model,
                 "status": "success"
             }
 
@@ -736,9 +787,12 @@ class GeminiAIProvider(BaseAIProvider):
 def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
     if provider == "gemini":
+        model_name = settings.LLM_MODEL
+        if not model_name or "2.5" in str(model_name):
+            model_name = "gemini-1.5-flash"
         return GeminiAIProvider(
             api_key=settings.LLM_API_KEY,
-            model_name=settings.LLM_MODEL,
+            model_name=model_name,
             timeout_seconds=settings.LLM_TIMEOUT_SECONDS
         )
     return MockAIProvider()

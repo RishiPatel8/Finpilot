@@ -103,3 +103,32 @@ def test_ai_provider_status_inspection():
     assert "status" in status
     assert "ready" in status
     assert "provider" in status
+
+
+def test_mock_provider_bank_account_balance_query():
+    provider = MockAIProvider()
+    ctx = {
+        "verified_bank_balance": 185000.0,
+        "bank_accounts": [
+            {
+                "institution": "HDFC Bank",
+                "account_masked": "XXXX5432",
+                "account_type": "savings",
+                "balance": 185000.0,
+                "status": "synced"
+            }
+        ]
+    }
+    # Notice typo "curent" just like in user query
+    res = provider.generate_response("what is the curent account balance", user_context=ctx)
+    assert "₹185,000" in res["content"]
+    assert "HDFC Bank" in res["content"]
+    assert "DICGC" in str(res["citations"])
+
+
+def test_gemini_provider_auto_sanitizes_2_5_model_name():
+    # Pass legacy/restricted gemini-2.5-flash
+    provider = GeminiAIProvider(api_key="valid-key", model_name="gemini-2.5-flash")
+    # Must automatically sanitize to gemini-1.5-flash
+    assert provider.model_name == "gemini-1.5-flash"
+    assert provider.get_status()["model"] == "gemini-1.5-flash"

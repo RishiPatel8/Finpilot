@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gemini-1.5-flash"
     LLM_TIMEOUT_SECONDS: float = 15.0
 
+    @field_validator("LLM_MODEL", mode="before")
+    @classmethod
+    def sanitize_llm_model(cls, v: Union[str, None]) -> str:
+        if not v or "2.5" in str(v):
+            return "gemini-1.5-flash"
+        return str(v)
+
     # Firebase Authentication
     FIREBASE_PROJECT_ID: str = ""
     FIREBASE_CREDENTIALS_JSON: str = ""
