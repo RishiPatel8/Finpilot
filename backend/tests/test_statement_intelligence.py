@@ -180,6 +180,45 @@ def test_pdf_statement_parser():
     assert "9988" in meta.get("account_number_masked", "") or len(result["transactions"]) >= 2
 
 
+def test_canara_bank_pdf_statement_parser():
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    c.drawString(50, 750, "Statement for A/c XXXXXXXXX0626 for the period 26-Jul-2026 to 25-Oct-2026")
+    c.drawString(50, 730, "Customer Id XXXXXX46 Name MOHANKUMAR H D")
+    c.drawString(50, 715, "Product Name CANARA BASIC SAVINGS BANK DEPOSIT ACCOUN IFSC Code CNRB0004348")
+    c.drawString(50, 700, "Date Particulars Deposits Withdrawals Balance")
+    c.drawString(50, 685, "Opening Balance 5,314.02")
+    c.drawString(50, 670, "24-07-2026")
+    c.drawString(50, 655, "UPI/DR/620593156254/KOWSHI K /SBIN/**02005@OKAXIS/UPI//IC")
+    c.drawString(50, 640, "Chq: 620593156254")
+    c.drawString(50, 625, "50.00 5,264.02")
+    c.drawString(50, 610, "30-07-2026")
+    c.drawString(50, 595, "UPI/CR/621103369585/SARASWATH/CNRB/**24238@OKAXIS/UPI//IC")
+    c.drawString(50, 580, "Chq: 621103369585")
+    c.drawString(50, 565, "5,000.00 8,564.02")
+    c.drawString(50, 550, "Closing Balance 48,759.26")
+    c.drawString(50, 535, "page 1")
+    c.save()
+    pdf_bytes = buf.getvalue()
+
+    result = parse_pdf_statement(pdf_bytes, "canara_passbook.pdf")
+    assert result["success"] is True
+    assert result["metadata"]["bank_name"] == "Canara Bank"
+    assert len(result["transactions"]) == 2
+
+    t1, t2 = result["transactions"]
+    assert t1["amount"] == Decimal("50.00")
+    assert t1["type"] == "expense"
+    assert t1["balance_after"] == Decimal("5264.02")
+    assert t1["reference_number"] == "620593156254"
+
+    assert t2["amount"] == Decimal("5000.00")
+    assert t2["type"] == "income"
+    assert t2["balance_after"] == Decimal("8564.02")
+    assert t2["reference_number"] == "621103369585"
+
+
+
 # ============================================================================
 # 2. Pipeline, Endpoints & Production Safeguard Tests
 # ============================================================================
