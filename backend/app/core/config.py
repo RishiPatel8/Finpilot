@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # AI Configuration (Cloud-only Gemini & Deterministic Mock)
     LLM_PROVIDER: str = "mock"  # mock, gemini
     LLM_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-2.5-flash"
+    LLM_MODEL: str = "gemini-1.5-flash"
     LLM_TIMEOUT_SECONDS: float = 15.0
 
     # Firebase Authentication

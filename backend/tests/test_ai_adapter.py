@@ -50,7 +50,7 @@ def test_get_ai_provider_default(monkeypatch):
 
 
 def test_gemini_provider_missing_api_key_safe_fallback():
-    provider = GeminiAIProvider(api_key="", model_name="gemini-2.5-flash")
+    provider = GeminiAIProvider(api_key="", model_name="gemini-1.5-flash")
     status = provider.get_status()
     assert status["ready"] is False
     assert status["status"] == "missing_api_key"
@@ -62,7 +62,7 @@ def test_gemini_provider_missing_api_key_safe_fallback():
 
 
 def test_gemini_provider_api_error_safe_fallback(monkeypatch):
-    provider = GeminiAIProvider(api_key="fake-key-for-test", model_name="gemini-2.5-flash")
+    provider = GeminiAIProvider(api_key="fake-key-for-test", model_name="gemini-1.5-flash")
     
     # Simulate a network/API failure in google.genai.Client
     def mock_client_init(*args, **kwargs):
@@ -78,7 +78,7 @@ def test_gemini_provider_api_error_safe_fallback(monkeypatch):
 
 
 def test_gemini_provider_mocked_success(monkeypatch):
-    provider = GeminiAIProvider(api_key="valid-test-key", model_name="gemini-2.5-flash")
+    provider = GeminiAIProvider(api_key="valid-test-key", model_name="gemini-1.5-flash")
     
     # Mock client and generate_content response
     mock_resp = MagicMock()
@@ -94,7 +94,7 @@ def test_gemini_provider_mocked_success(monkeypatch):
     assert "₹75,000" in res["content"]
     assert res["provider"] == "gemini"
     assert res["status"] == "success"
-    assert res["model"] == "gemini-2.5-flash"
+    assert res["model"] == "gemini-1.5-flash"
     assert len(res["citations"]) > 0
 
 

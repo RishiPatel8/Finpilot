@@ -104,7 +104,7 @@ def get_scenario_baseline(
     discretionary_sum = 0.0
 
     for t in txns:
-        if t.transaction_type == "debit":
+        if t.type == "expense" or getattr(t, "raw_type", None) == "debit":
             amt = float(t.amount or 0.0)
             if t.category in essential_cats:
                 essential_sum += amt

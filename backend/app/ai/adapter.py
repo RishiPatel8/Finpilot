@@ -630,7 +630,7 @@ class GeminiAIProvider(BaseAIProvider):
     def __init__(
         self,
         api_key: str,
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gemini-1.5-flash",
         timeout_seconds: float = 15.0
     ):
         self.api_key = api_key
