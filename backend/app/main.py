@@ -54,9 +54,9 @@ try:
                     conn.exec_driver_sql(f"ALTER TABLE liabilities ADD COLUMN {col_name} {col_type};")
 
             conn.commit()
-    logger.info("Database tables and schema initialized successfully.")
+    logger.info(f"Database tables and schema initialized successfully on {engine.url.drivername} (host={engine.url.host or 'local'}, db={engine.url.database}).")
 except Exception as e:
-    logger.warning(f"Database table initialization deferred: {e}")
+    logger.error(f"Database table initialization failed: {e}", exc_info=True)
 
 # Startup provider logging (Never log credentials or secrets)
 selected_bank_provider = getattr(settings, "BANK_PROVIDER", "sandbox").lower().strip()
