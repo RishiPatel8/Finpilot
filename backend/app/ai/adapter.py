@@ -749,15 +749,38 @@ class GeminiAIProvider(BaseAIProvider):
 
             active_model = "gemini-1.5-flash" if "2.5" in str(self.model_name) else self.model_name
 
-            resp = client.models.generate_content(
-                model=active_model,
-                contents=prompt,
-                config=config,
-            )
+            candidate_models = list(dict.fromkeys([
+                active_model,
+                "gemini-1.5-flash-latest",
+                "gemini-2.0-flash",
+                "gemini-flash-latest",
+                "gemini-1.5-pro",
+            ]))
 
-            response_text = resp.text if hasattr(resp, "text") and resp.text else ""
-            if not response_text:
-                raise ValueError("Received empty content from Gemini API")
+            resp = None
+            last_err = None
+            used_model = active_model
+            for m in candidate_models:
+                try:
+                    resp = client.models.generate_content(
+                        model=m,
+                        contents=prompt,
+                        config=config,
+                    )
+                    if resp and hasattr(resp, "text") and resp.text:
+                        used_model = m
+                        break
+                except Exception as me:
+                    last_err = me
+                    if "404" in str(me) or "NOT_FOUND" in str(me) or "not found" in str(me).lower():
+                        logger.info(f"Gemini model '{m}' not found (404), trying next candidate...")
+                        continue
+                    raise me
+
+            if not resp or not getattr(resp, "text", None):
+                raise last_err or ValueError("Received empty content from Gemini API")
+
+            response_text = resp.text
 
             # Retrieve regulatory citations for ground truth
             retrieved_docs = KnowledgeRetriever.search(query, top_k=2)
@@ -770,7 +793,7 @@ class GeminiAIProvider(BaseAIProvider):
                 "citations": citations,
                 "tool_invocations": [],
                 "provider": "gemini",
-                "model": active_model,
+                "model": used_model,
                 "status": "success"
             }
 
