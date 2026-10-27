@@ -106,7 +106,11 @@ export const StatementUploadModal: React.FC<StatementUploadModalProps> = ({
         setPreviewData(res);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze statement. Check network or file integrity.');
+      if (err.message === 'Failed to fetch') {
+        setError('Server connection timed out or is waking up. If your backend was asleep, please wait 10 seconds and click Upload & Analyze again.');
+      } else {
+        setError(err.message || 'Failed to analyze statement. Check network or file integrity.');
+      }
     } finally {
       setLoading(false);
     }

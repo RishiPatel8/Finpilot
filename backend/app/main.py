@@ -81,6 +81,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.ALLOWED_ORIGINS],
+    allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(vercel\.app|onrender\.com|localhost)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -114,7 +115,13 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    origin = request.headers.get("origin")
+    headers = {}
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An internal server error occurred. Please try again later."}
+        content={"detail": "An internal server error occurred while processing statement."},
+        headers=headers
     )

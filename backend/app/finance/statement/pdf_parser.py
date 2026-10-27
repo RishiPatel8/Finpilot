@@ -23,6 +23,35 @@ def parse_pdf_statement(
     """
     try:
         reader = PdfReader(io.BytesIO(file_bytes))
+        if reader.is_encrypted:
+            try:
+                reader.decrypt("")
+            except Exception:
+                return {
+                    "success": False,
+                    "error": "The PDF statement is password-protected. Please upload an unlocked PDF file.",
+                    "transactions": [],
+                    "metadata": {}
+                }
+
+        total_pages = len(reader.pages)
+        if total_pages == 0:
+            return {
+                "success": False,
+                "error": "The PDF document contains 0 pages.",
+                "transactions": [],
+                "metadata": {}
+            }
+
+        page_texts: List[str] = []
+        all_lines: List[str] = []
+        for page in reader.pages:
+            try:
+                txt = page.extract_text() or ""
+            except Exception:
+                txt = ""
+            page_texts.append(txt)
+            all_lines.extend(txt.splitlines())
     except Exception as e:
         return {
             "success": False,
@@ -30,22 +59,6 @@ def parse_pdf_statement(
             "transactions": [],
             "metadata": {}
         }
-
-    total_pages = len(reader.pages)
-    if total_pages == 0:
-        return {
-            "success": False,
-            "error": "The PDF document contains 0 pages.",
-            "transactions": [],
-            "metadata": {}
-        }
-
-    page_texts: List[str] = []
-    all_lines: List[str] = []
-    for page in reader.pages:
-        txt = page.extract_text() or ""
-        page_texts.append(txt)
-        all_lines.extend(txt.splitlines())
 
     # 1. Bank and Account Metadata Extraction
     bank_name = None
