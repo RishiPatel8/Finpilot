@@ -18,9 +18,9 @@ logger = logging.getLogger("finpilot")
 # Ensure database tables exist and update schema
 try:
     Base.metadata.create_all(bind=engine)
-    # Check SQLite schema to ensure newly added columns are present
-    if engine.url.drivername.startswith("sqlite"):
-        with engine.connect() as conn:
+    # Check schema to ensure newly added columns are present in both SQLite and PostgreSQL
+    with engine.connect() as conn:
+        if engine.url.drivername.startswith("sqlite"):
             result = conn.exec_driver_sql("PRAGMA table_info(transactions);")
             existing_cols = {row[1] for row in result.fetchall()}
             cols_to_add = [
@@ -52,7 +52,34 @@ try:
             for col_name, col_type in liab_cols_to_add:
                 if col_name not in existing_liab_cols:
                     conn.exec_driver_sql(f"ALTER TABLE liabilities ADD COLUMN {col_name} {col_type};")
+            conn.commit()
+        else:
+            # PostgreSQL / Neon schema sync
+            pg_txn_cols = [
+                ("value_date", "DATE"),
+                ("reference_number", "VARCHAR(128)"),
+                ("balance_after", "NUMERIC(14, 2)"),
+                ("source_file", "VARCHAR(255)"),
+                ("source_row", "INTEGER"),
+                ("batch_id", "VARCHAR(36)"),
+                ("account_mask", "VARCHAR(30)"),
+                ("raw_type", "VARCHAR(30)"),
+            ]
+            for col_name, col_type in pg_txn_cols:
+                conn.exec_driver_sql(f"ALTER TABLE transactions ADD COLUMN IF NOT EXISTS {col_name} {col_type};")
 
+            pg_liab_cols = [
+                ("debt_type", "VARCHAR(32) DEFAULT 'payable'"),
+                ("counterparty", "VARCHAR(255)"),
+                ("interest_period", "VARCHAR(20) DEFAULT 'annual'"),
+                ("status", "VARCHAR(32) DEFAULT 'active'"),
+                ("loan_date", "DATE"),
+                ("due_date", "DATE"),
+                ("repayment_frequency", "VARCHAR(32) DEFAULT 'monthly'"),
+                ("notes", "TEXT"),
+            ]
+            for col_name, col_type in pg_liab_cols:
+                conn.exec_driver_sql(f"ALTER TABLE liabilities ADD COLUMN IF NOT EXISTS {col_name} {col_type};")
             conn.commit()
     logger.info(f"Database tables and schema initialized successfully on {engine.url.drivername} (host={engine.url.host or 'local'}, db={engine.url.database}).")
 except Exception as e:
