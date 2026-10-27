@@ -263,11 +263,31 @@ class MockAIProvider(BaseAIProvider):
                 f"*(Tip: Ask 'Explain this simply' to see how compound interest works in real life.)*"
             )
 
-        # Cross-Feature Affordability Query (e.g. "Can I afford a ₹25,000 monthly EMI?", "Can I afford another EMI?")
-        elif "afford" in q and any(w in q for w in ["emi", "loan", "purchase", "car", "bike", "month", "monthly"]):
-            proposed = self._extract_amount(q) or 25000.0
+        # Cross-Feature Affordability Query (e.g. "Can I afford a ₹25,000 monthly EMI?", "Can I afford a car of 100000rs in next 3 years?")
+        elif "afford" in q and any(w in q for w in ["emi", "loan", "purchase", "car", "bike", "month", "monthly", "year", "years"]):
+            raw_amt = self._extract_amount(q) or 25000.0
             item_type = "emi" if "emi" in q or "loan" in q else "purchase"
             
+            # Check if query specifies a timeline (e.g., in 3 years, in next 24 months)
+            years_m = re.search(r"(\d+)\s*(?:year|yr)", q)
+            months_m = re.search(r"(\d+)\s*month", q)
+            target_months = None
+            if years_m:
+                target_months = max(1, int(years_m.group(1)) * 12)
+            elif months_m:
+                target_months = max(1, int(months_m.group(1)))
+
+            # If user asks for purchase over a multi-month/year timeline, calculate required monthly savings
+            if target_months and target_months > 1 and item_type != "emi":
+                monthly_required = round(raw_amt / target_months, 2)
+                proposed = monthly_required
+                timeline_str = f"{target_months // 12} years" if target_months >= 12 and target_months % 12 == 0 else f"{target_months} months"
+                goal_summary = f"₹{raw_amt:,.0f} total goal over {timeline_str} (requires ₹{monthly_required:,.0f}/month savings)"
+            else:
+                proposed = raw_amt
+                goal_summary = f"₹{proposed:,.0f}/month {item_type.upper()}"
+                timeline_str = None
+
             params = {
                 "proposed_amount": proposed,
                 "item_type": item_type,
@@ -280,11 +300,32 @@ class MockAIProvider(BaseAIProvider):
             res = AVAILABLE_TOOLS["evaluate_affordability"](params)
             tool_results.append({
                 "tool": "evaluate_affordability",
-                "summary": f"Evaluated ₹{proposed:,.0f} {item_type} affordability against ₹{income:,.0f} income and ₹{expenses:,.0f} baseline living expenses."
+                "summary": f"Evaluated {goal_summary} against ₹{income:,.0f} income and ₹{expenses:,.0f} baseline living expenses."
             })
+
+            title_header = f"### Affordability Assessment: {goal_summary}"
             
+            if target_months and target_months > 1:
+                deficit_or_surplus = income - expenses - proposed
+                if deficit_or_surplus >= 0:
+                    rec_text = (
+                        f"**Yes, you can afford this!** To buy your ₹{raw_amt:,.0f} target in {timeline_str}, "
+                        f"you need to save **₹{proposed:,.0f} each month** (₹{raw_amt:,.0f} ÷ {target_months} months). "
+                        f"Your current monthly surplus is ₹{income - expenses:,.0f}, which comfortably covers this contribution."
+                    )
+                else:
+                    needed_cut = abs(deficit_or_surplus)
+                    rec_text = (
+                        f"To purchase a ₹{raw_amt:,.0f} car in {timeline_str}, you need to save **₹{proposed:,.0f} each month** "
+                        f"(₹{raw_amt:,.0f} ÷ {target_months} months). With your current monthly income of ₹{income:,.0f} and "
+                        f"living expenses of ₹{expenses:,.0f}, you have a monthly gap of ₹{needed_cut:,.0f}. "
+                        f"Trimming just ₹{needed_cut:,.0f}/month from discretionary expenses will put you on track to buy this car on schedule!"
+                    )
+            else:
+                rec_text = res["recommendation"]
+
             content = (
-                f"### Affordability Assessment: ₹{proposed:,.0f} / month {item_type.upper()}\n\n"
+                f"{title_header}\n\n"
                 f"**Verdict**: **{res['status']}**\n\n"
                 f"**Financial Breakdown**:\n"
                 f"- **Monthly Net Income**: ₹{res['monthly_income']:,.0f}\n"
@@ -292,11 +333,12 @@ class MockAIProvider(BaseAIProvider):
                 f"- **Existing Loan EMIs**: ₹{res['existing_monthly_emi']:,.0f}\n"
                 f"- **Recurring Bills & Commitments**: ₹{res['existing_recurring_commitments']:,.0f}\n"
                 f"- **Current Money Left Over**: ₹{res['current_net_surplus']:,.0f} / month\n"
-                f"- **Money Left Over After This Payment**: **₹{res['revised_net_surplus']:,.0f} / month**\n"
+                f"- **Monthly Target for this Goal**: **₹{proposed:,.0f} / month**\n"
+                f"- **Money Left Over After This Target**: **₹{res['revised_net_surplus']:,.0f} / month**\n"
                 f"- **Share of Income Spent on Debt (Debt-to-Income / DTI)**: **{res['new_debt_to_income_pct']}%** (Safe target is below 40%)\n"
                 f"- **Emergency Cushion Remaining**: **{res['revised_emergency_runway_months']:.1f} months**\n\n"
                 f"**Recommendation**:\n"
-                f"{res['recommendation']}\n\n"
+                f"{rec_text}\n\n"
                 f"*(Note: Evaluated across verified monthly cash flows and liquid reserves. If this is a floating-rate loan, budget an additional 1.5% interest buffer.)*\n\n"
                 f"*(Tip: Ask 'Explain this simply' if you want a simpler explanation.)*"
             )
