@@ -345,6 +345,10 @@ export const GlobalAICFO: React.FC<GlobalAICFOProps> = ({
         clarification: res.clarification || null,
       };
 
+      if (res.pending_action?.status === 'succeeded') {
+        window.dispatchEvent(new CustomEvent('finpilot:financial-data-updated', { detail: res }));
+      }
+
       setMessages((prev) => [...prev, asstMsg]);
     } catch (err: any) {
       const errorMsg: ChatMessage = {

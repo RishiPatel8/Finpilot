@@ -344,13 +344,16 @@ class AgentIntentParser:
                 extracted_parameters={"query_type": "debts"}
             )
 
-        # 5D. Debt & Loan Creation: "Add a debt of ₹1,000 to my friend at 1% monthly interest", "My friend owes me ₹5,000", "I borrowed ₹10,000 from my brother"
+        # 5D. Debt & Loan Creation: "Add a debt of ₹1,000 to my friend at 1% monthly interest", "My friend owes me ₹5,000", "I borrowed ₹10,000 from my brother", "create a debt of 50,000 from Rohan"
         is_debt_creation = (
             any(p in ql for p in [
+                "create a debt", "create debt", "creating a debt", "creating debt",
+                "create a loan", "create loan", "creating a loan", "creating loan",
                 "add a debt", "add debt", "record debt", "new debt", "track debt", "add liability",
+                "create liability", "creating liability", "record liability",
                 "add a loan", "add loan", "record loan", "new loan", "took a loan", "took loan",
                 "borrowed", "owes me", "owe me", "lent to", "lent", "lend to", "i lent",
-                "home loan", "car loan", "education loan", "personal loan"
+                "home loan", "car loan", "education loan", "personal loan", "gold loan"
             ])
             and not any(p in ql for p in ["repay", "paid", "what is my debt", "who do i owe", "show all money", "who owes me"])
         )
@@ -368,7 +371,7 @@ class AgentIntentParser:
                     is_ambiguous=True,
                     confidence=0.9,
                     clarification_question="How much is the loan or debt amount you would like to record?",
-                    clarification_options=["₹1,000", "₹5,000", "₹10,000"]
+                    clarification_options=["₹1,000", "₹5,000", "₹10,000", "₹50,000"]
                 )
 
             # 2. Check if counterparty is missing
@@ -378,13 +381,34 @@ class AgentIntentParser:
                     counterparty = loan_type_match.title()
                 else:
                     question = "Who is the borrower who owes you this money?" if dtype == "receivable" else "Who did you borrow this debt from, or who is the lender/counterparty?"
+                    counterparty_candidates = ["Friend", "Brother", "Colleague", "Bank"]
+                    structured_options = [
+                        {
+                            "id": f"opt_{cp.lower()}",
+                            "label": f"{cp} ({'Borrowed' if dtype == 'payable' else 'Lent'})",
+                            "action_type": "create_debt",
+                            "target_entity": "liability",
+                            "parameters": {
+                                "principal": amt,
+                                "counterparty": cp,
+                                "name": f"Debt to {cp}" if dtype == "payable" else f"Money Lent to {cp}",
+                                "debt_type": dtype,
+                                "tenure_months": tenure,
+                                "interest_rate": 0.0,
+                                "interest_period": "annual",
+                                "monthly_emi": 0.0
+                            }
+                        }
+                        for cp in counterparty_candidates
+                    ]
                     return ParsedIntent(
                         intent_type="AMBIGUOUS",
                         is_ambiguous=True,
                         confidence=0.9,
                         extracted_parameters={"amount": amt, "debt_type": dtype},
                         clarification_question=question,
-                        clarification_options=["Friend", "Brother", "Colleague", "Bank"]
+                        clarification_options=[opt["label"] for opt in structured_options],
+                        structured_options=structured_options
                     )
 
             # 3. Check if interest rate period is ambiguous (e.g. "1% interest" without specifying monthly vs annual)
@@ -826,12 +850,14 @@ class AgentIntentParser:
             if cp:
                 return cp.title()
 
-        # 2. "to/from/with my friend", "to/from/with brother", "to/from/with Rohan"
-        m_prep = re.search(r"\b(?:to|from|with)\s+(?:my\s+)?([a-zA-Z\s]{2,30}?)(?:\s+(?:at|with|for|due|on|interest)\b|[.,!?]|$)", t, re.IGNORECASE)
+        # 2. "to/from/with/for my friend", "to/from/with/for brother", "to/from/with Rohan", "from bank"
+        m_prep = re.search(r"\b(?:to|from|with|for|against)\s+(?:my\s+)?([a-zA-Z\s]{2,30}?)(?:\s+(?:at|with|for|due|on|interest)\b|[.,!?]|$)", t, re.IGNORECASE)
         if m_prep:
             candidate = m_prep.group(1).strip()
             candidate = re.sub(r"(?i)^(my|a|an)\s+", "", candidate).strip()
-            if candidate.lower() not in ["interest", "rate", "the", "a", "an", "debt", "loan", "bank"] and len(candidate) >= 2:
+            if candidate.lower() in ["bank", "sbi", "hdfc", "icici", "axis", "kotak"]:
+                return candidate.upper() if candidate.lower() != "bank" else "Bank"
+            if candidate.lower() not in ["interest", "rate", "the", "a", "an", "debt", "loan", "section", "creation"] and len(candidate) >= 2:
                 return candidate.title()
 
         # 3. "lent/borrowed ... to/from <name>"
@@ -839,7 +865,9 @@ class AgentIntentParser:
         if m_lb:
             candidate = m_lb.group(1).strip()
             candidate = re.sub(r"(?i)^(my|a|an)\s+", "", candidate).strip()
-            if candidate.lower() not in ["interest", "rate", "the", "a", "an", "debt", "loan"] and len(candidate) >= 2:
+            if candidate.lower() in ["bank", "sbi", "hdfc", "icici", "axis", "kotak"]:
+                return candidate.upper() if candidate.lower() != "bank" else "Bank"
+            if candidate.lower() not in ["interest", "rate", "the", "a", "an", "debt", "loan", "section", "creation"] and len(candidate) >= 2:
                 return candidate.title()
 
         # 4. Known relationship words

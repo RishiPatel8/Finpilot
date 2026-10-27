@@ -81,8 +81,20 @@ class FinancialAgent:
             ).order_by(PendingAction.created_at.desc()).first()
 
             if active_pending:
-                confirm_words = ["confirm", "confirm.", "confirm it", "yes, confirm", "yes confirm", "execute", "confirm and execute"]
-                if msg_lower in confirm_words:
+                confirm_indicators = [
+                    "confirm", "yes", "proceed", "execute", "create", "create it", "approve",
+                    "do it", "go ahead", "ok", "okay", "sure", "yep", "yeah", "save", "save it",
+                    "record it", "confirm the creation", "confirm creation", "create debt", "create the debt",
+                    "yes, confirm", "yes confirm", "confirm and execute", "please confirm", "confirm please"
+                ]
+                has_negative = any(neg in msg_lower for neg in ["don't", "dont", "do not", "cancel", "no", "nevermind", "abort", "stop", "reject"])
+                import re
+                is_confirm = (
+                    any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in confirm_indicators)
+                    and not has_negative
+                )
+
+                if is_confirm:
                     res = ActionExecutor.confirm_and_execute(
                         action_id=active_pending.id,
                         user=user,
@@ -108,14 +120,16 @@ class FinancialAgent:
                             "status": res.status,
                             "parameters": active_pending.parameters,
                             "preview": active_pending.preview,
+                            "execution_result": res.result,
                             "expires_at": active_pending.expires_at.isoformat()
                         },
                         "clarification": None,
                         "status": res.status
                     }
 
-                cancel_words = ["cancel", "cancel.", "abort", "cancel it", "cancel action", "no, cancel", "no cancel"]
-                if msg_lower in cancel_words:
+                cancel_indicators = ["cancel", "abort", "nevermind", "dont", "don't", "do not", "stop", "reject"]
+                is_cancel = any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in cancel_indicators) or msg_lower in ["no", "no.", "n"]
+                if is_cancel:
                     res = ActionExecutor.cancel_action(
                         action_id=active_pending.id,
                         user=user,

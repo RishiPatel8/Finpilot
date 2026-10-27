@@ -89,6 +89,18 @@ export const DebtManagementView: React.FC = () => {
 
   useEffect(() => {
     fetchLiabilities();
+
+    const handleUpdate = () => {
+      fetchLiabilities();
+    };
+
+    window.addEventListener('finpilot:financial-data-updated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+
+    return () => {
+      window.removeEventListener('finpilot:financial-data-updated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
   }, []);
 
   const handleAddDebt = async (e: React.FormEvent) => {
@@ -338,7 +350,25 @@ export const DebtManagementView: React.FC = () => {
               {liabilities.length > 0 ? (
                 liabilities.map((l) => (
                   <tr key={l.id} className="hover:bg-[#F6F8FC] transition-colors">
-                    <td className="py-3 px-4 font-semibold text-[#172033]">{l.name}</td>
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-[#172033] flex items-center gap-2">
+                        <span>{l.name}</span>
+                        {l.debt_type === 'receivable' ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Lent (Receivable)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                            Payable
+                          </span>
+                        )}
+                      </div>
+                      {l.counterparty && (
+                        <div className="text-[11px] text-[#697386] mt-0.5">
+                          {l.debt_type === 'receivable' ? 'Borrower' : 'Lender'}: <strong className="text-[#172033]">{l.counterparty}</strong>
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-right font-mono font-bold tabular-nums">
                       {formatINR(Number(l.principal))}
                     </td>
@@ -351,7 +381,11 @@ export const DebtManagementView: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-[#D9485F] tabular-nums">
-                      {formatINR(Number(l.monthly_emi))}
+                      {Number(l.monthly_emi) > 0 ? (
+                        formatINR(Number(l.monthly_emi))
+                      ) : (
+                        <span className="text-[#697386] font-normal text-[11px]">No EMI (Lump-sum)</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-center text-[#697386] tabular-nums">
                       {l.remaining_months} mos

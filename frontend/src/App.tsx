@@ -219,7 +219,9 @@ export const App: React.FC = () => {
                   <BankAccountsView onNavigateToCsv={() => setActiveTab('budget')} />
                 )}
                 {activeTab === 'scenarios' && <ScenarioSimulatorView />}
-                {activeTab === 'assistant' && <AssistantView />}
+                {activeTab === 'assistant' && (
+                  <AssistantView onNavigateToTab={(tab) => setActiveTab(tab as any)} />
+                )}
                 {activeTab === 'budget' && (
                   <BudgetView
                     transactions={recentTxns}

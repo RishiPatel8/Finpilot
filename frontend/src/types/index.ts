@@ -441,6 +441,14 @@ export interface Liability {
   monthly_emi: number;
   tenure_months: number;
   remaining_months: number;
+  debt_type?: 'payable' | 'receivable' | string;
+  counterparty?: string | null;
+  interest_period?: 'annual' | 'monthly' | string;
+  status?: string;
+  loan_date?: string | null;
+  due_date?: string | null;
+  repayment_frequency?: string;
+  notes?: string | null;
   created_at?: string;
 }
 

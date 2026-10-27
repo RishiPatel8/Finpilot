@@ -189,6 +189,33 @@ class ClarificationService:
                 if "repay" in opt.get("id", "") or "repayment" in opt.get("label", "").lower():
                     return opt
 
+        # 5. Dynamic counterparty resolution when clarification question asks for borrower/lender
+        q = (clarification.clarification_question or "").lower()
+        if "who did you borrow" in q or "who is the borrower" in q or "lender/counterparty" in q:
+            clean_name = re.sub(r"(?i)^(it's|it is|from|to|with|my|a|an)\s+", "", message.strip()).strip()
+            clean_name = re.sub(r"[.!?,]+$", "", clean_name).strip()
+            if len(clean_name) >= 2 and len(clean_name) <= 50 and clean_name.lower() not in ["cancel", "no", "nevermind"]:
+                is_receivable = "who is the borrower" in q
+                dtype = "receivable" if is_receivable else "payable"
+                amt = float(clarification.extracted_amount or 0.0)
+                display_name = clean_name.title() if clean_name.lower() != "bank" else "Bank"
+                return {
+                    "id": f"opt_custom_{display_name.lower().replace(' ', '_')}",
+                    "label": display_name,
+                    "action_type": "create_debt",
+                    "target_entity": "liability",
+                    "parameters": {
+                        "principal": amt,
+                        "counterparty": display_name,
+                        "name": f"Money Lent to {display_name}" if is_receivable else f"Debt to {display_name}",
+                        "debt_type": dtype,
+                        "tenure_months": 12,
+                        "interest_rate": 0.0,
+                        "interest_period": "annual",
+                        "monthly_emi": 0.0
+                    }
+                }
+
         return None
 
     @classmethod
