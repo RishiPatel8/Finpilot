@@ -851,12 +851,13 @@ class GeminiAIProvider(BaseAIProvider):
 
 def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
-    if provider == "gemini":
+    api_key = (settings.LLM_API_KEY or "").strip()
+    if (provider == "gemini" or api_key) and api_key and provider != "mock_only":
         model_name = settings.LLM_MODEL
         if not model_name or "2.5" in str(model_name):
             model_name = "gemini-1.5-flash"
         return GeminiAIProvider(
-            api_key=settings.LLM_API_KEY,
+            api_key=api_key,
             model_name=model_name,
             timeout_seconds=settings.LLM_TIMEOUT_SECONDS
         )

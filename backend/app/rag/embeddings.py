@@ -96,6 +96,7 @@ class CloudGeminiEmbeddingProvider(BaseEmbeddingProvider):
 
 
 def get_embedding_provider() -> BaseEmbeddingProvider:
-    if settings.LLM_PROVIDER.lower() == "gemini" and settings.LLM_API_KEY:
-        return CloudGeminiEmbeddingProvider(api_key=settings.LLM_API_KEY)
+    api_key = (settings.LLM_API_KEY or "").strip()
+    if (settings.LLM_PROVIDER.lower() == "gemini" or api_key) and api_key and settings.LLM_PROVIDER.lower() != "mock_only":
+        return CloudGeminiEmbeddingProvider(api_key=api_key)
     return DeterministicEmbeddingProvider()
