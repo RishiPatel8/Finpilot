@@ -127,18 +127,18 @@ const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ cont
       flushList();
       const title = line.replace(/^#+\s*/, '');
       elements.push(
-        <div key={`h-${i}`} className="font-extrabold text-[12px] text-[#172033] mt-2 mb-1 tracking-tight">
+        <div key={`h-${i}`} className="font-extrabold text-[12px] text-[#F5DE88] mt-2 mb-1 tracking-tight border-b border-[rgba(212,175,55,0.15)] pb-0.5">
           {renderFormattedInline(title)}
         </div>
       );
       continue;
     }
 
-    if (line.startsWith('- ') || line.startsWith('* ')) {
-      const itemText = line.slice(2).trim();
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
+      const itemText = line.replace(/^[-*•]\s+/, '').trim();
       currentList.push(
-        <li key={`li-${i}`} className="flex items-start gap-1.5 text-[11px]">
-          <span className="text-[#6478E8] font-bold shrink-0">•</span>
+        <li key={`li-${i}`} className="flex items-start gap-1.5 text-[11px] text-[#E5E7EB]">
+          <span className="text-[#D4AF37] font-bold shrink-0">•</span>
           <span className="flex-1">{renderFormattedInline(itemText)}</span>
         </li>
       );
@@ -147,7 +147,7 @@ const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ cont
 
     flushList();
     elements.push(
-      <p key={`p-${i}`} className="text-[11px] text-[#172033] leading-relaxed my-1">
+      <p key={`p-${i}`} className="text-[11px] text-[#D1D5DB] leading-relaxed my-1">
         {renderFormattedInline(line)}
       </p>
     );

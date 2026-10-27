@@ -13,6 +13,113 @@ import { apiRequest, getAuthToken } from '../../services/api';
 import { ChatMessage } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
 
+interface GlobalAICFOProps {}
+
+const renderFormattedInline = (text: string) => {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g;
+  let lastIdx = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) {
+      parts.push(text.slice(lastIdx, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      const inner = token.slice(2, -2);
+      if (inner.toLowerCase().includes('comfortably affordable') || inner.toLowerCase() === 'affordable') {
+        parts.push(
+          <span key={match.index} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30">
+            ✓ {inner}
+          </span>
+        );
+      } else if (inner.toLowerCase().includes('not affordable') || inner.toLowerCase().includes('deficit')) {
+        parts.push(
+          <span key={match.index} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30">
+            ✕ {inner}
+          </span>
+        );
+      } else {
+        parts.push(<strong key={match.index} className="font-bold text-white">{inner}</strong>);
+      }
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      parts.push(<code key={match.index} className="bg-[#1A2232] text-[#ECC856] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[rgba(212,175,55,0.2)]">{token.slice(1, -1)}</code>);
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(<em key={match.index} className="italic text-[#9CA3AF] text-xs">{token.slice(1, -1)}</em>);
+    }
+    lastIdx = regex.lastIndex;
+  }
+  if (lastIdx < text.length) {
+    parts.push(text.slice(lastIdx));
+  }
+  return parts.length > 0 ? parts : text;
+};
+
+const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  if (isUser) {
+    return <div className="whitespace-pre-wrap break-words">{content}</div>;
+  }
+
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: React.ReactNode[] = [];
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} className="my-2 space-y-1 pl-1">
+          {currentList}
+        </ul>
+      );
+      currentList = [];
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.trim();
+
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    if (line.startsWith('#')) {
+      flushList();
+      const title = line.replace(/^#+\s*/, '');
+      elements.push(
+        <div key={`h-${i}`} className="text-sm font-bold text-[#F5DE88] mt-3 mb-1.5 border-b border-[rgba(212,175,55,0.15)] pb-1 tracking-tight">
+          {renderFormattedInline(title)}
+        </div>
+      );
+      continue;
+    }
+
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
+      const itemText = line.replace(/^[-*•]\s+/, '').trim();
+      currentList.push(
+        <li key={`li-${i}`} className="flex items-start gap-2 text-xs text-[#E5E7EB]">
+          <span className="text-[#D4AF37] font-bold text-xs shrink-0 mt-0.5">•</span>
+          <span className="flex-1 leading-relaxed">{renderFormattedInline(itemText)}</span>
+        </li>
+      );
+      continue;
+    }
+
+    flushList();
+    elements.push(
+      <p key={`p-${i}`} className="text-xs text-[#D1D5DB] leading-relaxed my-1.5">
+        {renderFormattedInline(line)}
+      </p>
+    );
+  }
+
+  flushList();
+
+  return <div className="space-y-1">{elements}</div>;
+};
+
 export const AssistantView: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -188,8 +295,8 @@ export const AssistantView: React.FC = () => {
               )}
 
               {/* Message Content */}
-              <div className="leading-relaxed whitespace-pre-wrap font-sans">
-                {m.content}
+              <div className="leading-relaxed font-sans">
+                <FormattedMessage content={m.content} isUser={m.sender === 'user'} />
               </div>
 
               {/* Statutory Citations */}
