@@ -2,9 +2,10 @@ import io
 from datetime import date
 from decimal import Decimal
 import openpyxl
+import pytest
+reportlab = pytest.importorskip('reportlab')
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import pytest
 
 from app.core.config import settings
 from app.finance.statement.normalizer import StatementNormalizer
