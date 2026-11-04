@@ -9,6 +9,28 @@ from app.ai.tools import AVAILABLE_TOOLS
 logger = logging.getLogger("finpilot.ai")
 
 
+FINPILOT_SYSTEM_INSTRUCTION = (
+    "You are FinPilot AI, a Senior Indian Personal Finance CFO, Wealth Architect, and Certified Financial Planner (CFP).\n"
+    "Your mission is to provide rigorous, highly refined, and actionable financial planning and advice tailored specifically to Indian residents.\n\n"
+    "STATUTORY & REGULATORY FOUNDATIONS:\n"
+    "1. Income Tax Act 1961 & Finance Act 2024: New Tax Regime (Section 115BAC) standard deduction of ₹75,000, 87A rebate (zero tax up to ₹7.75L for salaried); Old Tax Regime itemized deductions (80C up to ₹1.5L, 80D up to ₹25k/₹50k, 80CCD(1B) NPS ₹50k, 24(b) home loan interest ₹2L, HRA 10(13A)); Capital gains: equity LTCG @ 12.5% above ₹1.25L annual exemption, STCG @ 20%; Section 44ADA 50% presumptive taxation for professionals.\n"
+    "2. SEBI & RBI Guidelines: Safe emergency liquidity in liquid funds (residual maturity <= 91 days) or sweep-in FDs; DICGC ₹5,00,000 deposit insurance per depositor per bank; Sovereign Gold Bonds (SGB) 2.5% coupon + 100% tax-free capital gains on 8-year maturity under Section 47(viic).\n"
+    "3. Retirement & FIRE Standards: Safe Withdrawal Rates for India (3.0% to 3.5%) to account for 5-7% inflation; NPS Tier-1 60% tax-free lump sum exit + 40% mandatory annuity under Section 10(12A).\n\n"
+    "STRUCTURED FINANCIAL ADVISORY FRAMEWORK:\n"
+    "When providing financial advice or assessing situations, apply this 4-step hierarchy:\n"
+    "  • Step 1: Emergency Liquidity Check (Mandatory 3 to 6 months of living expenses in liquid safe instruments before risking capital).\n"
+    "  • Step 2: Pure Protection Guardrails (Pure term life insurance 10-15x annual income for earners with dependents; avoid low-return ULIPs/endowments; base health insurance ₹5-10L + super top-up ₹25-50L with Section 80D tax deductions).\n"
+    "  • Step 3: High-Interest Debt Elimination (Prioritize debts >10% APR using the Debt Avalanche method; maintain total Debt-to-Income DTI ratio < 35%).\n"
+    "  • Step 4: Disciplined Wealth Compounding (50-30-20 budget framework, low-cost broad index funds, asset allocation by age/horizon, annual ₹1.25L LTCG tax-harvesting).\n\n"
+    "COMMUNICATION & PRESENTATION RULES:\n"
+    "1. Plain Everyday English: Never use dense unexplained jargon (e.g., say 'suggested yearly withdrawal rate' instead of 'SWR', 'monthly investment' instead of 'required SIP', 'emergency fund runway' instead of 'liquidity buffer').\n"
+    "2. Concrete Numbers in INR (₹): Provide realistic rupee calculations, percentage breakdowns, and timelines in every recommendation.\n"
+    "3. Direct Answer First: Give the bottom-line verdict or direct answer in the first 2 sentences, followed by structured bullet points.\n"
+    "4. Actionable Next Steps: Provide 2-3 prioritized actions (Immediate next step, 3-6 month milestone, Long-term goal).\n"
+    "5. Offer Simplification: When technical terms or tax sections are mentioned, explain them simply and offer: 'Would you like me to explain any of these terms or simulate this decision in your planner?'"
+)
+
+
 class BaseAIProvider(ABC):
     @abstractmethod
     def generate_response(
@@ -767,20 +789,7 @@ class GeminiAIProvider(BaseAIProvider):
 
             client = genai.Client(api_key=self.api_key)
             context_str = f"User Financial Context: {user_context}" if user_context else ""
-            system_instruction = (
-                "You are FinPilot AI, a Senior Indian Personal Finance CFO and Certified Financial Planner.\n"
-                "Ground all advice strictly in official Indian Income Tax Act 1961 regulations, Finance Act 2024, "
-                "RBI regulations, and SEBI mutual fund guidelines.\n"
-                "Never invent interest rates, account balances, or financial calculations.\n"
-                "Clearly distinguish verified facts from user estimates, assumptions, and educational planning heuristics.\n"
-                "COMMUNICATION RULES:\n"
-                "1. Always use plain, everyday English that anyone without a finance background can easily understand.\n"
-                "2. Avoid dense finance jargon (e.g., say 'monthly investment' instead of 'required SIP', 'money you need to retire' instead of 'target corpus', 'suggested yearly withdrawal rate' instead of 'SWR', 'money left over each month' instead of 'net surplus').\n"
-                "3. Prefer short sentences and practical real-life examples using Indian Rupees (₹).\n"
-                "4. Answer the user's direct question first before offering optional suggestions.\n"
-                "5. When technical terms are unavoidable, explain them immediately in simple words.\n"
-                "6. Offer: 'Would you like me to explain any of these terms more simply?'"
-            )
+            system_instruction = FINPILOT_SYSTEM_INSTRUCTION
             prompt = f"{context_str}\nUser Question: {query}"
 
             # Invoke Gemini with timeout configuration
@@ -849,10 +858,171 @@ class GeminiAIProvider(BaseAIProvider):
             return res
 
 
+
+
+class GroqAIProvider(BaseAIProvider):
+    """
+    High-speed cloud adapter for Groq models (e.g. qwen/qwen3.8-27b, openai/gpt-oss-120b)
+    via Groq's completions API with explicit status, timeout handling,
+    and safe fallback to MockAIProvider.
+    """
+    def __init__(
+        self,
+        api_key: str,
+        model_name: str = "qwen/qwen3.8-27b",
+        timeout_seconds: float = 15.0
+    ):
+        self.api_key = (api_key or "").strip()
+        self.model_name = model_name or "qwen/qwen3.8-27b"
+        self.timeout_seconds = timeout_seconds
+        self.fallback = MockAIProvider()
+
+    def get_status(self) -> Dict[str, Any]:
+        if not self.api_key:
+            return {
+                "provider": "groq",
+                "status": "missing_api_key",
+                "model": self.model_name,
+                "ready": False,
+                "message": "Groq API key is not configured. Falling back to deterministic planning engine."
+            }
+        return {
+            "provider": "groq",
+            "status": "ready",
+            "model": self.model_name,
+            "ready": True,
+            "message": f"Configured for Groq cloud model {self.model_name}"
+        }
+
+    def generate_response(
+        self,
+        query: str,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        user_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        if not self.api_key:
+            logger.info("No Groq API key configured. Using deterministic fallback engine.")
+            res = self.fallback.generate_response(query, chat_history, user_context)
+            res["provider"] = "mock"
+            res["model"] = "deterministic-mock"
+            res["status"] = "fallback_mock"
+            res["fallback_reason"] = "No API key configured"
+            return res
+
+        try:
+            import httpx
+
+            context_str = f"User Financial Context: {user_context}" if user_context else ""
+            system_instruction = FINPILOT_SYSTEM_INSTRUCTION
+
+            messages = [
+                {"role": "system", "content": system_instruction}
+            ]
+
+            if chat_history:
+                for turn in chat_history[-6:]:
+                    r = turn.get("role", "user")
+                    c = turn.get("content", "")
+                    if c:
+                        messages.append({"role": r if r in ["user", "assistant", "system"] else "user", "content": c})
+
+            user_msg = f"{context_str}\n\nUser Question: {query}" if context_str else query
+            messages.append({"role": "user", "content": user_msg})
+
+            candidate_models = list(dict.fromkeys([
+                self.model_name,
+                "qwen/qwen3.8-27b",
+                "openai/gpt-oss-120b",
+            ]))
+
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+
+            resp_text = None
+            used_model = self.model_name
+            last_err = None
+
+            for m in candidate_models:
+                try:
+                    payload = {
+                        "model": m,
+                        "messages": messages,
+                        "temperature": 0.2,
+                        "max_tokens": 1024
+                    }
+                    with httpx.Client(timeout=self.timeout_seconds) as client:
+                        r = client.post(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            headers=headers,
+                            json=payload
+                        )
+                    if r.status_code == 200:
+                        data = r.json()
+                        resp_text = data["choices"][0]["message"]["content"]
+                        used_model = m
+                        break
+                    elif r.status_code in [404, 400]:
+                        last_err = Exception(f"Groq model {m} error: {r.status_code} {r.text}")
+                        continue
+                    else:
+                        raise Exception(f"Groq API returned HTTP {r.status_code}: {r.text}")
+                except Exception as ex:
+                    last_err = ex
+                    continue
+
+            if not resp_text:
+                raise last_err or ValueError("Received empty content from Groq API")
+
+            # Retrieve regulatory citations for ground truth
+            retrieved_docs = KnowledgeRetriever.search(query, top_k=2)
+            citations = [f"{d['title']} ({d['citation']})" for d in retrieved_docs]
+            if not citations:
+                citations = ["Income Tax Act 1961", "Finance Act 2024"]
+
+            return {
+                "content": resp_text,
+                "citations": citations,
+                "tool_invocations": [],
+                "provider": "groq",
+                "model": used_model,
+                "status": "success"
+            }
+
+        except Exception as e:
+            logger.warning(f"Groq API invocation failed ({e}), falling back to deterministic planning engine.")
+            res = self.fallback.generate_response(query, chat_history, user_context)
+            res["provider"] = "mock"
+            res["model"] = "deterministic-mock"
+            res["status"] = "fallback_mock"
+            res["fallback_reason"] = str(e)
+            return res
+
+
 def get_ai_provider() -> BaseAIProvider:
     provider = settings.LLM_PROVIDER.lower().strip()
     api_key = (settings.LLM_API_KEY or "").strip()
-    if (provider == "gemini" or api_key) and api_key and provider != "mock_only":
+
+    # Explicit mock requested
+    if provider in ["mock", "mock_only"]:
+        return MockAIProvider()
+
+    # Groq provider (or auto-detected from 'gsk_' prefix)
+    if provider == "groq" or api_key.startswith("gsk_"):
+        if api_key:
+            model_name = settings.LLM_MODEL
+            if not model_name or "gemini" in model_name:
+                model_name = "qwen/qwen3.8-27b"
+            return GroqAIProvider(
+                api_key=api_key,
+                model_name=model_name,
+                timeout_seconds=settings.LLM_TIMEOUT_SECONDS
+            )
+        return MockAIProvider()
+
+    # Gemini provider
+    if (provider == "gemini" or api_key) and api_key and not api_key.startswith("gsk_"):
         model_name = settings.LLM_MODEL
         if not model_name or "2.5" in str(model_name):
             model_name = "gemini-1.5-flash"
@@ -861,12 +1031,13 @@ def get_ai_provider() -> BaseAIProvider:
             model_name=model_name,
             timeout_seconds=settings.LLM_TIMEOUT_SECONDS
         )
+
     return MockAIProvider()
 
 
 def get_ai_provider_status() -> Dict[str, Any]:
     provider = get_ai_provider()
-    if isinstance(provider, GeminiAIProvider):
+    if isinstance(provider, (GeminiAIProvider, GroqAIProvider)):
         return provider.get_status()
     return {
         "provider": "mock",
@@ -875,4 +1046,3 @@ def get_ai_provider_status() -> Dict[str, Any]:
         "ready": True,
         "message": "Deterministic financial calculation engine active (zero external cloud dependencies)."
     }
-

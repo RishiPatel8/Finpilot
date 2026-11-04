@@ -467,5 +467,164 @@ export const FINANCIAL_TERMS_REGISTRY: Record<string, FinancialTermExplanation> 
     limitations:
       'Investment returns are never guaranteed, whereas loan interest payments are legally obligatory and guaranteed.',
   },
-};
+  // Term Life Insurance
+  term_insurance: {
+    id: 'term_insurance',
+    title: 'Pure Term Life Insurance',
+    technicalTerm: 'Pure Risk Protection Life Cover',
+    category: 'health',
+    simpleMeaning:
+      'A simple insurance policy where you pay a small yearly premium, and if you pass away unexpectedly during the policy period, your family receives a large tax-free payout to replace your income.',
+    whyItMatters:
+      'Unlike traditional life policies (like ULIPs or endowment plans) that mix insurance with poor investment returns (4% to 6%), pure term insurance provides 10 to 15 times your annual salary at a fraction of the cost.',
+    example:
+      'A 28-year-old earning ₹10 Lakhs a year can get ₹1.5 Crore pure term coverage until age 60 for around ₹12,000 to ₹15,000 per year, guaranteeing that their dependents can clear home loans and fund living expenses if the unexpected occurs.',
+    calculation:
+      'Recommended Cover = 10 to 15 × Gross Annual Income + Outstanding Liabilities (Home/Car Loans) - Existing Liquid Assets.',
+    limitations:
+      'Term insurance has zero cash return if you survive the policy tenure. It is pure protection, not an investment instrument.',
+    actionableTip:
+      'Always keep insurance and investments strictly separate: buy pure term insurance for protection and invest your surplus in low-cost mutual funds or provident funds.'
+  },
 
+  // Health Insurance & Super Top-Up
+  health_insurance_super_topup: {
+    id: 'health_insurance_super_topup',
+    title: 'Health Insurance & Super Top-Up',
+    technicalTerm: 'Aggregate Deductible Medical Super Top-Up Policy',
+    category: 'health',
+    simpleMeaning:
+      'A two-layer health shield: a base policy that covers normal hospital bills, paired with a super top-up policy that kicks in for large catastrophic hospital bills at very low cost.',
+    whyItMatters:
+      'Medical inflation in India runs at 12% to 14% annually. A simple ₹5 Lakh policy is easily exhausted by a major cardiac surgery or prolonged ICU stay. A super top-up adds ₹25 to ₹50 Lakhs of protection without expensive premiums.',
+    example:
+      'With a base policy of ₹5 Lakh and a ₹25 Lakh super top-up with a ₹5 Lakh deductible: if a hospital bill is ₹18 Lakh, the base policy pays the first ₹5 Lakh and the super top-up pays the remaining ₹13 Lakh.',
+    calculation:
+      'Premiums qualify for deductions under Section 80D: up to ₹25,000 for self/family and up to ₹50,000 for senior citizen parents (up to ₹75,000 total deduction per year in the Old Tax Regime).',
+    limitations:
+      'Super top-ups require you to satisfy the deductible threshold across the policy year before paying claims. Always ensure pre-existing disease waiting periods match your base policy.',
+    actionableTip:
+      'Never rely solely on corporate employer health insurance, because cover terminates immediately if you change jobs or retire.'
+  },
+
+  // Debt-to-Income (DTI) Ratio
+  debt_to_income_ratio: {
+    id: 'debt_to_income_ratio',
+    title: 'Debt-to-Income (DTI) Ratio',
+    technicalTerm: 'Fixed Obligation to Income Ratio (FOIR / DTI)',
+    category: 'debt',
+    simpleMeaning:
+      'The percentage of your net monthly take-home salary that goes directly toward paying loan EMIs and credit card dues.',
+    whyItMatters:
+      'Lenders and banks use DTI to decide whether you can afford a new loan. More importantly, a high DTI leaves you vulnerable if an emergency arises or your income drops.',
+    example:
+      'If your take-home pay is ₹1,00,000 per month and your total monthly EMIs (car loan + personal loan) are ₹30,000, your DTI is 30% (Healthy). If your EMIs total ₹55,000, your DTI is 55% (High Risk).',
+    calculation:
+      'DTI = (Total Monthly Loan & Debt EMIs ÷ Net Monthly Take-Home Income) × 100. Benchmark: <35% Healthy, 36%-49% Caution, ≥50% Critical.',
+    limitations:
+      'DTI only measures debt payments against income; it does not account for mandatory non-debt fixed costs like rent or children\'s tuition fees.',
+    actionableTip:
+      'Before taking on any new loan or EMI, verify that your total post-loan DTI will remain safely below 35%.'
+  },
+
+  // Debt Avalanche vs Snowball
+  debt_avalanche_vs_snowball: {
+    id: 'debt_avalanche_vs_snowball',
+    title: 'Debt Payoff: Avalanche vs. Snowball',
+    technicalTerm: 'Optimal Liability Elimination Strategies',
+    category: 'debt',
+    simpleMeaning:
+      'Two proven methods to get out of debt: Avalanche focuses on paying the highest interest rate first to save the most money; Snowball focuses on paying the smallest balance first for quick psychological momentum.',
+    whyItMatters:
+      'Choosing the right strategy helps you stay consistent and eliminate high-cost interest draining your monthly cash flow.',
+    example:
+      'If you owe ₹50,000 on a credit card at 40% interest and ₹2,00,000 on a personal loan at 13%: Avalanche pays extra towards the credit card first, saving thousands in interest. Snowball pays off the credit card first too because it happens to be the smallest balance.',
+    calculation:
+      'FinPilot amortizes your actual liabilities under reducing balance interest and compares total interest saved and payoff months between Avalanche and Snowball.',
+    limitations:
+      'Both methods require maintaining minimum payments on all other loans to prevent penalties and credit score damage.',
+    actionableTip:
+      'Use Avalanche if you are disciplined and want to save maximum interest; use Snowball if you need immediate motivational wins.'
+  },
+
+  // Tax Harvesting
+  tax_harvesting: {
+    id: 'tax_harvesting',
+    title: 'Tax-Loss & LTCG Exemption Harvesting',
+    technicalTerm: 'Section 112A Annual Capital Gains Harvesting',
+    category: 'tax',
+    simpleMeaning:
+      'Selling a portion of your mutual fund or stock holdings every financial year to utilize the tax-free ₹1,25,000 Long-Term Capital Gains (LTCG) limit, then immediately reinvesting the proceeds.',
+    whyItMatters:
+      'Under the Finance Act 2024, equity LTCG above ₹1,25,000 is taxed at 12.5%. If you don\'t use your ₹1,25,000 exemption before March 31, that year\'s tax-free allowance is permanently lost.',
+    example:
+      'If you have ₹1,20,000 in unrealized long-term gains in equity mutual funds, selling those units before March 31 incurs ₹0 tax. Reinvesting immediately resets your purchase price, saving you ₹15,000 in future tax when you eventually withdraw.',
+    calculation:
+      'Tax Saved = Min(Realized Long-Term Gains, ₹1,25,000) × 12.5%.',
+    limitations:
+      'Applies only to units held for longer than 12 months. Be mindful of exit loads (usually 1% if redeemed within 365 days) and reinvestment settlement time (T+1/T+2 days).',
+    actionableTip:
+      'Review your portfolio capital gains statement every February or March to harvest up to ₹1.25 Lakh tax-free gains.'
+  },
+
+  // Sovereign Gold Bonds
+  sovereign_gold_bonds: {
+    id: 'sovereign_gold_bonds',
+    title: 'Sovereign Gold Bonds (SGB)',
+    technicalTerm: 'RBI Sovereign Gold Bond Scheme',
+    category: 'investment',
+    simpleMeaning:
+      'Government-backed bonds denominated in grams of gold that pay an annual interest of 2.50% and are completely exempt from capital gains tax if held until maturity (8 years).',
+    whyItMatters:
+      'Buying physical gold incurs 3% GST, 10% to 25% making charges, and storage risks. SGBs eliminate all making charges and taxes upon maturity while paying regular interest.',
+    example:
+      'If you buy 10 grams worth of SGBs at ₹7,000/gram (₹70,000 investment), you earn ₹1,750 every year in interest. If gold doubles to ₹14,000/gram in 8 years, you receive the full ₹1,40,000 with zero capital gains tax.',
+    calculation:
+      'Annual Coupon = 2.50% × Initial Issue Price, paid semi-annually. Capital Gains Tax on 8-year maturity = 0% under Section 47(viic) of Income-tax Act.',
+    limitations:
+      '8-year lock-in (with premature exit options from year 5 on coupon dates). Premature secondary market sales on stock exchanges do not qualify for complete tax exemption.',
+    actionableTip:
+      'Keep gold allocation strictly between 5% and 10% of your portfolio as an inflation hedge rather than a primary growth engine.'
+  },
+
+  // Section 44ADA Presumptive Taxation
+  section_44ada: {
+    id: 'section_44ada',
+    title: 'Presumptive Taxation for Freelancers (44ADA)',
+    technicalTerm: 'Section 44ADA Presumptive Scheme for Specified Professionals',
+    category: 'tax',
+    simpleMeaning:
+      'A simplified tax scheme for freelancers, software developers, doctors, lawyers, and consultants earning up to ₹75 Lakhs per year, where the government assumes your profit is 50% of your gross income with zero bookkeeping required.',
+    whyItMatters:
+      'Freelancers do not need to maintain complex accounting ledgers or get their accounts audited by a Chartered Accountant, significantly slashing tax compliance costs.',
+    example:
+      'If you are a freelance software developer earning ₹40 Lakhs from clients: Section 44ADA treats exactly ₹20 Lakhs as your taxable income and the remaining ₹20 Lakhs as presumed expenses, saving hours of receipt tracking.',
+    calculation:
+      'Deemed Profit = Minimum 50% of Gross Receipts. Available if gross receipts are up to ₹75 Lakhs (provided cash receipts are ≤5% of total; otherwise ₹50 Lakhs limit applies).',
+    limitations:
+      'Available only to specified professionals (IT, legal, medical, accounting, architectural, engineering, technical consultancy). Cannot claim separate itemized business expense deductions if opting for 44ADA.',
+    actionableTip:
+      'If your genuine business expenses are significantly higher than 50% of your receipts, traditional accounting with actual expense deductions may yield lower tax.'
+  },
+
+  // Low-Cost Index Funds
+  index_funds: {
+    id: 'index_funds',
+    title: 'Low-Cost Index Mutual Funds',
+    technicalTerm: 'Passive Broad-Market Index Schemes (Nifty 50 / Sensex)',
+    category: 'investment',
+    simpleMeaning:
+      'A mutual fund that automatically mirrors a major market index (like the Nifty 50) without paying expensive fund managers to pick individual stocks.',
+    whyItMatters:
+      'Over 10 to 15 years, more than 80% of actively managed large-cap mutual funds fail to beat the Nifty 50 after deducting high management fees. Index funds charge ultra-low fees (0.10% to 0.20%), leaving more compounding returns in your pocket.',
+    example:
+      'Investing ₹10,000/month for 20 years in an active fund with a 1.8% expense ratio earning 12% gross yields ~₹76 Lakh. In a low-cost index fund with a 0.15% fee, you finish with ~₹92 Lakh—an extra ₹16 Lakh purely from fee savings.',
+    calculation:
+      'Fund Return = Benchmark Index Return minus Tracking Error minus Expense Ratio (TER).',
+    limitations:
+      'Index funds fluctuate with the broader market and provide zero downside protection during bear markets or recessions.',
+    actionableTip:
+      'Use broad index funds (Nifty 50 and Nifty Next 50) as the foundational core of your long-term equity SIP portfolio.'
+  },
+
+};

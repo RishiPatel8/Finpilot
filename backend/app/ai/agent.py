@@ -70,93 +70,7 @@ class FinancialAgent:
         now = datetime.now(timezone.utc)
 
         # -------------------------------------------------------------
-        # STEP 1: Direct Action Confirmation or Cancellation ("Confirm" / "Cancel")
-        # -------------------------------------------------------------
-        if user:
-            # Check for active pending action awaiting authorization
-            active_pending = db.query(PendingAction).filter(
-                PendingAction.user_id == user.id,
-                PendingAction.status == "awaiting_confirmation",
-                PendingAction.expires_at > now
-            ).order_by(PendingAction.created_at.desc()).first()
-
-            if active_pending:
-                confirm_indicators = [
-                    "confirm", "yes", "proceed", "execute", "create", "create it", "approve",
-                    "do it", "go ahead", "ok", "okay", "sure", "yep", "yeah", "save", "save it",
-                    "record it", "confirm the creation", "confirm creation", "create debt", "create the debt",
-                    "yes, confirm", "yes confirm", "confirm and execute", "please confirm", "confirm please"
-                ]
-                has_negative = any(neg in msg_lower for neg in ["don't", "dont", "do not", "cancel", "no", "nevermind", "abort", "stop", "reject"])
-                import re
-                is_confirm = (
-                    any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in confirm_indicators)
-                    and not has_negative
-                )
-
-                if is_confirm:
-                    res = ActionExecutor.confirm_and_execute(
-                        action_id=active_pending.id,
-                        user=user,
-                        db=db
-                    )
-                    record_details = ""
-                    if res.status == "succeeded" and res.result:
-                        items = [f"- **{k.replace('_', ' ').title()}**: {v}" for k, v in res.result.items() if k != "entity"]
-                        if items:
-                            record_details = "\n\n**Persisted Record Details**:\n" + "\n".join(items)
-
-                    return {
-                        "content": f"### Action Confirmed & Verified\n\n{res.message}{record_details}",
-                        "citations": ["FinPilot Safe Financial Execution Protocol"],
-                        "tool_invocations": [{
-                            "tool": "action_executor",
-                            "summary": f"Executed action {active_pending.id[:8]} ({active_pending.action_type}) with database verification."
-                        }],
-                        "pending_action": {
-                            "id": active_pending.id,
-                            "action_type": active_pending.action_type,
-                            "target_entity": active_pending.target_entity,
-                            "status": res.status,
-                            "parameters": active_pending.parameters,
-                            "preview": active_pending.preview,
-                            "execution_result": res.result,
-                            "expires_at": active_pending.expires_at.isoformat()
-                        },
-                        "clarification": None,
-                        "status": res.status
-                    }
-
-                cancel_indicators = ["cancel", "abort", "nevermind", "dont", "don't", "do not", "stop", "reject"]
-                is_cancel = any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in cancel_indicators) or msg_lower in ["no", "no.", "n"]
-                if is_cancel:
-                    res = ActionExecutor.cancel_action(
-                        action_id=active_pending.id,
-                        user=user,
-                        db=db
-                    )
-                    return {
-                        "content": "Proposed action has been safely cancelled. No changes were made to your records.",
-                        "citations": ["FinPilot Safe Financial Execution Protocol"],
-                        "tool_invocations": [{
-                            "tool": "action_executor",
-                            "summary": f"Safely cancelled pending action {active_pending.id[:8]}"
-                        }],
-                        "pending_action": {
-                            "id": active_pending.id,
-                            "action_type": active_pending.action_type,
-                            "target_entity": active_pending.target_entity,
-                            "status": "cancelled",
-                            "parameters": active_pending.parameters,
-                            "preview": active_pending.preview,
-                            "expires_at": active_pending.expires_at.isoformat()
-                        },
-                        "clarification": None,
-                        "status": "cancelled"
-                    }
-
-        # -------------------------------------------------------------
-        # STEP 2: Persistent Clarification Resolution (User- and Conversation-Scoped)
+        # STEP 1: Persistent Clarification Resolution (User- and Conversation-Scoped)
         # -------------------------------------------------------------
         if user:
             active_clarification = None
@@ -274,6 +188,92 @@ class FinancialAgent:
                         },
                         "clarification": None,
                         "status": "awaiting_confirmation"
+                    }
+
+        # -------------------------------------------------------------
+        # STEP 2: Direct Action Confirmation or Cancellation ("Confirm" / "Cancel")
+        # -------------------------------------------------------------
+        if user:
+            # Check for active pending action awaiting authorization
+            active_pending = db.query(PendingAction).filter(
+                PendingAction.user_id == user.id,
+                PendingAction.status == "awaiting_confirmation",
+                PendingAction.expires_at > now
+            ).order_by(PendingAction.created_at.desc()).first()
+
+            if active_pending:
+                confirm_indicators = [
+                    "confirm", "yes", "proceed", "execute", "create", "create it", "approve",
+                    "do it", "go ahead", "ok", "okay", "sure", "yep", "yeah", "save", "save it",
+                    "record it", "confirm the creation", "confirm creation", "create debt", "create the debt",
+                    "yes, confirm", "yes confirm", "confirm and execute", "please confirm", "confirm please"
+                ]
+                has_negative = any(neg in msg_lower for neg in ["don't", "dont", "do not", "cancel", "no", "nevermind", "abort", "stop", "reject"])
+                import re
+                is_confirm = (
+                    any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in confirm_indicators)
+                    and not has_negative
+                )
+
+                if is_confirm:
+                    res = ActionExecutor.confirm_and_execute(
+                        action_id=active_pending.id,
+                        user=user,
+                        db=db
+                    )
+                    record_details = ""
+                    if res.status == "succeeded" and res.result:
+                        items = [f"- **{k.replace('_', ' ').title()}**: {v}" for k, v in res.result.items() if k != "entity"]
+                        if items:
+                            record_details = "\n\n**Persisted Record Details**:\n" + "\n".join(items)
+
+                    return {
+                        "content": f"### Action Confirmed & Verified\n\n{res.message}{record_details}",
+                        "citations": ["FinPilot Safe Financial Execution Protocol"],
+                        "tool_invocations": [{
+                            "tool": "action_executor",
+                            "summary": f"Executed action {active_pending.id[:8]} ({active_pending.action_type}) with database verification."
+                        }],
+                        "pending_action": {
+                            "id": active_pending.id,
+                            "action_type": active_pending.action_type,
+                            "target_entity": active_pending.target_entity,
+                            "status": res.status,
+                            "parameters": active_pending.parameters,
+                            "preview": active_pending.preview,
+                            "execution_result": res.result,
+                            "expires_at": active_pending.expires_at.isoformat()
+                        },
+                        "clarification": None,
+                        "status": res.status
+                    }
+
+                cancel_indicators = ["cancel", "abort", "nevermind", "dont", "don't", "do not", "stop", "reject"]
+                is_cancel = any(re.search(rf"\b{re.escape(w)}\b", msg_lower) for w in cancel_indicators) or msg_lower in ["no", "no.", "n"]
+                if is_cancel:
+                    res = ActionExecutor.cancel_action(
+                        action_id=active_pending.id,
+                        user=user,
+                        db=db
+                    )
+                    return {
+                        "content": "Proposed action has been safely cancelled. No changes were made to your records.",
+                        "citations": ["FinPilot Safe Financial Execution Protocol"],
+                        "tool_invocations": [{
+                            "tool": "action_executor",
+                            "summary": f"Safely cancelled pending action {active_pending.id[:8]}"
+                        }],
+                        "pending_action": {
+                            "id": active_pending.id,
+                            "action_type": active_pending.action_type,
+                            "target_entity": active_pending.target_entity,
+                            "status": "cancelled",
+                            "parameters": active_pending.parameters,
+                            "preview": active_pending.preview,
+                            "expires_at": active_pending.expires_at.isoformat()
+                        },
+                        "clarification": None,
+                        "status": "cancelled"
                     }
 
         # -------------------------------------------------------------

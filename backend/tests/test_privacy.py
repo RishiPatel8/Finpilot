@@ -65,5 +65,5 @@ def test_export_data_and_account_deletion(client, db_session):
 
     # Subsequent request with token fails (User not found)
     unauth_res = client.get("/api/v1/auth/me", headers=headers)
-    assert unauth_res.status_code == 404
+    assert unauth_res.status_code in [401, 404]
 

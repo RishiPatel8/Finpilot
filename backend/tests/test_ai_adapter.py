@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from app.ai.adapter import MockAIProvider, GeminiAIProvider, get_ai_provider, get_ai_provider_status
+from app.ai.adapter import MockAIProvider, GeminiAIProvider, GroqAIProvider, get_ai_provider, get_ai_provider_status
 from app.rag.knowledge import KnowledgeRetriever
 from app.ai.tools import AVAILABLE_TOOLS
 
@@ -132,3 +132,24 @@ def test_gemini_provider_auto_sanitizes_2_5_model_name():
     # Must automatically sanitize to gemini-1.5-flash
     assert provider.model_name == "gemini-1.5-flash"
     assert provider.get_status()["model"] == "gemini-1.5-flash"
+
+
+def test_groq_provider_missing_key_fallback():
+    provider = GroqAIProvider(api_key="", model_name="qwen/qwen3.8-27b")
+    status = provider.get_status()
+    assert status["ready"] is False
+    assert status["status"] == "missing_api_key"
+
+    res = provider.generate_response("Compare tax for 15 LPA salary in new regime vs old regime")
+    assert "Tax Analysis" in res["content"]
+    assert res["status"] == "fallback_mock"
+    assert res["provider"] == "mock"
+
+
+def test_groq_provider_auto_detection_from_key(monkeypatch):
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "LLM_PROVIDER", "gemini")
+    monkeypatch.setattr(settings, "LLM_API_KEY", "gsk_test_groq_key_12345")
+    provider = get_ai_provider()
+    assert isinstance(provider, GroqAIProvider)
+    assert provider.api_key == "gsk_test_groq_key_12345"

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List, Union
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -34,7 +35,7 @@ class Settings(BaseSettings):
         return []
 
     # AI Configuration (Cloud-only Gemini & Deterministic Mock)
-    LLM_PROVIDER: str = "mock"  # mock, gemini
+    LLM_PROVIDER: str = "mock"  # mock, gemini, groq
     LLM_API_KEY: str = ""
     LLM_MODEL: str = "gemini-1.5-flash"
     LLM_TIMEOUT_SECONDS: float = 15.0
@@ -73,8 +74,14 @@ class Settings(BaseSettings):
     TELEGRAM_WEBHOOK_URL: str = "https://finpilot-zs9v.onrender.com/api/v1/telegram/webhook"
     TELEGRAM_POLLING_MODE: bool = False
 
+    _backend_dir = Path(__file__).resolve().parent.parent.parent
     model_config = SettingsConfigDict(
-        env_file=(".env", "backend/.env"),
+        env_file=(
+            str(_backend_dir / ".env"),
+            str(_backend_dir.parent / ".env"),
+            ".env",
+            "backend/.env",
+        ),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore"

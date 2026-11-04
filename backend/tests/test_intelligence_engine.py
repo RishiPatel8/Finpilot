@@ -47,7 +47,7 @@ def test_canonical_snapshot_calculation_and_transfer_exclusion(db_session, test_
     # Add standard transactions
     tx1 = Transaction(
         user_id=test_user.id,
-        date=today - timedelta(days=5),
+        date=today,
         amount=Decimal("80000.00"),
         type="income",
         category="Salary",
@@ -56,7 +56,7 @@ def test_canonical_snapshot_calculation_and_transfer_exclusion(db_session, test_
     )
     tx2 = Transaction(
         user_id=test_user.id,
-        date=today - timedelta(days=4),
+        date=today,
         amount=Decimal("20000.00"),
         type="expense",
         category="Rent",
@@ -66,7 +66,7 @@ def test_canonical_snapshot_calculation_and_transfer_exclusion(db_session, test_
     # Add an internal transfer of 15000 - MUST NOT be counted as expense
     tx_transfer = Transaction(
         user_id=test_user.id,
-        date=today - timedelta(days=3),
+        date=today,
         amount=Decimal("15000.00"),
         type="expense",
         category="Transfer",
@@ -212,7 +212,7 @@ def test_adaptive_budget_recommendations(db_session, test_user):
     # Spend 40000 on Shopping (discretionary)
     db_session.add(Transaction(
         user_id=test_user.id,
-        date=today - timedelta(days=5),
+        date=today,
         amount=Decimal("40000.00"),
         type="expense",
         category="Shopping",

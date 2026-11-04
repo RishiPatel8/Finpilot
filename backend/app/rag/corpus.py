@@ -115,6 +115,8 @@ OFFICIAL_FINANCIAL_CORPUS: List[Dict[str, Any]] = [
         "effective_date": "2020-02-04",
         "superseded_by": None,
         "content": (
+            "All types of bank deposits, including savings accounts, fixed deposits (FDs), current accounts, and recurring deposits (RDs), "
+            "are fully insured under DICGC if a bank fails or undergoes liquidation. "
             "Each depositor in an insured commercial bank, cooperative bank, regional rural bank (RRB), or small finance bank "
             "is insured up to a maximum limit of ₹5,00,000 (Rupees Five Lakhs) for both principal and interest. "
             "The ₹5 Lakh limit applies per depositor across all branches of that bank held in the same capacity and same right. "
@@ -200,5 +202,160 @@ OFFICIAL_FINANCIAL_CORPUS: List[Dict[str, Any]] = [
             "3. TDS Exemption: Under Section 194A, banks and post offices shall not deduct TDS unless the aggregate interest paid or credited during the financial year exceeds ₹50,000."
         ),
         "tags": ["tax", "retirement", "senior citizen", "80TTB", "FD interest", "TDS", "194A", "savings interest"]
+    },
+    {
+        "id": "doc-insurance-term-health-protection",
+        "title": "Comprehensive Protection Framework - Pure Term Life & Health Super Top-Up",
+        "publisher": "Insurance Regulatory and Development Authority of India (IRDAI) & Financial Planning Standards",
+        "citation": "IRDAI Protection Guidelines & Section 80D of Income-tax Act, 1961",
+        "url": "https://irdai.gov.in",
+        "jurisdiction": "IN",
+        "topic": "insurance",
+        "effective_date": "2024-04-01",
+        "superseded_by": None,
+        "content": (
+            "Foundational personal risk protection mandates two non-negotiable insurance pillars: "
+            "1. Pure Term Life Insurance: Breadwinners with financial dependents should secure pure term life coverage "
+            "equal to 10 to 15 times their gross annual income, with coverage extending until target retirement age (age 60 to 65). "
+            "Avoid investment-linked life insurance (ULIPs and traditional endowment plans) due to high upfront mortality and admin charges, "
+            "opaque sub-par returns (often 4% to 6% p.a.), and severely inadequate death coverage. "
+            "2. Health Insurance & Super Top-Up: Maintain a base individual or family floater health insurance policy of ₹5 to ₹10 Lakhs, "
+            "supplemented with a high-deductible Super Top-Up policy (e.g., ₹25 to ₹50 Lakhs cover with a ₹5 Lakh deductible). "
+            "Super top-ups cover aggregate medical claims across the entire policy year at 70% to 80% lower premium costs compared to standalone high-sum insured policies. "
+            "Under Section 80D, premiums paid qualify for income tax deductions up to ₹25,000 for self/family and up to ₹50,000 for senior citizen parents."
+        ),
+        "tags": ["insurance", "term insurance", "health insurance", "super top-up", "IRDAI", "80D", "family floater", "ULIP"]
+    },
+    {
+        "id": "doc-emergency-runway-hierarchy",
+        "title": "Emergency Runway Sizing and Liquidity Hierarchy",
+        "publisher": "Reserve Bank of India & Certified Financial Planner Board",
+        "citation": "FinPilot Financial Safety Standard 101 & SEBI Liquid Mutual Fund Norms",
+        "url": "https://rbi.org.in",
+        "jurisdiction": "IN",
+        "topic": "liquidity",
+        "effective_date": "2024-01-01",
+        "superseded_by": None,
+        "content": (
+            "An emergency fund is the bedrock of household financial solvency: "
+            "1. Sizing: Salaried employees with stable jobs require a minimum of 3 to 6 months of mandatory living expenses "
+            "(rent/housing EMIs, groceries, utility bills, school fees, active insurance premiums). "
+            "Freelancers, contract workers, and single-income households should target 9 to 12 months of living costs. "
+            "2. Allocation Hierarchy: Split emergency reserves across three tiers for optimal safety and speed: "
+            "Tier 1 (Instant): 1 month of expenses in a high-yield savings account or sweep-in fixed deposit with instant ATM/UPI access. "
+            "Tier 2 (T+0/T+1): 2 to 3 months of expenses in SEBI-regulated Liquid Mutual Funds offering instant redemption up to ₹50,000/day via IMPS. "
+            "Tier 3 (T+2): Remaining 2 to 3 months in high-rated short-term bank fixed deposits (FDs) with scheduled banks protected by DICGC up to ₹5,00,000. "
+            "3. Sacred Rule: Never deploy emergency reserves into equities, corporate fixed deposits, crypto, or locked-in tax-saving schemes."
+        ),
+        "tags": ["emergency fund", "runway", "liquidity", "savings buffer", "liquid funds", "cash reserve"]
+    },
+    {
+        "id": "doc-debt-strategies-avalanche-snowball-dti",
+        "title": "Debt Reduction Strategies - Avalanche vs Snowball & Debt-to-Income (DTI) Benchmarks",
+        "publisher": "Indian Banks' Association (IBA) & Credit Information Bureau India Limited (CIBIL)",
+        "citation": "CIBIL Credit Health Metrics & Deterministic Debt Amortization Standards",
+        "url": "https://cibil.com",
+        "jurisdiction": "IN",
+        "topic": "debt",
+        "effective_date": "2024-01-01",
+        "superseded_by": None,
+        "content": (
+            "Managing liabilities and consumer debt requires mathematical rigor: "
+            "1. Debt Avalanche Method (Financially Optimal): Pay minimum dues on all liabilities, then channel 100% of spare surplus "
+            "towards the loan with the highest interest rate (APR). Typically targets credit card rollovers (36% to 42% p.a.) and unsecured personal loans (12% to 18% p.a.). "
+            "This strategy minimizes total lifetime interest paid and accelerates debt-freedom mathematically. "
+            "2. Debt Snowball Method (Behavioral & Psychological): Pay minimum dues on all liabilities, then aggressively repay the loan with the smallest outstanding balance first, "
+            "regardless of interest rate. Once cleared, roll its full payment amount into the next smallest debt. Creates quick psychological wins. "
+            "3. Debt-to-Income (DTI) Ratios: Healthy DTI is below 35% of net monthly take-home salary. "
+            "A DTI between 36% and 49% indicates moderate financial stress. A DTI of 50% or higher signals severe debt vulnerability and threatens loan eligibility. "
+            "4. Prepayment Rule: When receiving annual bonuses or tax refunds, prioritizing prepayment of reducing-balance loans significantly shortens tenure."
+        ),
+        "tags": ["debt", "loans", "avalanche", "snowball", "DTI", "credit score", "EMI", "interest rate", "CIBIL"]
+    },
+    {
+        "id": "doc-invest-asset-allocation-framework",
+        "title": "Asset Allocation, Compounding Mechanics & LTCG Exemption Harvesting",
+        "publisher": "Association of Mutual Funds in India (AMFI) & Ministry of Finance",
+        "citation": "AMFI Best Practice Guidelines & Section 112A Income-tax Act, 1961",
+        "url": "https://amfiindia.com",
+        "jurisdiction": "IN",
+        "topic": "investment",
+        "effective_date": "2024-07-23",
+        "superseded_by": None,
+        "content": (
+            "Disciplined wealth accumulation relies on asset allocation and systematic compounding: "
+            "1. Asset Allocation Baseline: Tailor portfolio risk based on horizon and capacity. A standard heuristic is '100 minus age' in equity, "
+            "or allocating 60% to 75% in equity for goals >7 years away, and transitioning to debt instruments as goals approach within 3 years. "
+            "2. Low-Cost Index Investing: Core equity exposure is most effectively captured through broad-market low-cost index funds "
+            "(e.g., Nifty 50 and Nifty Next 50 index funds with Total Expense Ratios below 0.20%), eliminating fund manager alpha risk. "
+            "3. Tax Harvesting under Section 112A: Section 112A provides an annual tax-free allowance of ₹1,25,000 for long-term capital gains on listed equity. "
+            "Disciplined investors harvest this exemption every March by redeeming units with unrealized gains up to ₹1,25,000 tax-free and immediately reinvesting, "
+            "resetting the acquisition cost base and saving up to ₹15,625 in future tax every financial year. "
+            "4. Compounding Rule of 72: Divide 72 by expected annual return to determine doubling time (e.g., 72 / 12% = 6 years to double capital)."
+        ),
+        "tags": ["investment", "asset allocation", "index funds", "tax harvesting", "compounding", "LTCG", "SIP", "AMFI"]
+    },
+    {
+        "id": "doc-sgb-gold-investment",
+        "title": "Sovereign Gold Bonds (SGB) - Sovereign Guarantee and Tax-Free Capital Gains",
+        "publisher": "Reserve Bank of India (RBI)",
+        "citation": "Government of India Sovereign Gold Bond Scheme & Section 47(viic) Income-tax Act, 1961",
+        "url": "https://rbi.org.in",
+        "jurisdiction": "IN",
+        "topic": "investment",
+        "effective_date": "2024-04-01",
+        "superseded_by": None,
+        "content": (
+            "Sovereign Gold Bonds (SGBs) represent the most tax-efficient method to hold gold in India: "
+            "1. Sovereign Guarantee: Issued by RBI on behalf of the Government of India, denominated in grams of gold. Eliminates storage costs, theft risks, and making charges associated with physical gold. "
+            "2. Semi-Annual Interest: Pays an assured interest rate of 2.50% per annum on the nominal issue value, credited semi-annually directly to the investor's bank account (taxable at slab rates). "
+            "3. Complete Capital Gains Exemption: Under Section 47(viic) of the Income-tax Act, 1961, capital gains tax arising on redemption of SGBs by an individual upon maturity (8 years) is 100% tax-exempt. "
+            "4. Portfolio Guideline: Gold should serve strictly as an inflation and currency hedge, capped between 5% and 10% of total portfolio net worth."
+        ),
+        "tags": ["gold", "SGB", "sovereign gold bond", "RBI", "tax exemption", "Section 47(viic)", "hedge", "precious metals"]
+    },
+    {
+        "id": "doc-home-purchase-3203040",
+        "title": "Real Estate Purchase Affordability Guidelines - The 3/20/30/40 Rule",
+        "publisher": "Housing Development & Mortgage Financial Guidelines",
+        "citation": "National Housing Bank (NHB) Prudent Lending Framework & Real Estate Planning Benchmarks",
+        "url": "https://nhb.org.in",
+        "jurisdiction": "IN",
+        "topic": "real_estate",
+        "effective_date": "2024-01-01",
+        "superseded_by": None,
+        "content": (
+            "Buying a residential property is often the largest financial commitment of a lifetime. Follow prudent guardrails: "
+            "1. Total Purchase Price Cap (3x-4x Rule): The total cost of the property (including stamp duty, registration, and furnishings) "
+            "should ideally not exceed 3 to 4 times your gross household annual income. "
+            "2. Down Payment (20% Minimum): Put down at least 20% to 25% of property value from dedicated savings, without depleting your 6-month emergency reserve. "
+            "Borrowing personal loans for down payments introduces extreme systemic risk. "
+            "3. Loan Tenure Cap (20 Years): Limit mortgage tenure to a maximum of 15 to 20 years. 30-year loans result in paying more in total interest than the original property purchase price. "
+            "4. EMI Cap (30% to 35%): Total monthly mortgage EMI should stay strictly below 30% to 35% of net monthly take-home income, "
+            "leaving ample cash flow for living expenses, children's education, and retirement SIPs."
+        ),
+        "tags": ["real estate", "home loan", "mortgage", "housing", "affordability", "down payment", "EMI", "NHB"]
+    },
+    {
+        "id": "doc-ppf-epf-sovereign-schemes",
+        "title": "Public Provident Fund (PPF) & Employee Provident Fund (EPF) - Triple Tax Exemption (EEE)",
+        "publisher": "Ministry of Finance & Employees' Provident Fund Organisation (EPFO)",
+        "citation": "Public Provident Fund Scheme, 2019 & Employees' Provident Funds and Miscellaneous Provisions Act, 1952",
+        "url": "https://epfindia.gov.in",
+        "jurisdiction": "IN",
+        "topic": "retirement",
+        "effective_date": "2024-04-01",
+        "superseded_by": None,
+        "content": (
+            "PPF and EPF offer premier sovereign-backed fixed income with Exempt-Exempt-Exempt (EEE) status: "
+            "1. Triple Tax Exemption: Contributions are tax-deductible under Section 80C (up to ₹1.5 Lakhs/year), "
+            "accumulated annual interest is 100% tax-free, and maturity payouts are completely tax-free. "
+            "2. PPF Features: 15-year tenure with option to extend in blocks of 5 years. Sovereign guarantee with zero default risk. "
+            "Protected from court attachment for debts under Section 15 of Government Savings Banks Act. Minimum ₹500, maximum ₹1,50,000 per financial year. "
+            "3. EPF Mechanics: Salaried employee contributes 12% of basic salary + DA, matched by employer. "
+            "Note: Employee contributions exceeding ₹2.5 Lakhs per financial year generate taxable interest under Section 10(11)/10(12)."
+        ),
+        "tags": ["PPF", "EPF", "provident fund", "EEE", "80C", "sovereign", "retirement", "fixed income", "tax free"]
     }
+
 ]
