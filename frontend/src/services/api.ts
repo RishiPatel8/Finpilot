@@ -26,7 +26,8 @@ export const clearAuthToken = (): void => {
 
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retries = 1
 ): Promise<T> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
@@ -81,7 +82,19 @@ export async function apiRequest<T>(
     if (err instanceof ApiError) {
       throw err;
     }
-    throw new ApiError((err as Error).message || 'Network error', 0);
+
+    if (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return apiRequest<T>(endpoint, options, retries - 1);
+    }
+
+    const rawMsg = (err as Error).message || '';
+    const friendlyMsg =
+      rawMsg.toLowerCase().includes('failed to fetch') || rawMsg.toLowerCase().includes('network')
+        ? 'Unable to reach backend server (it may be waking up from sleep). Please click to try again.'
+        : rawMsg || 'Network error';
+
+    throw new ApiError(friendlyMsg, 0);
   }
 }
 
