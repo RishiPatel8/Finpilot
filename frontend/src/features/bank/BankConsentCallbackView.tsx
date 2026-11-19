@@ -197,7 +197,7 @@ export const BankConsentCallbackView: React.FC<BankConsentCallbackViewProps> = (
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-semibold text-slate-900">
-                                ₹{acc.current_balance.toLocaleString('en-IN')}
+                                ₹{(acc.current_balance ?? 0).toLocaleString('en-IN')}
                               </p>
                               <span className="text-[10px] text-emerald-600 font-medium">
                                 Verified Synced

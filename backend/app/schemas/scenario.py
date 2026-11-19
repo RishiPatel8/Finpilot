@@ -76,6 +76,7 @@ class LoanAnalysis(BaseModel):
     total_amount_repaid: float
     total_interest_paid: float
     processing_fee_amount: float
+    processing_fee: Optional[float] = None
     total_cost_of_ownership: float
 
 

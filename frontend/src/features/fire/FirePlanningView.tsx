@@ -173,7 +173,7 @@ export const FirePlanningView: React.FC = () => {
     } else if (val >= 100000) {
       return `₹${(val / 100000).toFixed(2)} L`;
     }
-    return `₹${Math.round(val).toLocaleString('en-IN')}`;
+    return `₹${Math.round(val || 0).toLocaleString('en-IN')}`;
   };
 
   // Quick preset handlers

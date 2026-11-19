@@ -214,7 +214,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <div className="p-3 rounded-2xl bg-[#E5F7EF] border border-[#E5F7EF] text-xs flex justify-between items-center">
               <span className="text-[#16865C] font-semibold">Estimated Monthly Cash Surplus:</span>
               <span className="font-mono font-extrabold text-[#16865C]">
-                ₹{(monthlyIncome - monthlyExpenses).toLocaleString('en-IN')} / mo
+                ₹{((monthlyIncome || 0) - (monthlyExpenses || 0)).toLocaleString('en-IN')} / mo
               </span>
             </div>
           </div>

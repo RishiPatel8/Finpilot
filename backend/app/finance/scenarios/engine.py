@@ -249,6 +249,7 @@ class ScenarioEngine:
                 total_amount_repaid=float(total_repaid),
                 total_interest_paid=float(total_interest),
                 processing_fee_amount=float(processing_fee),
+                processing_fee=float(processing_fee),
                 total_cost_of_ownership=float(total_ownership)
             )
 

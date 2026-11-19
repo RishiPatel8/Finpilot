@@ -1248,7 +1248,7 @@ export const ScenarioSimulatorView: React.FC = () => {
                   </div>
 
                   <p className="text-[11px] text-[#697386]">
-                    Calculated using reducing-balance amortization at <strong>{result.loan_analysis.annual_interest_rate_pct}% APR</strong> over <strong>{result.loan_analysis.tenure_months} months</strong>. Includes ₹{result.loan_analysis.processing_fee.toLocaleString()} processing fee.
+                    Calculated using reducing-balance amortization at <strong>{result.loan_analysis.annual_interest_rate_pct}% APR</strong> over <strong>{result.loan_analysis.tenure_months} months</strong>. Includes {formatINR(result.loan_analysis.processing_fee_amount ?? result.loan_analysis.processing_fee ?? 0)} processing fee.
                   </p>
                 </Card>
               )}
