@@ -610,17 +610,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               /* UNLINKED STATE */
               <div className="space-y-4">
                 {linkCodeData ? (
-                  <div className="p-4 rounded-2xl bg-[#F8F9FE] border border-[#6478E8]/30 space-y-4">
+                  <div className="p-5 rounded-2xl bg-[#141A26] border border-[#D4AF37]/35 shadow-xl shadow-black/40 space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#172033]">Your Single-Use Link Code:</span>
-                      <span className="text-[11px] font-mono text-[#D9485F] font-semibold">
+                      <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">Your Single-Use Link Code:</span>
+                      <span className="text-xs font-mono text-[#F43F5E] font-semibold bg-[#F43F5E]/10 px-2 py-0.5 rounded-md border border-[#F43F5E]/20">
                         Expires in {Math.floor(countdownSeconds / 60)}:{String(countdownSeconds % 60).padStart(2, '0')}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-white border border-[#E6EAF0] rounded-xl px-4 py-3 text-center">
-                        <span className="font-mono text-xl font-black text-[#6478E8] tracking-widest">
+                      <div className="flex-1 bg-[#090C14] border border-[#D4AF37]/40 rounded-xl px-4 py-3 text-center shadow-inner">
+                        <span className="font-mono text-2xl font-black text-[#F5DE88] tracking-widest selection:bg-[#D4AF37]/40">
                           {linkCodeData.code}
                         </span>
                       </div>
@@ -628,17 +628,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={handleCopyCode}
-                        icon={copiedCode ? <Check className="w-3.5 h-3.5 text-[#16865C]" /> : <Copy className="w-3.5 h-3.5" />}
+                        className="border-[rgba(212,175,55,0.3)] hover:bg-[#D4AF37]/15 text-[#F3F4F6]"
+                        icon={copiedCode ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5 text-[#ECC856]" />}
                       >
                         {copiedCode ? 'Copied!' : 'Copy'}
                       </Button>
                     </div>
 
-                    <div className="text-xs text-[#697386] space-y-1">
-                      <p className="font-semibold text-[#172033]">How to complete linking:</p>
-                      <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
-                        <li>Click <strong>Open in Telegram</strong> below or open Telegram on your phone.</li>
-                        <li>Send <code>/start {linkCodeData.code}</code> or <code>/link {linkCodeData.code}</code> in private chat.</li>
+                    <div className="text-xs text-[#9CA3AF] space-y-2 bg-[#0D111A]/80 p-3.5 rounded-xl border border-white/5">
+                      <p className="font-semibold text-[#F3F4F6]">How to complete linking:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-xs text-[#D1D5DB] leading-relaxed">
+                        <li>Click <strong className="text-[#F5DE88]">Open in Telegram</strong> below or open Telegram on your phone.</li>
+                        <li>Send <code className="bg-black/50 text-[#ECC856] px-1.5 py-0.5 rounded font-mono border border-[#D4AF37]/25">/start {linkCodeData.code}</code> or <code className="bg-black/50 text-[#ECC856] px-1.5 py-0.5 rounded font-mono border border-[#D4AF37]/25">/link {linkCodeData.code}</code> in private chat.</li>
                         <li>Your account is securely verified and linked instantly.</li>
                       </ol>
                     </div>
@@ -651,7 +652,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           rel="noreferrer"
                           className="flex-1"
                         >
-                          <Button variant="primary" size="sm" className="w-full justify-center" icon={<ExternalLink className="w-3.5 h-3.5" />}>
+                          <Button variant="primary" size="sm" className="w-full justify-center font-bold text-black" icon={<ExternalLink className="w-3.5 h-3.5" />}>
                             Open in Telegram
                           </Button>
                         </a>
@@ -662,7 +663,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           rel="noreferrer"
                           className="flex-1"
                         >
-                          <Button variant="primary" size="sm" className="w-full justify-center" icon={<ExternalLink className="w-3.5 h-3.5" />}>
+                          <Button variant="primary" size="sm" className="w-full justify-center font-bold text-black" icon={<ExternalLink className="w-3.5 h-3.5" />}>
                             Launch Telegram
                           </Button>
                         </a>
@@ -673,15 +674,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         size="sm"
                         onClick={handleGenerateLinkCode}
                         loading={generatingCode}
-                        icon={<RefreshCw className="w-3.5 h-3.5" />}
+                        className="border-white/15 text-[#D1D5DB] hover:bg-white/5"
+                        icon={<RefreshCw className="w-3.5 h-3.5 text-[#ECC856]" />}
                       >
                         New Code
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-2xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-3">
-                    <p className="text-xs text-[#697386] leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-[#141A26] border border-white/10 space-y-3">
+                    <p className="text-xs text-[#9CA3AF] leading-relaxed">
                       Link FinPilot with Telegram to access your Global AI CFO anywhere. Never link based on public usernames alone — generate a cryptographically secure, 15-minute single-use code to authorize your Telegram chat.
                     </p>
                     <div className="flex items-center gap-3">

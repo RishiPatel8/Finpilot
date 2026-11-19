@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Upload,
   FileSpreadsheet,
@@ -18,7 +18,27 @@ import {
   Sliders,
   DollarSign,
   Sparkles,
+  BarChart3,
+  PieChart as PieIcon,
+  TrendingUp,
+  Calendar,
+  ArrowUpRight,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from 'recharts';
 import { apiRequest } from '../../services/api';
 import { Transaction } from '../../types';
 import { Card, Badge, Button, PageHeader } from '../../components/ui';
@@ -111,6 +131,109 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
   const needsTargetAmt = (effectiveIncome * needsPct) / 100;
   const wantsTargetAmt = (effectiveIncome * wantsPct) / 100;
   const savingsTargetAmt = (effectiveIncome * savingsPct) / 100;
+
+  const [activeGraphTab, setActiveGraphTab] = useState<'allocation' | 'categories' | 'timeline'>('allocation');
+
+  const totalTrackedExpenses = useMemo(() => {
+    return actualExpensesList.reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  }, [actualExpensesList]);
+
+  // 1. 50/30/20 Target vs Actual Comparison Data
+  const allocationGraphData = useMemo(() => [
+    {
+      category: 'Needs',
+      fullName: `Needs (${needsPct}%)`,
+      Target: Math.round(needsTargetAmt),
+      'Actual Spent': Math.round(actualNeedsSpent),
+      color: '#38BDF8',
+      overBudget: actualNeedsSpent > needsTargetAmt,
+    },
+    {
+      category: 'Wants',
+      fullName: `Wants (${wantsPct}%)`,
+      Target: Math.round(wantsTargetAmt),
+      'Actual Spent': Math.round(actualWantsSpent),
+      color: '#F59E0B',
+      overBudget: actualWantsSpent > wantsTargetAmt,
+    },
+    {
+      category: 'Savings',
+      fullName: `Savings (${savingsPct}%)`,
+      Target: Math.round(savingsTargetAmt),
+      'Actual Spent': Math.round(actualSavingsSpent),
+      color: '#10B981',
+      overBudget: false,
+    },
+  ], [needsPct, wantsPct, savingsPct, needsTargetAmt, wantsTargetAmt, savingsTargetAmt, actualNeedsSpent, actualWantsSpent, actualSavingsSpent]);
+
+  // 2. Categorical Spending Breakdown
+  const CATEGORY_COLORS = [
+    '#38BDF8', '#F59E0B', '#10B981', '#A855F7', '#F43F5E',
+    '#06B6D4', '#EC4899', '#EAB308', '#6366F1', '#D4AF37'
+  ];
+
+  const categoryGraphData = useMemo(() => {
+    if (actualExpensesList.length === 0) {
+      const base = effectiveIncome > 0 ? effectiveIncome : 50000;
+      return [
+        { name: 'Rent & Housing', value: Math.round(base * 0.25), color: '#38BDF8' },
+        { name: 'Groceries & Provisions', value: Math.round(base * 0.15), color: '#60A5FA' },
+        { name: 'Utilities & Bills', value: Math.round(base * 0.10), color: '#818CF8' },
+        { name: 'Dining Out & Food', value: Math.round(base * 0.15), color: '#F59E0B' },
+        { name: 'Shopping & Leisure', value: Math.round(base * 0.15), color: '#FB923C' },
+        { name: 'SIPs & Investments', value: Math.round(base * 0.20), color: '#10B981' },
+      ];
+    }
+
+    const catMap: Record<string, number> = {};
+    actualExpensesList.forEach((t) => {
+      const c = (t.category || 'Other').trim();
+      catMap[c] = (catMap[c] || 0) + Number(t.amount || 0);
+    });
+
+    return Object.entries(catMap)
+      .map(([name, value], idx) => ({
+        name,
+        value: Math.round(value),
+        color: CATEGORY_COLORS[idx % CATEGORY_COLORS.length],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [actualExpensesList, effectiveIncome]);
+
+  // 3. Outflow Timeline Over Time
+  const timelineGraphData = useMemo(() => {
+    if (actualExpensesList.length === 0) {
+      const base = effectiveIncome > 0 ? effectiveIncome : 50000;
+      return [
+        { label: 'Week 1', daily: Math.round(base * 0.18), cumulative: Math.round(base * 0.18), budgetGuideline: Math.round(base * 0.20) },
+        { label: 'Week 2', daily: Math.round(base * 0.22), cumulative: Math.round(base * 0.40), budgetGuideline: Math.round(base * 0.40) },
+        { label: 'Week 3', daily: Math.round(base * 0.19), cumulative: Math.round(base * 0.59), budgetGuideline: Math.round(base * 0.60) },
+        { label: 'Week 4', daily: Math.round(base * 0.16), cumulative: Math.round(base * 0.75), budgetGuideline: Math.round(base * 0.80) },
+      ];
+    }
+
+    const sorted = [...actualExpensesList].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const dailyMap: Record<string, number> = {};
+    sorted.forEach((t) => {
+      const d = t.date ? t.date.slice(5) : 'Recent';
+      dailyMap[d] = (dailyMap[d] || 0) + Number(t.amount || 0);
+    });
+
+    let runningTotal = 0;
+    const targetDailyRunRate = effectiveIncome > 0 ? Math.round(effectiveIncome / 30) : 1500;
+    let expectedGuideline = 0;
+
+    return Object.entries(dailyMap).map(([date, amt]) => {
+      runningTotal += amt;
+      expectedGuideline += targetDailyRunRate;
+      return {
+        label: date,
+        daily: Math.round(amt),
+        cumulative: Math.round(runningTotal),
+        budgetGuideline: Math.round(expectedGuideline),
+      };
+    });
+  }, [actualExpensesList, effectiveIncome]);
 
   const handleSaveFramework = async () => {
     if (!isTotalValid) return;
@@ -502,33 +625,33 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
           </div>
         ) : (
           /* Edit Mode: Interactive Customization Panel */
-          <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E6EAF0] space-y-5 animate-in fade-in duration-200">
+          <div className="p-5 rounded-2xl bg-[#141A26] border border-[#D4AF37]/35 shadow-xl shadow-black/40 space-y-5 animate-in fade-in duration-200">
             {/* 1. Benchmark Income Field */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-[#172033] uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-[#6478E8]" />
+                <label className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-[#ECC856]" />
                   <span>Benchmark Monthly Net Income</span>
                 </label>
-                <span className="text-[11px] text-[#697386]">
+                <span className="text-[11px] text-[#9CA3AF]">
                   Saving also syncs to your financial profile
                 </span>
               </div>
               <div className="relative max-w-sm">
-                <span className="absolute left-3.5 top-2.5 text-xs text-[#697386] font-semibold">₹</span>
+                <span className="absolute left-3.5 top-2.5 text-xs text-[#ECC856] font-semibold">₹</span>
                 <input
                   type="number"
                   value={customIncome || ''}
                   onChange={(e) => setCustomIncome(Number(e.target.value))}
                   placeholder="e.g. 60000"
-                  className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#172033] font-bold focus:outline-none focus:border-[#6478E8] focus:ring-2 focus:ring-[#6478E8]/10 transition-all"
+                  className="w-full bg-[#0B0E17] border border-white/15 rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm font-mono tabular-nums text-[#F3F4F6] font-bold focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/15 transition-all"
                 />
               </div>
             </div>
 
             {/* 2. Quick Allocation Presets */}
-            <div className="space-y-1.5 pt-3 border-t border-[#E6EAF0]">
-              <span className="text-xs font-bold text-[#172033] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 border-t border-white/10">
+              <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider block">
                 Quick Framework Presets
               </span>
               <div className="flex flex-wrap gap-2">
@@ -537,8 +660,8 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   onClick={() => applyPreset(50, 30, 20)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                     needsPct === 50 && wantsPct === 30 && savingsPct === 20
-                      ? 'bg-[#EEF0FF] text-[#6478E8] border-[#6478E8]'
-                      : 'bg-white text-[#697386] border-[#E6EAF0] hover:border-slate-300'
+                      ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
+                      : 'bg-[#0B0E17] text-[#9CA3AF] border-white/10 hover:border-white/25 hover:text-[#F3F4F6]'
                   }`}
                 >
                   50 / 30 / 20 (Standard)
@@ -548,8 +671,8 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   onClick={() => applyPreset(60, 20, 20)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                     needsPct === 60 && wantsPct === 20 && savingsPct === 20
-                      ? 'bg-[#EEF0FF] text-[#6478E8] border-[#6478E8]'
-                      : 'bg-white text-[#697386] border-[#E6EAF0] hover:border-slate-300'
+                      ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
+                      : 'bg-[#0B0E17] text-[#9CA3AF] border-white/10 hover:border-white/25 hover:text-[#F3F4F6]'
                   }`}
                 >
                   60 / 20 / 20 (High Rent / Metros)
@@ -559,8 +682,8 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   onClick={() => applyPreset(40, 30, 30)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                     needsPct === 40 && wantsPct === 30 && savingsPct === 30
-                      ? 'bg-[#EEF0FF] text-[#6478E8] border-[#6478E8]'
-                      : 'bg-white text-[#697386] border-[#E6EAF0] hover:border-slate-300'
+                      ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
+                      : 'bg-[#0B0E17] text-[#9CA3AF] border-white/10 hover:border-white/25 hover:text-[#F3F4F6]'
                   }`}
                 >
                   40 / 30 / 30 (Aggressive Wealth Builder)
@@ -570,8 +693,8 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   onClick={() => applyPreset(70, 20, 10)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                     needsPct === 70 && wantsPct === 20 && savingsPct === 10
-                      ? 'bg-[#EEF0FF] text-[#6478E8] border-[#6478E8]'
-                      : 'bg-white text-[#697386] border-[#E6EAF0] hover:border-slate-300'
+                      ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
+                      : 'bg-[#0B0E17] text-[#9CA3AF] border-white/10 hover:border-white/25 hover:text-[#F3F4F6]'
                   }`}
                 >
                   70 / 20 / 10 (Single Earner / Families)
@@ -580,12 +703,12 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             </div>
 
             {/* 3. Interactive Sliders & Inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#E6EAF0]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-white/10">
               {/* Needs Slider */}
-              <div className="p-4 rounded-xl bg-white border border-[#E6EAF0] space-y-3">
+              <div className="p-4 rounded-xl bg-[#0B0E17] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#2B6CB0]">Needs Target (%)</label>
-                  <span className="text-xs font-mono font-bold text-[#172033]">{needsPct}%</span>
+                  <label className="text-xs font-bold text-sky-400">Needs Target (%)</label>
+                  <span className="text-xs font-mono font-bold text-[#F3F4F6]">{needsPct}%</span>
                 </div>
                 <input
                   type="range"
@@ -593,21 +716,21 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   max="90"
                   value={needsPct}
                   onChange={(e) => setNeedsPct(Number(e.target.value))}
-                  className="w-full accent-[#2B6CB0] cursor-pointer"
+                  className="w-full accent-sky-400 cursor-pointer"
                 />
-                <div className="flex items-center justify-between pt-1 border-t border-[#F1F4F9] text-[11px]">
-                  <span className="text-[#697386]">Target Sum:</span>
-                  <span className="font-mono font-bold text-[#172033]">
+                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
+                  <span className="text-[#9CA3AF]">Target Sum:</span>
+                  <span className="font-mono font-bold text-[#F3F4F6]">
                     {formatINR((effectiveIncome * needsPct) / 100)}
                   </span>
                 </div>
               </div>
 
               {/* Wants Slider */}
-              <div className="p-4 rounded-xl bg-white border border-[#E6EAF0] space-y-3">
+              <div className="p-4 rounded-xl bg-[#0B0E17] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#B7791F]">Wants Target (%)</label>
-                  <span className="text-xs font-mono font-bold text-[#172033]">{wantsPct}%</span>
+                  <label className="text-xs font-bold text-amber-400">Wants Target (%)</label>
+                  <span className="text-xs font-mono font-bold text-[#F3F4F6]">{wantsPct}%</span>
                 </div>
                 <input
                   type="range"
@@ -615,21 +738,21 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   max="80"
                   value={wantsPct}
                   onChange={(e) => setWantsPct(Number(e.target.value))}
-                  className="w-full accent-[#B7791F] cursor-pointer"
+                  className="w-full accent-amber-400 cursor-pointer"
                 />
-                <div className="flex items-center justify-between pt-1 border-t border-[#F1F4F9] text-[11px]">
-                  <span className="text-[#697386]">Target Sum:</span>
-                  <span className="font-mono font-bold text-[#172033]">
+                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
+                  <span className="text-[#9CA3AF]">Target Sum:</span>
+                  <span className="font-mono font-bold text-[#F3F4F6]">
                     {formatINR((effectiveIncome * wantsPct) / 100)}
                   </span>
                 </div>
               </div>
 
               {/* Savings Slider */}
-              <div className="p-4 rounded-xl bg-white border border-[#E6EAF0] space-y-3">
+              <div className="p-4 rounded-xl bg-[#0B0E17] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#16865C]">Savings & Investments (%)</label>
-                  <span className="text-xs font-mono font-bold text-[#172033]">{savingsPct}%</span>
+                  <label className="text-xs font-bold text-emerald-400">Savings & Investments (%)</label>
+                  <span className="text-xs font-mono font-bold text-[#10B981]">{savingsPct}%</span>
                 </div>
                 <input
                   type="range"
@@ -637,11 +760,11 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   max="80"
                   value={savingsPct}
                   onChange={(e) => setSavingsPct(Number(e.target.value))}
-                  className="w-full accent-[#16865C] cursor-pointer"
+                  className="w-full accent-emerald-400 cursor-pointer"
                 />
-                <div className="flex items-center justify-between pt-1 border-t border-[#F1F4F9] text-[11px]">
-                  <span className="text-[#697386]">Target Sum:</span>
-                  <span className="font-mono font-bold text-[#16865C]">
+                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
+                  <span className="text-[#9CA3AF]">Target Sum:</span>
+                  <span className="font-mono font-bold text-[#10B981]">
                     {formatINR((effectiveIncome * savingsPct) / 100)}
                   </span>
                 </div>
@@ -649,7 +772,7 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             </div>
 
             {/* 4. Total Validation & Actions */}
-            <div className="pt-3 border-t border-[#E6EAF0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {isTotalValid ? (
                   <Badge variant="mint" size="sm" className="font-semibold">
@@ -664,7 +787,7 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                     )
                   </Badge>
                 )}
-                <span className="text-[11px] text-[#697386]">
+                <span className="text-[11px] text-[#9CA3AF]">
                   Allocations must sum exactly to 100%.
                 </span>
               </div>
@@ -696,6 +819,360 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                   Save Allocation
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Visual Budget & Spending Graphs Analytics */}
+      <Card className="space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-[#ECC856]" />
+              <h2 className="text-base font-bold text-[#F3F4F6]">
+                Budget & Spending Visual Analytics
+              </h2>
+              <Badge variant="blue" size="sm">
+                Live Interactive
+              </Badge>
+            </div>
+            <p className="text-xs text-[#9CA3AF] mt-0.5">
+              Compare your target 50/30/20 budget allocations against verified spending, examine categorical distribution, and audit monthly outflow.
+            </p>
+          </div>
+
+          {/* View Tab Selector */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B0E17] border border-white/10 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveGraphTab('allocation')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeGraphTab === 'allocation'
+                  ? 'bg-[#D4AF37] text-black shadow-md font-bold'
+                  : 'text-[#9CA3AF] hover:text-[#F3F4F6] hover:bg-white/5'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>50/30/20 vs Actual</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveGraphTab('categories')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeGraphTab === 'categories'
+                  ? 'bg-[#D4AF37] text-black shadow-md font-bold'
+                  : 'text-[#9CA3AF] hover:text-[#F3F4F6] hover:bg-white/5'
+              }`}
+            >
+              <PieIcon className="w-3.5 h-3.5" />
+              <span>Category Breakdown</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveGraphTab('timeline')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                activeGraphTab === 'timeline'
+                  ? 'bg-[#D4AF37] text-black shadow-md font-bold'
+                  : 'text-[#9CA3AF] hover:text-[#F3F4F6] hover:bg-white/5'
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Spending Outflow</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Top KPI Metric Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-xl bg-[#141A26] border border-white/10 shadow-sm">
+            <span className="text-[11px] text-[#9CA3AF] font-medium block">Total Tracked Outflow</span>
+            <span className="text-lg font-bold font-mono text-[#F3F4F6] tabular-nums mt-0.5 block">
+              {formatINR(totalTrackedExpenses)}
+            </span>
+            <span className="text-[10px] text-[#9CA3AF]">
+              {actualExpensesList.length} expenses recorded
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#141A26] border border-sky-500/25 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-sky-400 font-medium">Needs Outflow</span>
+              <span className="text-[10px] text-sky-300 font-mono font-bold bg-sky-500/15 px-1.5 py-0.5 rounded">
+                {needsTargetAmt > 0 ? Math.round((actualNeedsSpent / needsTargetAmt) * 100) : 0}% of target
+              </span>
+            </div>
+            <span className="text-lg font-bold font-mono text-[#F3F4F6] tabular-nums mt-0.5 block">
+              {formatINR(actualNeedsSpent)}
+            </span>
+            <span className="text-[10px] text-[#9CA3AF]">
+              Target: {formatINR(needsTargetAmt)}
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#141A26] border border-amber-500/25 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-amber-400 font-medium">Wants Outflow</span>
+              <span className="text-[10px] text-amber-300 font-mono font-bold bg-amber-500/15 px-1.5 py-0.5 rounded">
+                {wantsTargetAmt > 0 ? Math.round((actualWantsSpent / wantsTargetAmt) * 100) : 0}% of target
+              </span>
+            </div>
+            <span className="text-lg font-bold font-mono text-[#F3F4F6] tabular-nums mt-0.5 block">
+              {formatINR(actualWantsSpent)}
+            </span>
+            <span className="text-[10px] text-[#9CA3AF]">
+              Target: {formatINR(wantsTargetAmt)}
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#141A26] border border-emerald-500/25 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-emerald-400 font-medium">Saved / Invested</span>
+              <span className="text-[10px] text-emerald-300 font-mono font-bold bg-emerald-500/15 px-1.5 py-0.5 rounded">
+                {savingsTargetAmt > 0 ? Math.round((actualSavingsSpent / savingsTargetAmt) * 100) : 0}% of target
+              </span>
+            </div>
+            <span className="text-lg font-bold font-mono text-[#10B981] tabular-nums mt-0.5 block">
+              {formatINR(actualSavingsSpent)}
+            </span>
+            <span className="text-[10px] text-[#9CA3AF]">
+              Target: {formatINR(savingsTargetAmt)}
+            </span>
+          </div>
+        </div>
+
+        {/* 1. Bar Chart: 50/30/20 Target vs Actual Spent */}
+        {activeGraphTab === 'allocation' && (
+          <div className="space-y-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <span className="text-[#9CA3AF]">
+                Monthly Benchmark: <strong className="text-[#F5DE88] font-mono">{formatINR(effectiveIncome)}</strong>
+              </span>
+              <div className="flex items-center gap-4">
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#9CA3AF]">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[rgba(212,175,55,0.4)] border border-[#D4AF37]" />
+                  <span>Target Budget</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#9CA3AF]">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#38BDF8]" />
+                  <span>Actual Spent</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="h-72 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={allocationGraphData} margin={{ top: 15, right: 15, left: 10, bottom: 5 }} barGap={8}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis
+                    dataKey="fullName"
+                    stroke="#9CA3AF"
+                    tick={{ fontSize: 12, fill: '#D1D5DB' }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(212,175,55,0.2)' }}
+                  />
+                  <YAxis
+                    stroke="#9CA3AF"
+                    tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(212,175,55,0.2)' }}
+                    tickFormatter={(val) => `₹${val >= 1000 ? `${Math.round(val / 1000)}k` : val}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0D111A',
+                      border: '1px solid rgba(212, 175, 55, 0.35)',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.8)',
+                      fontSize: '12px',
+                      color: '#F3F4F6',
+                    }}
+                    formatter={(val: any, name: string) => [formatINR(Number(val)), name]}
+                  />
+                  <Bar
+                    dataKey="Target"
+                    fill="rgba(212, 175, 55, 0.35)"
+                    stroke="#D4AF37"
+                    strokeWidth={1}
+                    radius={[6, 6, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="Actual Spent"
+                    radius={[6, 6, 0, 0]}
+                  >
+                    {allocationGraphData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.overBudget ? '#F43F5E' : entry.color}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Donut / Pie Chart: Categorical Outflow Distribution */}
+        {activeGraphTab === 'categories' && (
+          <div className="space-y-3 pt-2">
+            {actualExpensesList.length === 0 && (
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-xs text-[#F5DE88]">
+                <span>ℹ️ Displaying standard Indian expense category benchmark. Import a statement or log transactions to view your personal distribution.</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              <div className="h-72 w-full min-w-0 relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryGraphData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={65}
+                      outerRadius={95}
+                      paddingAngle={3}
+                      stroke="rgba(0,0,0,0.4)"
+                      strokeWidth={2}
+                    >
+                      {categoryGraphData.map((entry, index) => (
+                        <Cell key={`slice-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0D111A',
+                        border: '1px solid rgba(212, 175, 55, 0.35)',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.8)',
+                        fontSize: '12px',
+                        color: '#F3F4F6',
+                      }}
+                      formatter={(val: any) => [formatINR(Number(val)), 'Amount']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center Callout inside Donut */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span className="text-[10px] text-[#9CA3AF] uppercase tracking-wider font-semibold">Total</span>
+                  <span className="text-sm font-black font-mono text-[#F3F4F6] tabular-nums">
+                    {formatINR(categoryGraphData.reduce((acc, c) => acc + c.value, 0))}
+                  </span>
+                </div>
+              </div>
+
+              {/* Categorical Breakdown Legend */}
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
+                {categoryGraphData.map((cat, idx) => {
+                  const grandTotal = categoryGraphData.reduce((acc, c) => acc + c.value, 0);
+                  const pct = grandTotal > 0 ? Math.round((cat.value / grandTotal) * 100) : 0;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2 rounded-xl bg-[#0B0E17] border border-white/5 text-xs hover:border-white/15 transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                        <span className="font-semibold text-[#F3F4F6] truncate max-w-[150px]">{cat.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[#D1D5DB] tabular-nums">{formatINR(cat.value)}</span>
+                        <span className="text-[10px] font-mono font-bold text-[#ECC856] bg-[#ECC856]/10 px-1.5 py-0.5 rounded">
+                          {pct}%
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Area Chart: Spending Outflow Timeline */}
+        {activeGraphTab === 'timeline' && (
+          <div className="space-y-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <span className="text-[#9CA3AF]">
+                {actualExpensesList.length > 0
+                  ? 'Daily Outflow and Cumulative Monthly Build-up'
+                  : 'Sample Monthly Outflow Burn-Rate Guideline'}
+              </span>
+              <div className="flex items-center gap-4">
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#9CA3AF]">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#F43F5E]" />
+                  <span>Cumulative Spent</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#9CA3AF]">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#D4AF37]" />
+                  <span>Run-Rate Pace</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="h-72 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={timelineGraphData} margin={{ top: 15, right: 15, left: 10, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="spendOutflowGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F43F5E" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="guideGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#D4AF37" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    stroke="#9CA3AF"
+                    tick={{ fontSize: 11, fill: '#D1D5DB' }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(212,175,55,0.2)' }}
+                  />
+                  <YAxis
+                    stroke="#9CA3AF"
+                    tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(212,175,55,0.2)' }}
+                    tickFormatter={(val) => `₹${val >= 1000 ? `${Math.round(val / 1000)}k` : val}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0D111A',
+                      border: '1px solid rgba(212, 175, 55, 0.35)',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.8)',
+                      fontSize: '12px',
+                      color: '#F3F4F6',
+                    }}
+                    formatter={(val: any, name: string) => [formatINR(Number(val)), name]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulative"
+                    name="Cumulative Spent"
+                    stroke="#F43F5E"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#spendOutflowGrad)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="budgetGuideline"
+                    name="Budget Pace"
+                    stroke="#D4AF37"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    fillOpacity={1}
+                    fill="url(#guideGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

@@ -418,19 +418,19 @@ export const DebtManagementView: React.FC = () => {
         <Card className="space-y-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-[#172033] flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-[#6478E8]" />
+              <h2 className="text-base font-bold text-[#F3F4F6] flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-[#ECC856]" />
                 <span>Accelerated Debt Payoff Strategy</span>
               </h2>
-              <p className="text-xs text-[#697386]">
+              <p className="text-xs text-[#9CA3AF]">
                 Compare the mathematical savings of Debt Avalanche vs psychological momentum of Debt Snowball.
               </p>
             </div>
 
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-[#697386] font-medium">Extra Monthly Prepayment:</span>
+              <span className="text-[#9CA3AF] font-medium">Extra Monthly Prepayment:</span>
               <div className="relative w-32">
-                <span className="absolute left-2.5 top-1.5 text-xs text-[#697386]">₹</span>
+                <span className="absolute left-2.5 top-1.5 text-xs text-[#ECC856]">₹</span>
                 <input
                   type="number"
                   step="1000"
@@ -440,7 +440,7 @@ export const DebtManagementView: React.FC = () => {
                     setExtraPayment(val);
                     fetchPlan(liabilities, val);
                   }}
-                  className="w-full bg-white border border-[#E6EAF0] rounded-xl pl-6 pr-2 py-1 text-xs font-mono font-bold focus:outline-none focus:border-[#6478E8]"
+                  className="w-full bg-[#0B0E17] border border-white/15 rounded-xl pl-6 pr-2 py-1 text-xs font-mono font-bold text-[#F3F4F6] focus:outline-none focus:border-[#D4AF37]"
                 />
               </div>
             </div>
@@ -448,10 +448,10 @@ export const DebtManagementView: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Avalanche Strategy */}
-            <div className="p-4 rounded-2xl bg-[#EEF0FF]/50 border border-[#EEF0FF] space-y-3">
+            <div className="p-4 rounded-2xl bg-[#141A26] border border-[#D4AF37]/40 shadow-lg shadow-black/40 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#6478E8] flex items-center gap-1.5 uppercase tracking-wider">
-                  <Flame className="w-4 h-4 text-[#D9485F]" />
+                <span className="text-xs font-bold text-[#F5DE88] flex items-center gap-1.5 uppercase tracking-wider">
+                  <Flame className="w-4 h-4 text-[#F43F5E]" />
                   <span>Debt Avalanche (Optimal Interest)</span>
                 </span>
                 <Badge variant="mint" size="sm">
@@ -459,19 +459,19 @@ export const DebtManagementView: React.FC = () => {
                 </Badge>
               </div>
 
-              <p className="text-xs text-[#697386] leading-relaxed">
+              <p className="text-xs text-[#9CA3AF] leading-relaxed">
                 Pay minimum EMIs on all loans, then direct all extra cash to the liability with the{' '}
-                <strong>highest interest rate</strong>.
+                <strong className="text-[#F3F4F6]">highest interest rate</strong>.
               </p>
 
               <div className="space-y-1.5 pt-2">
-                <span className="text-[11px] font-bold text-[#172033] block">Payoff Priority Order:</span>
+                <span className="text-[11px] font-bold text-[#D1D5DB] block">Payoff Priority Order:</span>
                 {repaymentPlan.avalanche_priority.map((name, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E6EAF0] text-xs"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0E17] border border-white/10 text-xs"
                   >
-                    <span className="font-semibold text-[#172033]">
+                    <span className="font-semibold text-[#F3F4F6]">
                       #{idx + 1} {name}
                     </span>
                     <Badge variant={idx === 0 ? 'lavender' : 'neutral'} size="sm">
@@ -483,10 +483,10 @@ export const DebtManagementView: React.FC = () => {
             </div>
 
             {/* Snowball Strategy */}
-            <div className="p-4 rounded-2xl bg-[#F6F8FC] border border-[#E6EAF0] space-y-3">
+            <div className="p-4 rounded-2xl bg-[#141A26] border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#2B6CB0] flex items-center gap-1.5 uppercase tracking-wider">
-                  <Snowflake className="w-4 h-4 text-[#2B6CB0]" />
+                <span className="text-xs font-bold text-[#38BDF8] flex items-center gap-1.5 uppercase tracking-wider">
+                  <Snowflake className="w-4 h-4 text-[#38BDF8]" />
                   <span>Debt Snowball (Behavioral Wins)</span>
                 </span>
                 <Badge variant="blue" size="sm">
@@ -494,19 +494,19 @@ export const DebtManagementView: React.FC = () => {
                 </Badge>
               </div>
 
-              <p className="text-xs text-[#697386] leading-relaxed">
+              <p className="text-xs text-[#9CA3AF] leading-relaxed">
                 Pay minimum EMIs on all loans, then direct all extra cash to the liability with the{' '}
-                <strong>smallest balance</strong> to close accounts rapidly.
+                <strong className="text-[#F3F4F6]">smallest balance</strong> to close accounts rapidly.
               </p>
 
               <div className="space-y-1.5 pt-2">
-                <span className="text-[11px] font-bold text-[#172033] block">Payoff Priority Order:</span>
+                <span className="text-[11px] font-bold text-[#D1D5DB] block">Payoff Priority Order:</span>
                 {repaymentPlan.snowball_priority.map((name, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E6EAF0] text-xs"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0E17] border border-white/10 text-xs"
                   >
-                    <span className="font-semibold text-[#172033]">
+                    <span className="font-semibold text-[#F3F4F6]">
                       #{idx + 1} {name}
                     </span>
                     <Badge variant={idx === 0 ? 'blue' : 'neutral'} size="sm">

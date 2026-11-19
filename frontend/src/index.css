@@ -103,6 +103,43 @@
   }
 }
 
+/* ==========================================================================
+   GLOBAL DARK THEME CONTRAST & VISIBILITY ENFORCEMENT
+   Prevents legacy light-theme classes from causing unreadable/washed-out text
+   ========================================================================== */
+.dark [class*="text-[#172033]"] {
+  color: #F3F4F6 !important;
+}
+.dark [class*="text-[#697386]"] {
+  color: #9CA3AF !important;
+}
+.dark [class*="text-slate-900"],
+.dark [class*="text-slate-800"] {
+  color: #F3F4F6 !important;
+}
+.dark [class*="text-slate-700"],
+.dark [class*="text-slate-600"] {
+  color: #9CA3AF !important;
+}
+.dark [class*="text-slate-500"] {
+  color: #9CA3AF !important;
+}
+
+/* Map legacy light container backgrounds inside dark mode to luxury dark surfaces */
+.dark [class*="bg-[#F6F8FC]"],
+.dark [class*="bg-[#F8FAFC]"],
+.dark [class*="bg-[#F8F9FE]"],
+.dark [class*="bg-[#F8FAFD]"],
+.dark [class*="bg-[#EEF0FF]"] {
+  background-color: rgba(20, 26, 38, 0.95) !important;
+  border-color: rgba(212, 175, 55, 0.18) !important;
+}
+.dark [class*="border-[#E6EAF0]"],
+.dark [class*="border-[#CAD5E2]"],
+.dark [class*="border-[#DCE4EC]"] {
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
 @keyframes float-reverse {
   0%, 100% {
     transform: translateY(0px);

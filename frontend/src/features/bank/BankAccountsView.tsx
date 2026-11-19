@@ -379,20 +379,20 @@ export const BankAccountsView: React.FC<BankAccountsViewProps> = ({ onNavigateTo
       )}
 
       {/* Security & Regulatory Transparency */}
-      <Card className="p-6 bg-[#F8FAFD] border-[#DCE4EC]">
+      <Card className="p-6 bg-[#111622]/95 border-[rgba(212,175,55,0.25)] shadow-xl shadow-black/40">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white border border-[#CAD5E2] flex items-center justify-center text-[#6478E8] flex-shrink-0 mt-0.5">
+          <div className="w-10 h-10 rounded-xl bg-[#141A26] border border-[#D4AF37]/35 flex items-center justify-center text-[#ECC856] flex-shrink-0 mt-0.5 shadow-md">
             <Lock className="w-5 h-5" />
           </div>
           <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-slate-800">
+            <h4 className="text-sm font-bold text-[#F5DE88] tracking-wide">
               RBI Account Aggregator Security Guarantees
             </h4>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              FinPilot adheres strictly to the <strong>Master Direction - Non-Banking Financial Company - Account Aggregator (Reserve Bank) Directions, 2016</strong>.
+            <p className="text-xs text-[#9CA3AF] leading-relaxed">
+              FinPilot adheres strictly to the <strong className="text-[#F3F4F6] font-semibold">Master Direction - Non-Banking Financial Company - Account Aggregator (Reserve Bank) Directions, 2016</strong>.
               All data fetching is consent-driven, encrypted end-to-end between your bank and FinPilot, and requires no credential sharing.
-              You have the statutory right under the <strong>Digital Personal Data Protection (DPDP) Act, 2023</strong> to revoke consent or permanently purge synchronized financial records at any time in{' '}
-              <span className="font-medium text-[#6478E8]">Settings & Privacy</span>.
+              You have the statutory right under the <strong className="text-[#F3F4F6] font-semibold">Digital Personal Data Protection (DPDP) Act, 2023</strong> to revoke consent or permanently purge synchronized financial records at any time in{' '}
+              <span className="font-semibold text-[#ECC856]">Settings & Privacy</span>.
             </p>
           </div>
         </div>
